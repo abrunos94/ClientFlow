@@ -1,0 +1,10 @@
+
+:root {
+  --cor-fundo: #0d0d0d;      /* Preto profundo do fundo */
+  --cor-card: #1a1a1a;       /* Cinza muito escuro para os cards */
+  --cor-primaria: #b8864b;   /* O tom dourado/bronze dos botões */
+  --cor-texto: #ffffff;      /* Branco para títulos */
+  --cor-subtexto: #a1a1a1;   /* Cinza claro para descrições */
+  --fonte-principal: 'Montserrat', sans-serif;
+}
+
