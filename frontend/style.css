@@ -2,246 +2,283 @@
    1. CONFIGURAÇÕES GERAIS E VARIÁVEIS
    ========================================= */
 :root {
-    --cor-fundo: #0d0d0d;
-    --cor-card: #1a1a1a;
-    --cor-primaria: #b8864b;
-    --cor-texto: #ffffff;
-    --cor-subtexto: #a1a1a1;
-    --fonte-principal: 'Montserrat', sans-serif;
+  --cor-fundo: #0d0d0d;
+  --cor-card: #1a1a1a;
+  --cor-primaria: #b8864b;
+  --cor-texto: #ffffff;
+  --cor-subtexto: #a1a1a1;
+  --fonte-principal: "Montserrat", sans-serif;
 }
 
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: var(--fonte-principal);
-    background-color: var(--cor-fundo);
-    color: var(--cor-texto);
-    line-height: 1.6;
+  font-family: var(--fonte-principal);
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  line-height: 1.6;
 }
 
-.container { 
-    padding: 60px 10%; 
+.container {
+  padding: 60px 10%;
 }
 
 /* Títulos com linha decorativa */
-.titulo-decorado, .titulo-centralizado {
-    font-size: 2rem;
-    margin-bottom: 30px;
-    border-bottom: 2px solid var(--cor-primaria);
-    display: inline-block;
-    padding-bottom: 5px;
+.titulo-decorado,
+.titulo-centralizado {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--cor-primaria);
+  display: inline-block;
+  padding-bottom: 5px;
 }
 
 .titulo-centralizado {
-    display: table; /* Faz a borda ajustar ao tamanho do texto */
-    margin: 0 auto 40px auto;
+  display: table;
+  /* Faz a borda ajustar ao tamanho do texto */
+  margin: 0 auto 40px auto;
 }
 
 /* =========================================
    2. HERO SECTION (Ajustada para o tamanho ideal)
    ========================================= */
 #hero {
-    position: relative;
-    height: 480px; /* Altura controlada para não ficar gigante */
-    display: flex;
-    align-items: center;
-    overflow: hidden;
+  position: relative;
+  height: 480px;
+  /* Altura controlada para não ficar gigante */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
 }
 
 .imagem-hero {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
 .imagem-hero img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center right; /* Mantém o rosto do modelo visível */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center right;
+  /* Mantém o rosto do modelo visível */
 }
 
 /* Efeito de degradê para o texto ficar legível */
 .imagem-hero::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, 
-        rgba(0,0,0,0.95) 0%, 
-        rgba(0,0,0,0.7) 40%, 
-        transparent 100%);
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.7) 40%,
+    transparent 100%
+  );
 }
 
 .hero-content {
-    position: relative;
-    z-index: 2;
-    padding-left: 10%;
-    max-width: 700px;
+  position: relative;
+  z-index: 2;
+  padding-left: 10%;
+  max-width: 700px;
 }
 
 .hero-content h1 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
-    line-height: 1.2;
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  line-height: 1.2;
 }
 
 .hero-content p {
-    font-size: 1.1rem;
-    color: var(--cor-subtexto);
-    margin-bottom: 25px;
+  font-size: 1.1rem;
+  color: var(--cor-subtexto);
+  margin-bottom: 25px;
 }
 
 /* =========================================
    3. SEÇÃO SOBRE NÓS (Lado a Lado)
    ========================================= */
 #sobre {
-    display: flex;
-    align-items: center;
-    gap: 50px;
+  display: flex;
+  align-items: center;
+  gap: 50px;
 }
 
-.texto-sobre { flex: 1; }
-.imagem-sobre { flex: 1; }
+.texto-sobre {
+  flex: 1;
+}
+
+.imagem-sobre {
+  flex: 1;
+}
 
 .imagem-sobre img {
-    width: 100%;
-    border-radius: 4px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  width: 100%;
+  border-radius: 4px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* =========================================
    4. SERVIÇOS E CARDS
    ========================================= */
 .cards-grid {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 .card {
-    background-color: var(--cor-card);
-    padding: 40px 20px;
-    text-align: center;
-    border-radius: 4px;
-    flex: 1;
-    transition: transform 0.3s;
+  background-color: var(--cor-card);
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 4px;
+  flex: 1;
+  transition: transform 0.3s;
 }
 
-.card:hover { transform: translateY(-5px); }
+.card:hover {
+  transform: translateY(-5px);
+}
 
-.card h3 { margin-bottom: 15px; }
+.card h3 {
+  margin-bottom: 15px;
+}
 
 .preco {
-    color: var(--cor-primaria);
-    font-size: 1.8rem;
-    font-weight: bold;
-    margin-bottom: 20px;
+  color: var(--cor-primaria);
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
 /* =========================================
    5. GALERIA
    ========================================= */
 .galeria-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 colunas perfeitas */
-    gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* 4 colunas perfeitas */
+  gap: 15px;
 }
 
 .galeria-grid img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 4px;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 /* =========================================
    6. FORMULÁRIO E BOTÕES
    ========================================= */
 .form-agendamento {
-    max-width: 600px;
-    margin: 0 auto;
-    background: var(--cor-card);
-    padding: 30px;
-    border-radius: 4px;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--cor-card);
+  padding: 30px;
+  border-radius: 4px;
 }
 
 .form-agendamento label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-    color: var(--cor-subtexto);
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: var(--cor-subtexto);
 }
 
-input, select {
-    width: 100%;
-    background: #2a2a2a;
-    border: 1px solid #333;
-    color: white;
-    padding: 12px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    font-family: inherit;
+input,
+select {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  font-family: inherit;
 }
 
 /* Estilo unificado de botões */
-.btn-principal, .btn-confirmar, .btn-card {
-    background-color: var(--cor-primaria);
-    color: white;
-    padding: 12px 25px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    font-family: inherit;
-    transition: 0.3s;
-    display: inline-block;
+.btn-principal,
+.btn-confirmar,
+.btn-card {
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: 12px 25px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  font-family: inherit;
+  transition: 0.3s;
+  display: inline-block;
 }
 
-.btn-principal:hover, .btn-confirmar:hover, .btn-card:hover {
-    background-color: #966d3b;
+.btn-principal:hover,
+.btn-confirmar:hover,
+.btn-card:hover {
+  background-color: #966d3b;
 }
 
-.btn-confirmar { width: 100%; font-size: 1rem; }
+.btn-confirmar {
+  width: 100%;
+  font-size: 1rem;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');
+  filter: none;
+  /* Garante que o filtro não estrague o SVG */
+}
 
 /* =========================================
    7. FOOTER
    ========================================= */
 footer {
-    padding: 40px 10%;
-    border-top: 1px solid #222;
+  padding: 40px 10%;
+  border-top: 1px solid #222;
 }
 
 .footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.footer-content img {
-    width: 300px;
-    border-radius: 4px;
-}
+
 
 /* =========================================
    8. RESPONSIVIDADE (Para telemóvel)
    ========================================= */
 @media (max-width: 768px) {
-    #sobre, .cards-grid, .footer-content {
-        flex-direction: column;
-    }
-    .galeria-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .hero-content h1 { font-size: 2rem; }
-    #hero { height: auto; padding: 100px 5%; }
+  #sobre,
+  .cards-grid,
+  .footer-content {
+    flex-direction: column;
+  }
+
+  .galeria-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  #hero {
+    height: auto;
+    padding: 100px 5%;
+  }
 }
