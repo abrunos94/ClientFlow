@@ -48,11 +48,13 @@ body {
    ========================================= */
 #hero {
   position: relative;
-  height: 480px;
-  /* Altura controlada para não ficar gigante */
+  height: 80vh;
+  /* Usa 80% da altura da tela, fica mais imersivo */
+  min-height: 480px;
   display: flex;
   align-items: center;
   overflow: hidden;
+  background-color: #000;
 }
 
 .imagem-hero {
@@ -80,12 +82,10 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.95) 0%,
-    rgba(0, 0, 0, 0.7) 40%,
-    transparent 100%
-  );
+  background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.7) 40%,
+      transparent 100%);
 }
 
 .hero-content {
@@ -262,23 +262,107 @@ footer {
 /* =========================================
    8. RESPONSIVIDADE (Para telemóvel)
    ========================================= */
-@media (max-width: 768px) {
-  #sobre,
-  .cards-grid,
-  .footer-content {
-    flex-direction: column;
+/* --- TABLETS (Até 1024px) --- */
+@media (max-width: 1024px) {
+  .container {
+    padding: 60px 5%;
   }
 
   .galeria-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 colunas em tablets */
+  }
+}
+
+/* --- CELULARES (Até 768px) --- */
+@media (max-width: 768px) {
+
+  /* HERO */
+  .container {
+    padding: 40px 5%;
+  }
+
+  #hero {
+    height: auto;
+    display: flex;
+    padding: 80px 5%;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    padding: 0 5%;
+    /* Removemos o padding de 80px que criava o vão */
+    margin: 0;
+  }
+
+  .hero-content {
+    padding-left: 0;
   }
 
   .hero-content h1 {
     font-size: 2rem;
   }
+  
 
-  #hero {
-    height: auto;
-    padding: 100px 5%;
+  .imagem-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* ESSENCIAL: Garante preenchimento total */
+    object-position: center;
   }
+
+  /* SOBRE NÓS */
+  #sobre {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .imagem-sobre {
+    width: 100%;
+  }
+
+  /* SERVIÇOS - Cards empilhados */
+  .cards-grid {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* GALERIA - EXATAMENTE COMO VOCÊ PEDIU (2 COLUNAS) */
+  .galeria-grid {
+    grid-template-columns: repeat(2, 1fr);
+    /* Cria as 2 colunas da imagem */
+    gap: 10px;
+    /* Espaçamento menor para caber melhor */
+  }
+
+  .galeria-grid img {
+    height: 180px;
+    /* Ajuste leve na altura para não esticar */
+  }
+
+  /* FOOTER */
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* --- CELULARES MUITO PEQUENOS (Até 480px) --- */
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 1.6rem;
+  }
+
+  /* Mantemos as 2 colunas da galeria, mas diminuímos o padding do container */
+  .container {
+    padding: 40px 3%;
+  }
+
+  .btn-principal,
+  .btn-confirmar {
+    width: 100%;
+  }
+
+  
 }
