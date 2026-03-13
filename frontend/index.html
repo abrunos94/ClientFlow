@@ -1,145 +1,230 @@
 <!doctype html>
 <html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Barbearia Profissional em Vila Velha | Cortes e Barba | Agende Agora</title>
+    <title>
+      Barbearia Profissional em Vila Velha | Cortes e Barba | Agende Agora
+    </title>
 
-  <meta name="description" content="A melhor experiência em corte masculino e barba profissional em Vila Velha, ES. Estilo moderno, ambiente premium e agendamento online rápido." />
+    <meta
+      name="description"
+      content="A melhor experiência em corte masculino e barba profissional em Vila Velha, ES. Estilo moderno, ambiente premium e agendamento online rápido."
+    />
 
-  <meta name="keywords" content="barbearia Vila Velha, corte de cabelo masculino, barba profissional, barbeiro ES, agendamento barbearia" />
+    <meta
+      name="keywords"
+      content="barbearia Vila Velha, corte de cabelo masculino, barba profissional, barbeiro ES, agendamento barbearia"
+    />
 
-  <meta name="author" content="Alex - Desenvolvedor" />
-  <meta name="robots" content="index, follow" />
+    <meta name="author" content="Alex - Desenvolvedor" />
+    <meta name="robots" content="index, follow" />
 
-  <meta property="og:title" content="Barbearia Profissional | Agende seu Horário em Vila Velha" />
-  <meta property="og:description" content="Cortes modernos e barba de respeito. Garanta seu horário online." />
-  <meta property="og:image" content="images/hero.png" /> <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Barbearia Profissional | Agende seu Horário em Vila Velha"
+    />
+    <meta
+      property="og:description"
+      content="Cortes modernos e barba de respeito. Garanta seu horário online."
+    />
+    <meta property="og:image" content="assets/favicon.png" />
+    <meta property="og:type" content="website" />
 
-  <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon" />
-  <link rel="stylesheet" href="style.css" />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
-</head>
+    <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="style.css" />
 
-<body>
-  <section id="hero">
-    <div class="imagem-hero">
-      <picture>
-        <source srcset="images/hero-mobile390.jpg" media="(max-width: 480px)" />
-        <source srcset="images/hero-mobile.jpg" media="(max-width: 768px)" />
-        <img src="images/hero.png" alt="Barbeiro a trabalhar" />
-      </picture>
-    </div>
-    <div class="hero-content">
-      <h1>
-        Cortes Modernos e <br />
-        Barba Profissional
-      </h1>
-      <p>Agende seu horário em Vila Velha.</p>
-      <a href="#agendamento" class="btn-principal">Agendar Horário</a>
-    </div>
-  </section>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-  <section id="sobre" class="container">
-    <div class="texto-sobre">
-      <h2 class="titulo-decorado">Sobre Nós</h2>
-      <p>Mais de 10 anos cuidando do seu visual.</p>
-      <p>Profissionais especializados em cortes e barba.</p>
-    </div>
-    <div class="imagem-sobre">
-      <img src="images/imgsobre.png" alt="Interior da barbearia" />
-    </div>
-  </section>
+  <body>
+    <section id="hero">
+      <div class="imagem-hero">
+        <picture>
+          <source
+            srcset="assets/hero-mobile.webp.webp"
+            media="(max-width: 480px)"
+            type="image/webp"
+          />
+          <source
+            srcset="assets/hero-tablet.webp.webp"
+            media="(max-width: 768px)"
+            type="image/webp"
+          />
 
-  <section id="servicos" class="container">
-    <h2 class="titulo-centralizado">Serviços</h2>
-    <div class="cards-grid">
-      <div class="card">
-        <h3>Corte Masculino</h3>
-        <p class="preco">R$ 40</p>
-        <button class="btn-card btn-agendar" data-servico="Corte Masculino">
-          Agendar
-        </button>
+          <img
+            src="assets/hero-desktop.webp.webp"
+            alt="Ambiente da Barbearia"
+            width="1440"
+            height="900"
+            fetchpriority="high"
+          />
+        </picture>
       </div>
-
-      <div class="card">
-        <h3>Barba</h3>
-        <p class="preco">R$ 30</p>
-        <button class="btn-card btn-agendar" data-servico="Barba">
-          Agendar
-        </button>
+      <div class="hero-content">
+        <h1>
+          Cortes Modernos e <br />
+          Barba Profissional
+        </h1>
+        <p>Agende seu horário em Vila Velha.</p>
+        <a href="#agendamento" class="btn-principal">Agendar Horário</a>
       </div>
+    </section>
 
-      <div class="card">
-        <h3>Corte + Barba</h3>
-        <p class="preco">R$ 60</p>
-        <button class="btn-card btn-agendar" data-servico="Corte + Barba">
-          Agendar
-        </button>
+    <section id="sobre" class="container">
+      <div class="texto-sobre">
+        <h2 class="titulo-decorado">Sobre Nós</h2>
+        <p>Mais de 10 anos cuidando do seu visual.</p>
+        <p>Profissionais especializados em cortes e barba.</p>
       </div>
-    </div>
-  </section>
+      <div class="imagem-sobre">
+        <picture>
+          <source srcset="assets/imgsobre.webp" type="image/webp" />
 
-  <section id="galeria" class="container">
-    <h2 class="titulo-centralizado">Galeria</h2>
-    <div class="galeria-grid">
-      <img src="images/galeria1.png" alt="Corte 1" />
-      <img src="images/galeria2.png" alt="Corte 2" />
-      <img src="images/galeria3.png" alt="Corte 3" />
-      <img src="images/galeria4.png" alt="Corte 4" />
-    </div>
-  </section>
+          <img
+            src="assets/imgsobre.webp.webp"
+            alt="Interior da barbearia profissional"
+            loading="lazy"
+          />
+        </picture>
+      </div>
+    </section>
 
-  <section id="agendamento" class="container">
-    <h2 class="titulo-centralizado">Agende seu Horário</h2>
-    <form class="form-agendamento">
-      <label>Nome</label>
-      <input type="text" placeholder="Seu nome completo" />
+    <section id="servicos" class="container">
+      <h2 class="titulo-centralizado">Serviços</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <h3>Corte Masculino</h3>
+          <p class="preco">R$ 40</p>
+          <button class="btn-card btn-agendar" data-servico="Corte Masculino">
+            Agendar
+          </button>
+        </div>
 
-      <label for="telefone">Telefone</label>
-      <input type="tel" id="telefone" name="telefone" placeholder="(27) 99999-9999" required />
+        <div class="card">
+          <h3>Barba</h3>
+          <p class="preco">R$ 30</p>
+          <button class="btn-card btn-agendar" data-servico="Barba">
+            Agendar
+          </button>
+        </div>
 
-      <label>Serviço</label>
-      <select>
-        <option>Corte Masculino</option>
-        <option>Barba</option>
-        <option>Corte + Barba</option>
-      </select>
+        <div class="card">
+          <h3>Corte + Barba</h3>
+          <p class="preco">R$ 60</p>
+          <button class="btn-card btn-agendar" data-servico="Corte + Barba">
+            Agendar
+          </button>
+        </div>
+      </div>
+    </section>
 
-      <label>Data e hora</label>
-      <input id="date" type="datetime-local" />
+    <section id="galeria" class="container">
+      <h2 class="titulo-centralizado">Galeria</h2>
+      <div class="galeria-grid">
+        <picture>
+          <source srcset="assets/galeria1.webp" type="image/webp" />
+          <img
+            src="assets/galeria1.webp"
+            alt="Corte 1"
+            width="400"
+            height="250"
+            loading="lazy"
+          />
+        </picture>
 
-      <button type="submit" class="btn-confirmar">
-        Confirmar Agendamento
-      </button>
-    </form>
-  </section>
+        <picture>
+          <source srcset="assets/galeria2.webp" type="image/webp" />
+          <img
+            src="assets/galeria2.webp"
+            alt="Corte 2"
+            width="400"
+            height="250"
+            loading="lazy"
+          />
+        </picture>
 
-  <footer>
-  <div class="footer-content">
-    <div class="info-contato">
-      <h3>Nosso Endereço</h3>
-      <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
-      <p>CEP: 29120-280</p>
-      <p>Telefone: (27) 90765-4321</p>
-    </div>
-    <div class="mapa-container">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
-        style="border: 0" 
-        allowfullscreen="" 
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </div>
-  </div>
-</footer>
-  <script src="script.js"></script>
-</body>
+        <picture>
+          <source srcset="assets/galeria3.webp" type="image/webp" />
+          <img
+            src="assets/galeria3.webp"
+            alt="Corte 3"
+            width="400"
+            height="250"
+            loading="lazy"
+          />
+        </picture>
 
+        <picture>
+          <source srcset="assets/galeria4.webp" type="image/webp" />
+          <img
+            src="assets/galeria4.webp"
+            alt="Corte 4"
+            width="400"
+            height="250"
+            loading="lazy"
+          />
+        </picture>
+      </div>
+    </section>
+
+    <section id="agendamento" class="container">
+      <h2 class="titulo-centralizado">Agende seu Horário</h2>
+      <form class="form-agendamento">
+        <label>Nome</label>
+        <input type="text" placeholder="Seu nome completo" />
+
+        <label for="telefone">Telefone</label>
+        <input
+          type="tel"
+          id="telefone"
+          name="telefone"
+          placeholder="(27) 99999-9999"
+          required
+        />
+
+        <label>Serviço</label>
+        <select>
+          <option>Corte Masculino</option>
+          <option>Barba</option>
+          <option>Corte + Barba</option>
+        </select>
+
+        <label>Data e hora</label>
+        <input id="date" type="datetime-local" />
+
+        <button type="submit" class="btn-confirmar">
+          Confirmar Agendamento
+        </button>
+      </form>
+    </section>
+
+    <footer>
+      <div class="footer-content">
+        <div class="info-contato">
+          <h3>Nosso Endereço</h3>
+          <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
+          <p>CEP: 29120-280</p>
+          <p>Telefone: (27) 90765-4321</p>
+        </div>
+        <div class="mapa-container">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
+            style="border: 0"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          >
+          </iframe>
+        </div>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+  </body>
 </html>

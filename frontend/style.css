@@ -178,7 +178,9 @@ body {
   object-fit: cover;
   border-radius: 4px;
 }
-
+.galeria-grid img:hover {
+  transform: scale(1.05); /* Um efeitinho de zoom ao passar o mouse */
+}
 /* =========================================
    6. FORMULÁRIO E BOTÕES
    ========================================= */
