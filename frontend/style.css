@@ -178,7 +178,9 @@ body {
   object-fit: cover;
   border-radius: 4px;
 }
-
+.galeria-grid img:hover {
+  transform: scale(1.05); /* Um efeitinho de zoom ao passar o mouse */
+}
 /* =========================================
    6. FORMULÁRIO E BOTÕES
    ========================================= */
@@ -287,7 +289,7 @@ footer {
 }
 
 /* =========================================
-   8. RESPONSIVIDADE (Para telemóvel)
+   8. RESPONSIVIDADE 
    ========================================= */
 /* --- TABLETS (Até 1024px) --- */
 @media (max-width: 1024px) {
