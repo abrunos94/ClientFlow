@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | ClientFlow</title>
+    <link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/dashboard.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="body-dashboard">
+    <button id="abrir-menu" class="btn-menu-mobile">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <div id="overlay" class="overlay"></div>
+
+    <div class="dashboard-container">
+      <aside class="sidebar" id="sidebar">
+        <button id="fechar-menu" class="btn-fechar-mobile">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <div class="logo">
+          <h2>Client<span>Flow</span></h2>
+        </div>
+
+        <nav class="menu">
+          <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
+          <a href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
+          <a href="#"><i class="fas fa-users"></i> Clientes</a>
+          <a href="#"><i class="fas fa-cog"></i> Configurações</a>
+        </nav>
+
+        <button id="btn-logout" class="link-admin">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </aside>
+
+      <main class="main-content">
+        <header class="dash-header">
+          <h1>Olá, João!</h1>
+          <button class="btn-principal">+ Novo Agendamento</button>
+        </header>
+
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="card-header">
+              <i class="fas fa-calendar-day"></i>
+              <p>Hoje</p>
+            </div>
+            <span class="stat-value">3</span>
+            <p class="stat-desc">agendamentos</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="card-header">
+              <i class="fas fa-clock"></i>
+              <p>Próximo horário</p>
+            </div>
+            <span class="stat-value">10:30</span>
+          </div>
+
+          <div class="stat-card">
+            <div class="card-header">
+              <i class="fas fa-cut"></i>
+              <p>Serviço mais vendido</p>
+            </div>
+            <span class="stat-value">Corte</span>
+          </div>
+        </section>
+
+        <section class="agenda-section">
+          <h3>Agendamentos de Hoje</h3>
+          <div class="tabela-container">
+            <table class="tabela-agenda">
+              <thead>
+                <tr>
+                  <th>Horário</th>
+                  <th>Cliente</th>
+                  <th class="hide-mobile">Serviço</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="lista-agendamentos">
+                <tr>
+                  <td>09:00</td>
+                  <td>
+                    <div class="cliente-info">
+                      <span>João</span>
+                    </div>
+                  </td>
+                  <td class="hide-mobile">Corte</td>
+                  <td>
+                    <div class="acoes-buttons">
+                      <button class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                      </button>
+                      <button class="btn-concluir">
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button class="btn-cancelar">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script-dashboard.js"></script>
+  </body>
+</html>

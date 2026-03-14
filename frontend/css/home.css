@@ -178,9 +178,12 @@ body {
   object-fit: cover;
   border-radius: 4px;
 }
+
 .galeria-grid img:hover {
-  transform: scale(1.05); /* Um efeitinho de zoom ao passar o mouse */
+  transform: scale(1.05);
+  /* Um efeitinho de zoom ao passar o mouse */
 }
+
 /* =========================================
    6. FORMULÁRIO E BOTÕES
    ========================================= */
@@ -249,7 +252,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
    7. FOOTER
    ========================================= */
 footer {
-  padding: 60px 10% 30px; /* Mais respiro no topo, menos na base */
+  padding: 60px 10% 30px;
+  /* Mais respiro no topo, menos na base */
   background-color: var(--cor-fundo);
   border-top: 1px solid #222;
 }
@@ -259,7 +263,8 @@ footer {
   justify-content: space-between;
   align-items: center;
   gap: 40px;
-  margin-bottom: 40px; /* Espaço para a faixa inferior */
+  margin-bottom: 40px;
+  /* Espaço para a faixa inferior */
 }
 
 .info-contato h3 {
@@ -293,9 +298,12 @@ footer {
   padding-top: 20px;
   border-top: 1px solid #222;
   display: flex;
-  flex-direction: column; /* Empilha os itens */
-  align-items: center;    /* Centraliza tudo horizontalmente */
-  gap: 15px;              /* Espaço entre os elementos */
+  flex-direction: column;
+  /* Empilha os itens */
+  align-items: center;
+  /* Centraliza tudo horizontalmente */
+  gap: 15px;
+  /* Espaço entre os elementos */
 }
 
 .link-admin {
@@ -314,7 +322,8 @@ footer {
 .footer-bottom p {
   color: var(--cor-subtexto);
   font-size: 0.8rem;
-  opacity: 0.6; /* Deixa o copyright mais discreto */
+  opacity: 0.6;
+  /* Deixa o copyright mais discreto */
 }
 
 /* --- Ajustes de Responsividade Mobile --- */
@@ -448,96 +457,4 @@ footer {
   .btn-confirmar {
     width: 100%;
   }
-}
-
-/* =========================================
-   9. PÁGINA DE LOGIN
-   ========================================= */
-.body-login {
-    background-color: var(--cor-fundo);
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.login-container {
-    width: 100%;
-    max-width: 400px;
-    padding: 20px;
-}
-
-.login-box {
-    background-color: #111;
-    padding: 40px;
-    border-radius: 8px;
-    border: 1px solid #222;
-    text-align: center;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-}
-
-.login-box h2 {
-    color: var(--cor-primaria);
-    margin: 20px 0 10px;
-}
-
-.login-box p {
-    color: var(--cor-subtexto);
-    font-size: 0.9rem;
-    margin-bottom: 30px;
-}
-
-.btn-voltar {
-    color: var(--cor-subtexto);
-    text-decoration: none;
-    font-size: 0.8rem;
-    display: block;
-    text-align: left;
-    transition: color 0.3s;
-}
-
-.btn-voltar:hover {
-    color: var(--cor-primaria);
-}
-
-.input-group {
-    text-align: left;
-    margin-bottom: 20px;
-}
-
-.input-group label {
-    display: block;
-    color: #fff;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--cor-primaria);
-}
-
-.btn-block {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.esqueceu-senha {
-    margin-top: 20px !important;
-}
-
-.esqueceu-senha a {
-    color: var(--cor-subtexto);
-    font-size: 0.8rem;
-    text-decoration: none;
 }

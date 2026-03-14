@@ -1,0 +1,36 @@
+/* Conteúdo extraído das seções 1 e 8 (parcial) */
+:root {
+  --cor-fundo: #0d0d0d;
+  --cor-card: #1a1a1a;
+  --cor-primaria: #b8864b;
+  --cor-texto: #ffffff;
+  --cor-subtexto: #a1a1a1;
+  --fonte-principal: "Montserrat", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--fonte-principal);
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  line-height: 1.6;
+}
+
+/* Utilitários globais usadas em várias páginas */
+.btn-principal {
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: 0.3s;
+  display: inline-block;
+  text-decoration: none;
+}
