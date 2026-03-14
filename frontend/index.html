@@ -32,8 +32,14 @@
     <meta property="og:image" content="assets/favicon.png" />
     <meta property="og:type" content="website" />
 
-    <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon" />
-    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="shortcut icon"
+      href="assets/images/favicon.png"
+      type="image/x-icon"
+    />
+
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/home.css" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -48,18 +54,18 @@
       <div class="imagem-hero">
         <picture>
           <source
-            srcset="assets/hero-mobile.webp"
+            srcset="assets/images/hero-mobile.webp"
             media="(max-width: 480px)"
             type="image/webp"
           />
           <source
-            srcset="assets/hero-tablet.webp"
+            srcset="assets/images/hero-tablet.webp"
             media="(max-width: 768px)"
             type="image/webp"
           />
 
           <img
-            src="assets/hero-desktop.webp"
+            src="assets/images/hero-desktop.webp"
             alt="Ambiente da Barbearia"
             width="1440"
             height="900"
@@ -85,10 +91,10 @@
       </div>
       <div class="imagem-sobre">
         <picture>
-          <source srcset="assets/imgsobre.webp" type="image/webp" />
+          <source srcset="assets/images/imgsobre.webp" type="image/webp" />
 
           <img
-            src="assets/imgsobre.webp.webp"
+            src="assets/images/imgsobre.webp.webp"
             alt="Interior da barbearia profissional"
             loading="lazy"
           />
@@ -129,9 +135,9 @@
       <h2 class="titulo-centralizado">Galeria</h2>
       <div class="galeria-grid">
         <picture>
-          <source srcset="assets/galeria1.webp" type="image/webp" />
+          <source srcset="assets/images/galeria1.webp" type="image/webp" />
           <img
-            src="assets/galeria1.webp"
+            src="assets/images/galeria1.webp"
             alt="Corte 1"
             width="400"
             height="250"
@@ -140,9 +146,9 @@
         </picture>
 
         <picture>
-          <source srcset="assets/galeria2.webp" type="image/webp" />
+          <source srcset="assets/images/galeria2.webp" type="image/webp" />
           <img
-            src="assets/galeria2.webp"
+            src="assets/images/galeria2.webp"
             alt="Corte 2"
             width="400"
             height="250"
@@ -151,9 +157,9 @@
         </picture>
 
         <picture>
-          <source srcset="assets/galeria3.webp" type="image/webp" />
+          <source srcset="assets/images/galeria3.webp" type="image/webp" />
           <img
-            src="assets/galeria3.webp"
+            src="assets/images/galeria3.webp"
             alt="Corte 3"
             width="400"
             height="250"
@@ -162,9 +168,9 @@
         </picture>
 
         <picture>
-          <source srcset="assets/galeria4.webp" type="image/webp" />
+          <source srcset="assets/images/galeria4.webp" type="image/webp" />
           <img
-            src="assets/galeria4.webp"
+            src="assets/images/galeria4.webp"
             alt="Corte 4"
             width="400"
             height="250"
@@ -175,64 +181,72 @@
     </section>
 
     <section id="agendamento" class="container">
-      <h2 class="titulo-centralizado">Agende seu Horário</h2>
-      <form class="form-agendamento">
-        <label>Nome</label>
-        <input type="text" placeholder="Seu nome completo" />
+  <h2 class="titulo-centralizado">Agende seu Horário</h2>
+  
+  <form class="form-agendamento" id="form-agendamento">
+    
+    <label>Nome</label>
+    <input type="text" id="nome" placeholder="Seu nome completo" required />
 
-        <label for="telefone">Telefone</label>
-        <input
-          type="tel"
-          id="telefone"
-          name="telefone"
-          placeholder="(27) 99999-9999"
-          required
-        />
+    <label for="telefone">Telefone</label>
+    <input
+      type="tel"
+      id="telefone"
+      name="telefone"
+      placeholder="(27) 99999-9999"
+      required
+    />
 
-        <label>Serviço</label>
-        <select>
-          <option>Corte Masculino</option>
-          <option>Barba</option>
-          <option>Corte + Barba</option>
-        </select>
+    <label for="servico">Serviço</label>
+    <select id="servico" name="servico" required>
+      <option value="">Selecione um serviço</option>
+      <option value="Corte Masculino">Corte Masculino</option>
+      <option value="Barba">Barba</option>
+      <option value="Corte + Barba">Corte + Barba</option>
+    </select>
 
-        <label>Data e hora</label>
-        <input id="date" type="datetime-local" />
+    <label>Data e hora</label>
+    <input id="data" type="datetime-local" required />
 
-        <button type="submit" class="btn-confirmar">
-          Confirmar Agendamento
-        </button>
+    <button type="submit" class="btn-confirmar">
+      Confirmar Agendamento
+    </button>
+  </form>
+</section>
       </form>
     </section>
 
     <footer>
-  <div class="footer-content">
-    <div class="info-contato">
-      <h3>Nosso Endereço</h3>
-      <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
-      <p>CEP: 29120-280</p>
-      <p>Telefone: (27) 90765-4321</p>
-    </div>
+      <div class="footer-content">
+        <div class="info-contato">
+          <h3>Nosso Endereço</h3>
+          <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
+          <p>CEP: 29120-280</p>
+          <p>Telefone: (27) 90765-4321</p>
+        </div>
 
-    <div class="mapa-container">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
-        style="border: 0"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-      ></iframe>
-    </div>
-  </div>
+        <div class="mapa-container">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
+            style="border: 0"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
 
-  <div class="footer-bottom">
-    <div class="area-barbeiro">
-      <a href="/login.html" class="link-admin">Área do Barbeiro</a>
-    </div>
-    
-    <hr class="divisor-footer"> <p class="copyright">© 2026 Barbearia Profissional. Todos os direitos reservados.</p>
-  </div>
-</footer>
-    <script src="script.js"></script>
+      <div class="footer-bottom">
+        <div class="area-barbeiro">
+          <a href="login.html" class="link-admin">Área do Barbeiro</a>
+        </div>
+
+        <hr class="divisor-footer" />
+        <p class="copyright">
+          © 2026 Barbearia Profissional. Todos os direitos reservados.
+        </p>
+      </div>
+    </footer>
+    <script src="js/main.js"></script>
   </body>
 </html>
