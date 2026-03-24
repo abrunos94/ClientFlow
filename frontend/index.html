@@ -31,6 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
 <body>
@@ -141,8 +142,21 @@
         <option value="Corte + Barba">Corte + Barba</option>
       </select>
 
-      <label for="data">Data e hora</label>
-      <input id="data" type="datetime-local" required />
+      <div class="input-group-moderno">
+        <label for="data">1. Escolha o dia:</label>
+        <input id="data" type="date" required />
+      </div>
+
+      <!-- Container que será preenchido pelo JavaScript -->
+      <div id="container-horarios" class="container-slots" style="display: none; margin-top: 20px;">
+        <label>2. Escolha o horário disponível:</label>
+        <div id="grid-horarios" class="grid-slots">
+          <!-- Os botões de 09:00, 09:30 etc vão aparecer aqui -->
+        </div>
+      </div>
+
+      <!-- Campo invisível para enviar o horário final escolhido -->
+      <input type="hidden" id="horario-final" name="horario_final" required>
 
       <button type="submit" class="btn-confirmar">
         Confirmar Agendamento
@@ -157,7 +171,20 @@
         <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
         <p>CEP: 29120-280</p>
         <p>Telefone: (27) 90765-4321</p>
+
+        <div class="redes-sociais">
+          <a href="https://instagram.com/seuusuario" target="_blank" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://facebook.com/seupagina" target="_blank" aria-label="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="https://wa.me/5527907654321" target="_blank" aria-label="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </div>
       </div>
+
 
       <div class="mapa-container">
         <iframe

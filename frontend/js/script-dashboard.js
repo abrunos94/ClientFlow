@@ -230,3 +230,64 @@ window.agendarAgora = function() {
     // Atualiza a tabela e os cards de hoje imediatamente
     carregarAgendamentos();
 };
+
+// --- LÓGICA DE NAVEGAÇÃO ENTRE ABAS ---
+const linkDashboard = document.querySelector('.menu a:nth-child(1)');
+const linkConfigs = document.querySelector('.menu a:nth-child(4)'); // Ícone de Cog
+const secaoDashboard = document.querySelector('.stats-grid').parentElement; // Pega o main content principal
+const secaoAgenda = document.querySelector('.agenda-section');
+const secaoConfigs = document.getElementById('configuracoes-section');
+
+if (linkConfigs) {
+    linkConfigs.addEventListener('click', (e) => {
+        e.preventDefault();
+        secaoAgenda.style.display = 'none';
+        document.querySelector('.stats-grid').style.display = 'none';
+        secaoConfigs.style.display = 'block';
+        
+        // Troca classe active
+        linkDashboard.classList.remove('active');
+        linkConfigs.classList.add('active');
+    });
+}
+
+if (linkDashboard) {
+    linkDashboard.addEventListener('click', (e) => {
+        e.preventDefault();
+        secaoAgenda.style.display = 'block';
+        document.querySelector('.stats-grid').style.display = 'grid';
+        secaoConfigs.style.display = 'none';
+        
+        linkConfigs.classList.remove('active');
+        linkDashboard.classList.add('active');
+    });
+}
+
+// --- SALVAR E CARREGAR CONFIGURAÇÕES ---
+window.salvarConfiguracoes = function() {
+    const configs = {
+        inicio: document.getElementById('cfg-hora-inicio').value,
+        fim: document.getElementById('cfg-hora-fim').value,
+        intervalo: document.getElementById('cfg-intervalo').value,
+        dias: Array.from(document.querySelectorAll('.cfg-dia:checked')).map(el => parseInt(el.value))
+    };
+
+    localStorage.setItem('configAgenda', JSON.stringify(configs));
+    alert("Configurações salvas! Agora o site do cliente respeitará estes horários.");
+};
+
+function carregarConfigs() {
+    const salvas = JSON.parse(localStorage.getItem('configAgenda'));
+    if (salvas) {
+        document.getElementById('cfg-hora-inicio').value = salvas.inicio;
+        document.getElementById('cfg-hora-fim').value = salvas.fim;
+        document.getElementById('cfg-intervalo').value = salvas.intervalo;
+        
+        document.querySelectorAll('.cfg-dia').forEach(el => {
+            el.checked = salvas.dias.includes(parseInt(el.value));
+        });
+    }
+}
+
+// Chame no final do arquivo ou no window.load
+carregarConfigs();
