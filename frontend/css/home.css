@@ -325,6 +325,7 @@ footer {
     display: flex;
     gap: 15px;
     margin-top: 20px;
+    justify-content: center;
 }
 
 .redes-sociais a {

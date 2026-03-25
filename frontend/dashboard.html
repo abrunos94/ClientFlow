@@ -7,6 +7,87 @@
   <title>Dashboard | ClientFlow</title>
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
+  <style>
+    .conquista-container {
+      background: var(--cor-card);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid var(--cor-borda);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-conquista {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .texto-meta h3 {
+      color: var(--cor-texto);
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+
+    .texto-meta p {
+      color: var(--cor-subtexto);
+      font-size: 0.9rem;
+    }
+
+    .valor-faturado {
+      color: #2ecc71;
+      font-weight: bold;
+      font-size: 1.3rem;
+      text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+    }
+
+    .barra-progresso-bg {
+      background: #333;
+      height: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #barra-progresso-fill {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      height: 100%;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .meta-batida #barra-progresso-fill {
+      background: linear-gradient(90deg, #ffd700, #ffa500);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Estilos do Submenu Lateral */
+    .submenu {
+      display: none;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.2);
+      margin-left: 15px;
+      border-left: 2px solid var(--cor-primaria);
+      margin-bottom: 10px;
+    }
+
+    .submenu a {
+      padding: 10px 15px !important;
+      font-size: 0.85rem !important;
+      color: var(--cor-subtexto) !important;
+    }
+
+    .btn-dropdown {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rotate {
+      transform: rotate(180deg);
+    }
+  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
@@ -19,9 +100,7 @@
 
   <div class="dashboard-container">
     <aside class="sidebar" id="sidebar">
-      <button id="fechar-menu" class="btn-fechar-mobile">
-        <i class="fas fa-times"></i>
-      </button>
+
 
       <div class="logo">
         <h2>Client<span>Flow</span></h2>
@@ -31,8 +110,18 @@
         <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
         <a href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
         <a href="#"><i class="fas fa-users"></i> Clientes</a>
-        <a href="#"><i class="fas fa-cog"></i> Configurações</a>
-        
+
+        <div class="menu-item-dropdown">
+          <a href="#" id="btn-config-master" class="btn-dropdown">
+            <span><i class="fas fa-cog"></i> Configurações</span>
+            <i class="fas fa-chevron-down seta-menu"></i>
+          </a>
+          <div class="submenu" id="submenu-links">
+            <a href="#" onclick="abrirSubConfig('expediente')"><i class="fas fa-clock"></i> Expediente</a>
+            <a href="#" onclick="abrirSubConfig('meta')"><i class="fas fa-bullseye"></i> Meta Diária</a>
+            <a href="#" onclick="abrirSubConfig('servicos')"><i class="fas fa-cut"></i> Adicionar Serviço</a>
+          </div>
+        </div>
       </nav>
 
       <button id="btn-logout" class="link-admin">
@@ -42,115 +131,175 @@
 
     <main class="main-content">
       <header class="dash-header">
-        <h1>Olá, João!</h1>
+        <h1>Olá, Alex!</h1>
         <button class="btn-principal">+ Novo Agendamento</button>
       </header>
 
-      <section class="stats-grid">
-        <div class="stat-card">
-          <div class="card-header">
-            <i class="fas fa-calendar-day"></i>
-            <p>Hoje</p>
+      <section class="conquista-container" id="painel-conquista">
+        <div class="header-conquista">
+          <div class="texto-meta">
+            <h3 id="frase-progresso">Sua jornada de hoje começou! 🚀</h3>
+            <p>Meta Diária: <span id="meta-valor-display">R$ 400,00</span></p>
           </div>
-          <span class="stat-value" id="total-hoje">0</span>
-          <p class="stat-desc">agendamentos</p>
+          <div class="valor-faturado" id="faturamento-real">R$ 0,00</div>
         </div>
-
-        <div class="stat-card">
-          <div class="card-header">
-            <i class="fas fa-clock"></i>
-            <p>Próximo horário</p>
-          </div>
-          <span class="stat-value">10:30</span>
-        </div>
-
-        <div class="stat-card">
-          <div class="card-header">
-            <i class="fas fa-cut"></i>
-            <p>Serviço mais vendido</p>
-          </div>
-          <span class="stat-value">Corte</span>
+        <div class="barra-progresso-bg">
+          <div id="barra-progresso-fill"></div>
         </div>
       </section>
 
-      <section class="agenda-section">
-        <h3>Agendamentos de Hoje</h3>
-        <div class="tabela-container">
+      <div id="conteudo-dashboard">
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="card-header"><i class="fas fa-calendar-day"></i>
+              <p>Hoje</p>
+            </div>
+            <span class="stat-value" id="total-hoje">0</span>
+            <p class="stat-desc">agendamentos</p>
+          </div>
+          <div class="stat-card">
+            <div class="card-header"><i class="fas fa-clock"></i>
+              <p>Próximo horário</p>
+            </div>
+            <span class="stat-value" id="proximo-horario">--:--</span>
+          </div>
+          <div class="stat-card">
+            <div class="card-header"><i class="fas fa-star"></i>
+              <p>Serviço mais vendido</p>
+            </div>
+            <span class="stat-value" id="servico-mais-vendido" style="font-size: 1.5rem;">---</span>
+            <p class="stat-desc">Favorito dos clientes</p>
+          </div>
+        </section>
+
+        <section class="agenda-section">
+          <h3>Agendamentos de Hoje</h3>
+          <div class="tabela-container">
+            <table class="tabela-agenda">
+              <thead>
+                <tr>
+                  <th>Horário</th>
+                  <th>Cliente</th>
+                  <th class="hide-mobile">Serviço</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="lista-agendamentos"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section id="secao-agenda-completa" class="aba-content" style="display: none;">
+        <div class="dash-header">
+          <h2><i class="fas fa-calendar-alt"></i> Agenda Completa</h2>
+        </div>
+        <div class="agenda-container-flex">
+          <div class="calendario-box">
+            <div class="calendario-nav">
+              <button onclick="mudarMes(-1)"><i class="fas fa-chevron-left"></i></button>
+              <h3 id="mes-atual">Março 2026</h3>
+              <button onclick="mudarMes(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+
+            <div id="calendario-grade" class="calendario-grade"></div>
+          </div>
+          <div class="agenda-dia-detalhe">
+            <h3 id="titulo-agenda-selecionada">Selecione um dia</h3>
+            <div id="lista-agenda-clicada" class="lista-interativa">
+              <p style="color: var(--cor-subtexto); text-align: center; margin-top: 20px;">Clique em um dia com marcação
+                para ver os horários.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="secao-clientes" class="aba-content" style="display: none;">
+        <div class="dash-header">
+          <h2><i class="fas fa-users"></i> Meus Clientes</h2>
+          <div class="busca-container">
+            <input type="text" id="busca-cliente" placeholder="Buscar cliente..." onkeyup="filtrarClientes()">
+          </div>
+        </div>
+        <div class="tabela-container" style="margin-top: 20px;">
           <table class="tabela-agenda">
             <thead>
               <tr>
-                <th>Horário</th>
-                <th>Cliente</th>
-                <th class="hide-mobile">Serviço</th>
+                <th>Nome</th>
+                <th>Último Serviço</th>
+                <th>Telefone</th>
                 <th>Ações</th>
               </tr>
             </thead>
-            <tbody id="lista-agendamentos">
-              <tr>
-                <td>09:00</td>
-                <td>
-                  <div class="cliente-info">
-                    <span>João</span>
-                  </div>
-                </td>
-                <td class="hide-mobile">Corte</td>
-                <td>
-                  <div class="acoes-buttons">
-                    <button class="btn-whatsapp">
-                      <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <button class="btn-concluir">
-                      <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn-cancelar">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="corpo-tabela-clientes"></tbody>
           </table>
         </div>
       </section>
-      <!-- NOVA SEÇÃO: CONFIGURAÇÕES DE EXPEDIENTE -->
-<section id="configuracoes-section" class="agenda-section" style="display: none;">
-    <h3><i class="fas fa-cog"></i> Configurar Expediente</h3>
-    <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-        <div class="config-grid-form">
-            <div class="input-group-modal">
-                <label>Hora de Início</label>
-                <input type="time" id="cfg-hora-inicio" value="09:00">
+
+      <section id="configuracoes-section" class="agenda-section" style="display: none">
+
+        <div id="area-expediente" class="config-sub-section">
+          <h3><i class="fas fa-clock"></i> Configurar Expediente</h3>
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px">
+            <div class="config-grid-form">
+              <div class="input-group-modal"><label>Hora de Início</label><input type="time" id="cfg-hora-inicio"
+                  value="09:00" /></div>
+              <div class="input-group-modal"><label>Hora de Término</label><input type="time" id="cfg-hora-fim"
+                  value="19:00" /></div>
+              <div class="input-group-modal"><label>Duração (min)</label><input type="number" id="cfg-intervalo"
+                  value="30" /></div>
+              <div class="input-group-modal"><label>Início do Almoço</label><input type="time" id="cfg-almoco-inicio"
+                  value="12:00" /></div>
+              <div class="input-group-modal"><label>Fim do Almoço</label><input type="time" id="cfg-almoco-fim"
+                  value="13:00" /></div>
             </div>
-            <div class="input-group-modal">
-                <label>Hora de Término</label>
-                <input type="time" id="cfg-hora-fim" value="19:00">
+            <div class="dias-expediente" style="margin-top: 20px;">
+              <p>Dias de Funcionamento:</p>
+              <div class="checkbox-group">
+                <label><input type="checkbox" class="cfg-dia" value="1" checked /> Seg</label>
+                <label><input type="checkbox" class="cfg-dia" value="2" checked /> Ter</label>
+                <label><input type="checkbox" class="cfg-dia" value="3" checked /> Qua</label>
+                <label><input type="checkbox" class="cfg-dia" value="4" checked /> Qui</label>
+                <label><input type="checkbox" class="cfg-dia" value="5" checked /> Sex</label>
+                <label><input type="checkbox" class="cfg-dia" value="6" checked /> Sáb</label>
+                <label><input type="checkbox" class="cfg-dia" value="0" /> Dom</label>
+              </div>
             </div>
-            <div class="input-group-modal">
-                <label>Duração de cada serviço (min)</label>
-                <input type="number" id="cfg-intervalo" value="30" step="15">
-            </div>
+            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
+                class="fas fa-save"></i> Salvar Expediente</button>
+          </div>
         </div>
 
-        <div class="dias-expediente">
-            <p>Dias de Funcionamento:</p>
-            <div class="checkbox-group">
-                <label><input type="checkbox" class="cfg-dia" value="1" checked> Seg</label>
-                <label><input type="checkbox" class="cfg-dia" value="2" checked> Ter</label>
-                <label><input type="checkbox" class="cfg-dia" value="3" checked> Qua</label>
-                <label><input type="checkbox" class="cfg-dia" value="4" checked> Qui</label>
-                <label><input type="checkbox" class="cfg-dia" value="5" checked> Sex</label>
-                <label><input type="checkbox" class="cfg-dia" value="6" checked> Sáb</label>
-                <label><input type="checkbox" class="cfg-dia" value="0"> Dom</label>
+        <div id="area-meta" class="config-sub-section" style="display: none;">
+          <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
+          <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px">
+            <div class="input-group-modal">
+              <label>Valor da Meta (R$)</label>
+              <input type="number" id="cfg-meta-valor" value="400">
             </div>
+            <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">Atualizar
+              Meta</button>
+          </div>
         </div>
 
-        <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%;">
-            <i class="fas fa-save"></i> Salvar Configurações
-        </button>
-    </div>
-</section>
+        <div id="area-servicos" class="config-sub-section" style="display: none;">
+          <h3><i class="fas fa-cut"></i> Gerenciar Serviços</h3>
+          <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
+            <div class="config-grid-form">
+              <div class="input-group-modal"><label>Nome</label><input type="text" id="novo-servico-nome"></div>
+              <div class="input-group-modal"><label>Preço</label><input type="number" id="novo-servico-preco"></div>
+            </div>
+            <button onclick="adicionarNovoServico()" class="btn-principal"
+              style="margin-top: 20px; width: 100%">Adicionar Serviço</button>
+
+            <div id="lista-servicos-config" style="margin-top: 20px;">
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
+
   <div id="modal-agendamento" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -162,7 +311,6 @@
           <label>Nome do Cliente</label>
           <input type="text" id="rapido-nome" placeholder="Ex: Alex Silva" />
         </div>
-
         <div class="input-group-modal">
           <label>Serviço</label>
           <select id="rapido-servico">
@@ -172,19 +320,16 @@
             <option value="Pezinho">Pezinho</option>
           </select>
         </div>
-
         <div class="input-group-modal">
           <label>Telefone (Opcional)</label>
           <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" />
         </div>
-
-        <button onclick="agendarAgora()" class="btn-salvar-modal">
-          Finalizar e Adicionar
-        </button>
+        <button onclick="agendarAgora()" class="btn-salvar-modal">Finalizar e Adicionar</button>
       </div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="js/script-dashboard.js"></script>
 </body>
 

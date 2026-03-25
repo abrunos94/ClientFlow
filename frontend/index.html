@@ -72,30 +72,7 @@
 
   <section id="servicos" class="container">
     <h3 class="titulo-centralizado">Serviços</h3>
-    <div class="cards-grid">
-      <div class="card">
-        <h3>Corte Masculino</h3>
-        <p class="preco">R$ 40</p>
-        <button class="btn-card btn-agendar" data-servico="Corte Masculino">
-          Agendar
-        </button>
-      </div>
-
-      <div class="card">
-        <h3>Barba</h3>
-        <p class="preco">R$ 30</p>
-        <button class="btn-card btn-agendar" data-servico="Barba">
-          Agendar
-        </button>
-      </div>
-
-      <div class="card">
-        <h3>Corte + Barba</h3>
-        <p class="preco">R$ 60</p>
-        <button class="btn-card btn-agendar" data-servico="Corte + Barba">
-          Agendar
-        </button>
-      </div>
+    <div class="cards-grid" id="container-servicos-cliente">
     </div>
   </section>
 
@@ -137,9 +114,6 @@
       <label for="servico">Serviço</label>
       <select id="servico" name="servico" required>
         <option value="">Selecione um serviço</option>
-        <option value="Corte Masculino">Corte Masculino</option>
-        <option value="Barba">Barba</option>
-        <option value="Corte + Barba">Corte + Barba</option>
       </select>
 
       <div class="input-group-moderno">
@@ -147,15 +121,11 @@
         <input id="data" type="date" required />
       </div>
 
-      <!-- Container que será preenchido pelo JavaScript -->
       <div id="container-horarios" class="container-slots" style="display: none; margin-top: 20px;">
         <label>2. Escolha o horário disponível:</label>
-        <div id="grid-horarios" class="grid-slots">
-          <!-- Os botões de 09:00, 09:30 etc vão aparecer aqui -->
-        </div>
+        <div id="grid-horarios" class="grid-slots"></div>
       </div>
 
-      <!-- Campo invisível para enviar o horário final escolhido -->
       <input type="hidden" id="horario-final" name="horario_final" required>
 
       <button type="submit" class="btn-confirmar">
