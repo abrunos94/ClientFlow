@@ -283,6 +283,93 @@ function renderizarRelatorios() {
     `).join("");
 }
 
+//BOTÃO NOVO AGENDAMENTO//
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Mapear os elementos
+    const btnNovo = document.getElementById('btn-novo-agendamento');
+    const modal = document.getElementById('modal-agendamento');
+    const btnFechar = document.getElementById('fechar-modal');
+
+    // 2. Função para abrir o modal
+    if (btnNovo && modal) {
+        btnNovo.addEventListener('click', () => {
+            modal.style.display = 'block';
+            console.log("Modal aberto!"); // Para testarmos no F12
+        });
+    }
+
+    // 3. Função para fechar o modal
+    if (btnFechar && modal) {
+        btnFechar.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // 4. Fechar ao clicar fora do modal
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+
+function agendarAgora() {
+    // 1. Pegar os valores
+    const nome = document.getElementById('rapido-nome').value;
+    const servico = document.getElementById('rapido-servico').value;
+    const telefone = document.getElementById('rapido-telefone').value;
+    
+    // Pegar o horário atual para o agendamento "na hora"
+    const agora = new Date();
+    const horario = agora.getHours().toString().padStart(2, '0') + ":" + 
+                    agora.getMinutes().toString().padStart(2, '0');
+
+    // 2. Validação
+    if (nome === "") {
+        alert("Digite o nome do cliente!");
+        return;
+    }
+
+    // 3. Criar a nova linha da tabela (HTML)
+    const tabela = document.getElementById('lista-agendamentos');
+    const novaLinha = document.createElement('tr');
+
+    novaLinha.innerHTML = `
+        <td>${horario}</td>
+        <td>${nome}</td>
+        <td class="hide-mobile">${servico}</td>
+        <td>
+            <div class="acoes-buttons">
+                <a href="https://wa.me/${telefone.replace(/\D/g,'')}" target="_blank" class="btn-whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <button class="btn-concluir" onclick="concluirAgendamento(this, 30)">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </td>
+    `;
+
+    // 4. Adicionar na tabela (no topo da lista)
+    tabela.prepend(novaLinha);
+
+    // 5. Atualizar o contador de "Hoje" no card
+    atualizarContadorHoje();
+
+    // 6. Fechar e limpar
+    document.getElementById('modal-agendamento').style.display = 'none';
+    document.getElementById('rapido-nome').value = "";
+    document.getElementById('rapido-telefone').value = "";
+    
+    alert("Agendamento adicionado!");
+}
+
+// Função auxiliar para atualizar o número no card de estatísticas
+function atualizarContadorHoje() {
+    const total = document.querySelectorAll('#lista-agendamentos tr').length;
+    document.getElementById('total-hoje').innerText = total;
+}
+
 /* ==========================================================================
    7. LÓGICA DE DASHBOARD E CALENDÁRIO
    ========================================================================== */
