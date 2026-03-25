@@ -1,252 +1,180 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>
-      Barbearia Profissional em Vila Velha | Cortes e Barba | Agende Agora
-    </title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta
-      name="description"
-      content="A melhor experiência em corte masculino e barba profissional em Vila Velha, ES. Estilo moderno, ambiente premium e agendamento online rápido."
-    />
+  <title>
+    Barbearia Profissional em Vila Velha | Cortes e Barba | Agende Agora
+  </title>
 
-    <meta
-      name="keywords"
-      content="barbearia Vila Velha, corte de cabelo masculino, barba profissional, barbeiro ES, agendamento barbearia"
-    />
+  <meta name="description"
+    content="A melhor experiência em corte masculino e barba profissional em Vila Velha, ES. Estilo moderno, ambiente premium e agendamento online rápido." />
 
-    <meta name="author" content="Alex - Desenvolvedor" />
-    <meta name="robots" content="index, follow" />
+  <meta name="keywords"
+    content="barbearia Vila Velha, corte de cabelo masculino, barba profissional, barbeiro ES, agendamento barbearia" />
 
-    <meta
-      property="og:title"
-      content="Barbearia Profissional | Agende seu Horário em Vila Velha"
-    />
-    <meta
-      property="og:description"
-      content="Cortes modernos e barba de respeito. Garanta seu horário online."
-    />
-    <meta property="og:image" content="assets/favicon.png" />
-    <meta property="og:type" content="website" />
+  <meta name="author" content="Alex - Desenvolvedor" />
+  <meta name="robots" content="index, follow" />
 
-    <link
-      rel="shortcut icon"
-      href="assets/images/favicon.png"
-      type="image/x-icon"
-    />
+  <meta property="og:title" content="Barbearia Profissional | Agende seu Horário em Vila Velha" />
+  <meta property="og:description" content="Cortes modernos e barba de respeito. Garanta seu horário online." />
+  <meta property="og:image" content="assets/favicon.png" />
+  <meta property="og:type" content="website" />
 
-    <link rel="stylesheet" href="css/variables.css" />
-    <link rel="stylesheet" href="css/home.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/home.css" />
 
-  <body>
-    <section id="hero">
-      <div class="imagem-hero">
-        <picture>
-          <source
-            srcset="assets/images/hero-mobile.webp"
-            media="(max-width: 480px)"
-            type="image/webp"
-          />
-          <source
-            srcset="assets/images/hero-tablet.webp"
-            media="(max-width: 768px)"
-            type="image/webp"
-          />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
 
-          <img
-            src="assets/images/hero-desktop.webp"
-            alt="Ambiente da Barbearia"
-            width="1440"
-            height="900"
-            fetchpriority="high"
-          />
-        </picture>
+<body>
+  <section id="hero">
+    <div class="imagem-hero">
+      <picture>
+        <source srcset="assets/images/hero-mobile.webp" media="(max-width: 480px)" type="image/webp" />
+        <source srcset="assets/images/hero-tablet.webp" media="(max-width: 768px)" type="image/webp" />
+
+        <img src="assets/images/hero-desktop.webp" alt="Ambiente da Barbearia" width="1440" height="900"
+          fetchpriority="high" />
+      </picture>
+    </div>
+    <div class="hero-content">
+      <h1>
+        Cortes Modernos e <br />
+        Barba Profissional
+      </h1>
+      <p>Agende seu horário em Vila Velha.</p>
+      <a href="#agendamento" class="btn-principal">Agendar Horário</a>
+    </div>
+  </section>
+
+  <section id="sobre" class="container">
+    <div class="texto-sobre">
+      <h3 class="titulo-decorado">Sobre Nós</h3>
+      <p>Mais de 10 anos cuidando do seu visual.</p>
+      <p>Profissionais especializados em cortes e barba.</p>
+    </div>
+    <div class="imagem-sobre">
+      <picture>
+        <source srcset="assets/images/imgsobre.webp" type="image/webp" />
+
+        <img src="assets/images/imgsobre.webp.webp" alt="Interior da barbearia profissional" loading="lazy" />
+      </picture>
+    </div>
+  </section>
+
+  <section id="servicos" class="container">
+    <h3 class="titulo-centralizado">Serviços</h3>
+    <div class="cards-grid" id="container-servicos-cliente">
+    </div>
+  </section>
+
+  <section id="galeria" class="container">
+    <h3 class="titulo-centralizado">Galeria</h3>
+    <div class="galeria-grid">
+      <picture>
+        <source srcset="assets/images/galeria1.webp" type="image/webp" />
+        <img src="assets/images/galeria1.webp" alt="Corte 1" width="400" height="250" loading="lazy" />
+      </picture>
+
+      <picture>
+        <source srcset="assets/images/galeria2.webp" type="image/webp" />
+        <img src="assets/images/galeria2.webp" alt="Corte 2" width="400" height="250" loading="lazy" />
+      </picture>
+
+      <picture>
+        <source srcset="assets/images/galeria3.webp" type="image/webp" />
+        <img src="assets/images/galeria3.webp" alt="Corte 3" width="400" height="250" loading="lazy" />
+      </picture>
+
+      <picture>
+        <source srcset="assets/images/galeria4.webp" type="image/webp" />
+        <img src="assets/images/galeria4.webp" alt="Corte 4" width="400" height="250" loading="lazy" />
+      </picture>
+    </div>
+  </section>
+
+  <section id="agendamento" class="container">
+    <h3 class="titulo-centralizado">Agende seu Horário</h3>
+
+    <form class="form-agendamento" id="form-agendamento">
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" placeholder="Seu nome completo" required />
+
+      <label for="telefone">Telefone:</label>
+      <input type="tel" id="telefone" name="telefone" placeholder="(27) 99999-9999" required />
+
+      <label for="servico">Serviço</label>
+      <select id="servico" name="servico" required>
+        <option value="">Selecione um serviço</option>
+      </select>
+
+      <div class="input-group-moderno">
+        <label for="data">1. Escolha o dia:</label>
+        <input id="data" type="date" required />
       </div>
-      <div class="hero-content">
-        <h1>
-          Cortes Modernos e <br />
-          Barba Profissional
-        </h1>
-        <p>Agende seu horário em Vila Velha.</p>
-        <a href="#agendamento" class="btn-principal">Agendar Horário</a>
+
+      <div id="container-horarios" class="container-slots" style="display: none; margin-top: 20px;">
+        <label>2. Escolha o horário disponível:</label>
+        <div id="grid-horarios" class="grid-slots"></div>
       </div>
-    </section>
 
-    <section id="sobre" class="container">
-      <div class="texto-sobre">
-        <h2 class="titulo-decorado">Sobre Nós</h2>
-        <p>Mais de 10 anos cuidando do seu visual.</p>
-        <p>Profissionais especializados em cortes e barba.</p>
-      </div>
-      <div class="imagem-sobre">
-        <picture>
-          <source srcset="assets/images/imgsobre.webp" type="image/webp" />
+      <input type="hidden" id="horario-final" name="horario_final" required>
 
-          <img
-            src="assets/images/imgsobre.webp.webp"
-            alt="Interior da barbearia profissional"
-            loading="lazy"
-          />
-        </picture>
-      </div>
-    </section>
+      <button type="submit" class="btn-confirmar">
+        Confirmar Agendamento
+      </button>
+    </form>
+  </section>
 
-    <section id="servicos" class="container">
-      <h2 class="titulo-centralizado">Serviços</h2>
-      <div class="cards-grid">
-        <div class="card">
-          <h3>Corte Masculino</h3>
-          <p class="preco">R$ 40</p>
-          <button class="btn-card btn-agendar" data-servico="Corte Masculino">
-            Agendar
-          </button>
-        </div>
+  <footer>
+    <div class="footer-content">
+      <div class="info-contato">
+        <h3>Nosso Endereço</h3>
+        <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
+        <p>CEP: 29120-280</p>
+        <p>Telefone: (27) 90765-4321</p>
 
-        <div class="card">
-          <h3>Barba</h3>
-          <p class="preco">R$ 30</p>
-          <button class="btn-card btn-agendar" data-servico="Barba">
-            Agendar
-          </button>
-        </div>
-
-        <div class="card">
-          <h3>Corte + Barba</h3>
-          <p class="preco">R$ 60</p>
-          <button class="btn-card btn-agendar" data-servico="Corte + Barba">
-            Agendar
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section id="galeria" class="container">
-      <h2 class="titulo-centralizado">Galeria</h2>
-      <div class="galeria-grid">
-        <picture>
-          <source srcset="assets/images/galeria1.webp" type="image/webp" />
-          <img
-            src="assets/images/galeria1.webp"
-            alt="Corte 1"
-            width="400"
-            height="250"
-            loading="lazy"
-          />
-        </picture>
-
-        <picture>
-          <source srcset="assets/images/galeria2.webp" type="image/webp" />
-          <img
-            src="assets/images/galeria2.webp"
-            alt="Corte 2"
-            width="400"
-            height="250"
-            loading="lazy"
-          />
-        </picture>
-
-        <picture>
-          <source srcset="assets/images/galeria3.webp" type="image/webp" />
-          <img
-            src="assets/images/galeria3.webp"
-            alt="Corte 3"
-            width="400"
-            height="250"
-            loading="lazy"
-          />
-        </picture>
-
-        <picture>
-          <source srcset="assets/images/galeria4.webp" type="image/webp" />
-          <img
-            src="assets/images/galeria4.webp"
-            alt="Corte 4"
-            width="400"
-            height="250"
-            loading="lazy"
-          />
-        </picture>
-      </div>
-    </section>
-
-    <section id="agendamento" class="container">
-  <h2 class="titulo-centralizado">Agende seu Horário</h2>
-  
-  <form class="form-agendamento" id="form-agendamento">
-    
-    <label>Nome</label>
-    <input type="text" id="nome" placeholder="Seu nome completo" required />
-
-    <label for="telefone">Telefone</label>
-    <input
-      type="tel"
-      id="telefone"
-      name="telefone"
-      placeholder="(27) 99999-9999"
-      required
-    />
-
-    <label for="servico">Serviço</label>
-    <select id="servico" name="servico" required>
-      <option value="">Selecione um serviço</option>
-      <option value="Corte Masculino">Corte Masculino</option>
-      <option value="Barba">Barba</option>
-      <option value="Corte + Barba">Corte + Barba</option>
-    </select>
-
-    <label>Data e hora</label>
-    <input id="data" type="datetime-local" required />
-
-    <button type="submit" class="btn-confirmar">
-      Confirmar Agendamento
-    </button>
-  </form>
-</section>
-      </form>
-    </section>
-
-    <footer>
-      <div class="footer-content">
-        <div class="info-contato">
-          <h3>Nosso Endereço</h3>
-          <p>Rua Marechal Deodoro, 119 - Vila Velha, ES</p>
-          <p>CEP: 29120-280</p>
-          <p>Telefone: (27) 90765-4321</p>
-        </div>
-
-        <div class="mapa-container">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
-            style="border: 0"
-            allowfullscreen=""
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
+        <div class="redes-sociais">
+          <a href="https://instagram.com/seuusuario" target="_blank" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://facebook.com/seupagina" target="_blank" aria-label="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="https://wa.me/5527907654321" target="_blank" aria-label="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
         </div>
       </div>
 
-      <div class="footer-bottom">
-        <div class="area-barbeiro">
-          <a href="login.html" class="link-admin">Área do Barbeiro</a>
-        </div>
 
-        <hr class="divisor-footer" />
-        <p class="copyright">
-          © 2026 Barbearia Profissional. Todos os direitos reservados.
-        </p>
+      <div class="mapa-container">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
+          style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
-    </footer>
-    <script src="js/main.js"></script>
-  </body>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="area-barbeiro">
+        <a href="login.html" class="link-admin">Área do Barbeiro</a>
+      </div>
+
+      <hr class="divisor-footer" />
+      <p class="copyright">
+        © 2026 Barbearia Profissional. Todos os direitos reservados.
+      </p>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+
 </html>

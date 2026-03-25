@@ -1,51 +1,72 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard | ClientFlow</title>
-    <link rel="stylesheet" href="css/variables.css" />
-    <link rel="stylesheet" href="css/dashboard.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-  </head>
-  <body class="body-dashboard">
-    <button id="abrir-menu" class="btn-menu-mobile">
-      <i class="fas fa-bars"></i>
-    </button>
 
-    <div id="overlay" class="overlay"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | ClientFlow</title>
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
 
-    <div class="dashboard-container">
-      <aside class="sidebar" id="sidebar">
-        <button id="fechar-menu" class="btn-fechar-mobile">
-          <i class="fas fa-times"></i>
-        </button>
+<body class="body-dashboard">
+  <button id="abrir-menu" class="btn-menu-mobile">
+    <i class="fas fa-bars"></i>
+  </button>
 
-        <div class="logo">
-          <h2>Client<span>Flow</span></h2>
+  <div id="overlay" class="overlay"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <h2>Client<span>Flow</span></h2>
+      </div>
+
+      <nav class="menu">
+        <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
+        <a href="#"><i class="fas fa-users"></i> Clientes</a>
+        <a href="#" id="link-relatorios"><i class="fas fa-chart-line"></i> Relatórios</a>
+        <div class="menu-item-dropdown">
+          <a href="#" id="btn-config-master" class="btn-dropdown">
+            <span><i class="fas fa-cog"></i> Configurações</span>
+            <i class="fas fa-chevron-down seta-menu"></i>
+          </a>
+          <div class="submenu" id="submenu-links">
+            <a href="#" onclick="abrirSubConfig('expediente')"><i class="fas fa-clock"></i> Expediente</a>
+            <a href="#" onclick="abrirSubConfig('meta')"><i class="fas fa-bullseye"></i> Meta Diária</a>
+            <a href="#" onclick="abrirSubConfig('servicos')"><i class="fas fa-cut"></i> Adicionar Serviço</a>
+          </div>
         </div>
+      </nav>
 
-        <nav class="menu">
-          <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
-          <a href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
-          <a href="#"><i class="fas fa-users"></i> Clientes</a>
-          <a href="#"><i class="fas fa-cog"></i> Configurações</a>
-        </nav>
+      <button id="btn-logout" class="link-admin">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
+    </aside>
 
-        <button id="btn-logout" class="link-admin">
-          <i class="fas fa-sign-out-alt"></i> Sair
-        </button>
-      </aside>
+    <main class="main-content">
+      <header class="dash-header">
+        <h1>Olá, Alex!</h1>
+        <button class="btn-principal">+ Novo Agendamento</button>
+      </header>
 
-      <main class="main-content">
-        <header class="dash-header">
-          <h1>Olá, João!</h1>
-          <button class="btn-principal">+ Novo Agendamento</button>
-        </header>
+      <section class="conquista-container" id="painel-conquista">
+        <div class="header-conquista">
+          <div class="texto-meta">
+            <h3 id="frase-progresso">Sua jornada de hoje começou! 🚀</h3>
+            <p>Meta Diária: <span id="meta-valor-display">R$ 400,00</span></p>
+          </div>
+          <div class="valor-faturado" id="faturamento-real">R$ 0,00</div>
+        </div>
+        <div class="barra-progresso-bg">
+          <div id="barra-progresso-fill"></div>
+        </div>
+      </section>
 
+      <div id="conteudo-dashboard">
         <section class="stats-grid">
           <div class="stat-card">
             <div class="card-header">
@@ -55,21 +76,20 @@
             <span class="stat-value" id="total-hoje">0</span>
             <p class="stat-desc">agendamentos</p>
           </div>
-
           <div class="stat-card">
             <div class="card-header">
               <i class="fas fa-clock"></i>
               <p>Próximo horário</p>
             </div>
-            <span class="stat-value">10:30</span>
+            <span class="stat-value" id="proximo-horario">--:--</span>
           </div>
-
           <div class="stat-card">
             <div class="card-header">
-              <i class="fas fa-cut"></i>
+              <i class="fas fa-star"></i>
               <p>Serviço mais vendido</p>
             </div>
-            <span class="stat-value">Corte</span>
+            <span class="stat-value" id="servico-mais-vendido" style="font-size: 1.5rem">---</span>
+            <p class="stat-desc">Favorito dos clientes</p>
           </div>
         </section>
 
@@ -85,74 +105,196 @@
                   <th>Ações</th>
                 </tr>
               </thead>
-              <tbody id="lista-agendamentos">
-                <tr>
-                  <td>09:00</td>
-                  <td>
-                    <div class="cliente-info">
-                      <span>João</span>
-                    </div>
-                  </td>
-                  <td class="hide-mobile">Corte</td>
-                  <td>
-                    <div class="acoes-buttons">
-                      <button class="btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                      </button>
-                      <button class="btn-concluir">
-                        <i class="fas fa-check"></i>
-                      </button>
-                      <button class="btn-cancelar">
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
+              <tbody id="lista-agendamentos"></tbody>
             </table>
           </div>
         </section>
-      </main>
-    </div>
-    <div id="modal-agendamento" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
-          <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
+      </div>
+
+      <section id="secao-agenda-completa" class="aba-content" style="display: none">
+        <div class="dash-header">
+          <h2><i class="fas fa-calendar-alt"></i> Agenda Completa</h2>
+        </div>
+        <div class="agenda-container-flex">
+          <div class="calendario-box">
+            <div class="calendario-nav">
+              <button onclick="mudarMes(-1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <h3 id="mes-atual">Março 2026</h3>
+              <button onclick="mudarMes(1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <div id="calendario-grade" class="calendario-grade"></div>
+          </div>
+          <div class="agenda-dia-detalhe">
+            <h3 id="titulo-agenda-selecionada">Selecione um dia</h3>
+            <div id="lista-agenda-clicada" class="lista-interativa">
+              <p style="
+                    color: var(--cor-subtexto);
+                    text-align: center;
+                    margin-top: 20px;
+                  ">
+                Clique em um dia com marcação para ver os horários.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="secao-clientes" class="aba-content" style="display: none">
+        <div class="dash-header">
+          <h2><i class="fas fa-users"></i> Meus Clientes</h2>
+          <div class="busca-container">
+            <input type="text" id="busca-cliente" placeholder="Buscar cliente..." onkeyup="filtrarClientes()" />
+          </div>
+        </div>
+        <div class="tabela-container" style="margin-top: 20px">
+          <table class="tabela-agenda">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Último Serviço</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="corpo-tabela-clientes"></tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section id="configuracoes-section" class="agenda-section" style="display: none">
+        <div id="area-expediente" class="config-sub-section">
+          <h3><i class="fas fa-clock"></i> Configurar Expediente</h3>
+          <div class="stat-card" style="
+                border-left: 4px solid var(--cor-primaria);
+                margin-top: 20px;
+              ">
+            <div class="config-grid-form">
+              <div class="input-group-modal">
+                <label>Hora de Início</label><input type="time" id="cfg-hora-inicio" value="09:00" />
+              </div>
+              <div class="input-group-modal">
+                <label>Hora de Término</label><input type="time" id="cfg-hora-fim" value="19:00" />
+              </div>
+              <div class="input-group-modal">
+                <label>Duração (min)</label><input type="number" id="cfg-intervalo" value="30" />
+              </div>
+              <div class="input-group-modal">
+                <label>Início do Almoço</label><input type="time" id="cfg-almoco-inicio" value="12:00" />
+              </div>
+              <div class="input-group-modal">
+                <label>Fim do Almoço</label><input type="time" id="cfg-almoco-fim" value="13:00" />
+              </div>
+            </div>
+            <div class="dias-expediente" style="margin-top: 20px">
+              <p>Dias de Funcionamento:</p>
+              <div class="checkbox-group">
+                <label><input type="checkbox" class="cfg-dia" value="1" checked />
+                  Seg</label>
+                <label><input type="checkbox" class="cfg-dia" value="2" checked />
+                  Ter</label>
+                <label><input type="checkbox" class="cfg-dia" value="3" checked />
+                  Qua</label>
+                <label><input type="checkbox" class="cfg-dia" value="4" checked />
+                  Qui</label>
+                <label><input type="checkbox" class="cfg-dia" value="5" checked />
+                  Sex</label>
+                <label><input type="checkbox" class="cfg-dia" value="6" checked />
+                  Sáb</label>
+                <label><input type="checkbox" class="cfg-dia" value="0" />
+                  Dom</label>
+              </div>
+            </div>
+            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              <i class="fas fa-save"></i> Salvar Expediente
+            </button>
+          </div>
         </div>
 
-        <div class="modal-body">
-          <div class="input-group-modal">
-            <label>Nome do Cliente</label>
-            <input type="text" id="rapido-nome" placeholder="Ex: Alex Silva" />
+        <div id="area-meta" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
+          <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px">
+            <div class="input-group-modal">
+              <label>Valor da Meta (R$)</label>
+              <input type="number" id="cfg-meta-valor" value="400" />
+            </div>
+            <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              Atualizar Meta
+            </button>
           </div>
-
-          <div class="input-group-modal">
-            <label>Serviço</label>
-            <select id="rapido-servico">
-              <option value="Corte Masculino">Corte Masculino</option>
-              <option value="Barba">Barba</option>
-              <option value="Corte + Barba">Corte + Barba</option>
-              <option value="Pezinho">Pezinho</option>
-            </select>
-          </div>
-
-          <div class="input-group-modal">
-            <label>Telefone (Opcional)</label>
-            <input
-              type="tel"
-              id="rapido-telefone"
-              placeholder="(27) 99999-9999"
-            />
-          </div>
-
-          <button onclick="agendarAgora()" class="btn-salvar-modal">
-            Finalizar e Adicionar
-          </button>
         </div>
+
+        <div id="area-servicos" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-cut"></i> Gerenciar Serviços</h3>
+          <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
+            <div class="config-grid-form">
+              <div class="input-group-modal">
+                <label>Nome</label><input type="text" id="novo-servico-nome" />
+              </div>
+              <div class="input-group-modal">
+                <label>Preço</label><input type="number" id="novo-servico-preco" />
+              </div>
+            </div>
+            <button onclick="adicionarNovoServico()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              Adicionar Serviço
+            </button>
+
+            <div id="lista-servicos-config" style="margin-top: 20px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="secao-relatorios" style="display: none;">
+        <div class="header-sessao">
+          <h2><i class="fas fa-chart-line"></i> Relatórios de Faturamento</h2>
+        </div>
+        <div class="card-dashboard">
+          <h3>Histórico Recente (Últimos 7 dias)</h3>
+          <div id="lista-historico-financeiro">
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-agendamento" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
+        <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group-modal">
+          <label>Nome do Cliente</label>
+          <input type="text" id="rapido-nome" placeholder="Ex: Alex Silva" />
+        </div>
+        <div class="input-group-modal">
+          <label>Serviço</label>
+          <select id="rapido-servico">
+            <option value="Corte Masculino">Corte Masculino</option>
+            <option value="Barba">Barba</option>
+            <option value="Corte + Barba">Corte + Barba</option>
+            <option value="Pezinho">Pezinho</option>
+          </select>
+        </div>
+        <div class="input-group-modal">
+          <label>Telefone (Opcional)</label>
+          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" />
+        </div>
+        <button onclick="agendarAgora()" class="btn-salvar-modal">
+          Finalizar e Adicionar
+        </button>
       </div>
     </div>
+  </div>
 
-    <script src="js/script-dashboard.js"></script>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="js/script-dashboard.js"></script>
+</body>
+
 </html>
