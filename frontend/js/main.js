@@ -191,6 +191,8 @@ if (formulario) {
 
         const botaoSubmit = formulario.querySelector('button[type="submit"]');
         const textoOriginal = botaoSubmit.innerText;
+
+        // Estado de carregamento
         botaoSubmit.disabled = true;
         botaoSubmit.innerText = "Enviando...";
 
@@ -216,12 +218,26 @@ if (formulario) {
                 body: JSON.stringify(novoAgendamento),
             });
 
-            alert(`Tudo certo, ${novoAgendamento.nome}! Horário reservado.`);
-            formulario.reset();
-            containerHorarios.style.display = "none";
+            // --- SUCESSO: ATIVA O CHECK VERDE ---
+            botaoSubmit.innerHTML = '<i class="fas fa-check"></i> Agendado com Sucesso!';
+            botaoSubmit.classList.add("sucesso", "animar-sucesso");
+
+            // Aguarda 3 segundos para o cliente ver o sucesso e limpa tudo
+            setTimeout(() => {
+                formulario.reset();
+                if (containerHorarios) containerHorarios.style.display = "none";
+
+                // Volta o botão ao estado original
+                botaoSubmit.classList.remove("sucesso", "animar-sucesso");
+                botaoSubmit.innerText = textoOriginal;
+                botaoSubmit.disabled = false;
+            }, 3000);
+
         } catch (erro) {
-            alert("Erro ao sincronizar, mas salvamos o horário!");
-        } finally {
+            console.error("Erro no envio:", erro);
+            alert("Erro ao sincronizar, mas salvamos o horário no seu navegador!");
+
+            // Em caso de erro, volta o botão imediatamente para tentar de novo
             botaoSubmit.disabled = false;
             botaoSubmit.innerText = textoOriginal;
         }

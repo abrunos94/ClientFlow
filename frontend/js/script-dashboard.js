@@ -13,24 +13,21 @@ const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxqDhLWYyszMT7zFZT
 const listaAgendamentos = document.getElementById("lista-agendamentos");
 const sidebar = document.getElementById("sidebar");
 const btnAbrir = document.getElementById("abrir-menu");
-const btnFechar = document.getElementById("fechar-menu");
 const overlay = document.getElementById("overlay");
 const btnLogout = document.getElementById("btn-logout");
-const modal = document.getElementById("modal-agendamento");
-const btnNovoAgendamento = document.querySelector(".btn-principal");
-const btnFecharModal = document.getElementById("fechar-modal");
 
 const linkDashboard = document.querySelector(".menu a:nth-child(1)");
 const linkAgenda = document.querySelector(".menu a:nth-child(2)");
 const linkClientes = document.querySelector(".menu a:nth-child(3)");
+const linkRelatorios = document.getElementById("link-relatorios");
 const btnConfigMaster = document.getElementById("btn-config-master");
 
 const secaoHomeTotal = document.getElementById("conteudo-dashboard");
 const secaoAgendaCompleta = document.getElementById("secao-agenda-completa");
 const secaoConfigs = document.getElementById("configuracoes-section");
 const secaoClientes = document.getElementById("secao-clientes");
+const secaoRelatorios = document.getElementById("secao-relatorios");
 
-// --- CONFIGURAÇÃO INICIAL DE SERVIÇOS ---
 const SERVICOS_PADRAO = [
     { nome: "Corte Masculino", preco: 40 },
     { nome: "Barba", preco: 30 },
@@ -39,10 +36,29 @@ const SERVICOS_PADRAO = [
 ];
 
 /* ==========================================================================
-   3. NAVEGAÇÃO E INTERFACE
+   3. LÓGICA DE RESET DIÁRIO E HISTÓRICO
+   ========================================================================== */
+function verificarResetDiario() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const ultimaDataFaturamento = localStorage.getItem("dataUltimoFaturamento");
+
+    if (ultimaDataFaturamento !== hoje) {
+        localStorage.setItem("faturamentoHoje", "0");
+        localStorage.setItem("dataUltimoFaturamento", hoje);
+    }
+}
+
+function salvarFaturamentoNoHistorico(data, valor) {
+    let historico = JSON.parse(localStorage.getItem("historicoFinanceiro")) || {};
+    historico[data] = (historico[data] || 0) + valor;
+    localStorage.setItem("historicoFinanceiro", JSON.stringify(historico));
+}
+
+/* ==========================================================================
+   4. NAVEGAÇÃO E INTERFACE
    ========================================================================== */
 function esconderTodasSessoes() {
-    const secoes = [secaoHomeTotal, secaoAgendaCompleta, secaoConfigs, secaoClientes];
+    const secoes = [secaoHomeTotal, secaoAgendaCompleta, secaoConfigs, secaoClientes, secaoRelatorios];
     secoes.forEach((s) => { if (s) s.style.display = "none"; });
     document.querySelectorAll(".menu a").forEach((a) => a.classList.remove("active"));
 }
@@ -77,6 +93,16 @@ if (linkClientes) {
     });
 }
 
+if (linkRelatorios) {
+    linkRelatorios.addEventListener("click", (e) => {
+        e.preventDefault();
+        esconderTodasSessoes();
+        if (secaoRelatorios) secaoRelatorios.style.display = "block";
+        linkRelatorios.classList.add("active");
+        renderizarRelatorios();
+    });
+}
+
 const fecharMenu = () => {
     if (sidebar) sidebar.classList.remove("active");
     if (overlay) overlay.classList.remove("active");
@@ -87,7 +113,6 @@ if (btnAbrir && sidebar && overlay) {
         sidebar.classList.add("active");
         overlay.classList.add("active");
     });
-    if (btnFechar) btnFechar.addEventListener("click", fecharMenu);
     overlay.addEventListener("click", fecharMenu);
 }
 
@@ -99,14 +124,13 @@ if (btnLogout) {
 }
 
 /* ==========================================================================
-   4. GERENCIAMENTO DE SERVIÇOS E META
+   5. GERENCIAMENTO DE SERVIÇOS E META
    ========================================================================== */
 function obterServicos() {
     const salvos = localStorage.getItem("meusServicos");
     return salvos ? JSON.parse(salvos) : SERVICOS_PADRAO;
 }
 
-// Atualiza o select do modal de agendamento com os serviços do barbeiro
 function atualizarSelectsServicos() {
     const select = document.getElementById("rapido-servico");
     if (!select) return;
@@ -114,7 +138,6 @@ function atualizarSelectsServicos() {
     select.innerHTML = servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join("");
 }
 
-// Renderiza a lista de serviços na aba de configurações
 function renderizarConfigServicos() {
     const container = document.getElementById("lista-servicos-config");
     if (!container) return;
@@ -209,7 +232,7 @@ function atualizarProgressoMeta() {
 }
 
 /* ==========================================================================
-   5. LÓGICA DE CLIENTES
+   6. LÓGICA DE CLIENTES E RELATÓRIOS
    ========================================================================== */
 function renderizarListaClientes() {
     const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
@@ -230,13 +253,38 @@ function renderizarListaClientes() {
     listaFinal.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((c) => {
         const linha = document.createElement("tr");
         linha.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.ultimoServico}</td><td>${c.telefone}</td>
-            <td><button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.nome}')"><i class="fab fa-whatsapp"></i> Contato</button></td>`;
+            <td><button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.nome}')"><i class="fab fa-whatsapp"></i></button></td>`;
         corpoTabela.appendChild(linha);
     });
 }
 
+function renderizarRelatorios() {
+    const container = document.getElementById("lista-historico-financeiro");
+    if (!container) return;
+    const historico = JSON.parse(localStorage.getItem("historicoFinanceiro")) || {};
+    const datas = Object.keys(historico).sort((a, b) => {
+        return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+    });
+    if (datas.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Sem dados para exibir.</p>';
+        return;
+    }
+    container.innerHTML = datas.map(data => `
+        <div style="display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); margin-bottom: 5px; border-radius: 8px;">
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #888; font-size: 0.8rem;">Data</span>
+                <span style="color: #fff; font-weight: 500;">${data}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: right;">
+                <span style="color: #888; font-size: 0.8rem;">Faturamento</span>
+                <span style="color: #2ecc71; font-weight: bold;">R$ ${historico[data].toFixed(2).replace('.', ',')}</span>
+            </div>
+        </div>
+    `).join("");
+}
+
 /* ==========================================================================
-   6. LÓGICA DE DADOS (DASHBOARD)
+   7. LÓGICA DE DASHBOARD E CALENDÁRIO
    ========================================================================== */
 function carregarAgendamentos() {
     if (!listaAgendamentos) return;
@@ -296,11 +344,7 @@ function atualizarServicoMaisVendido() {
     if (el) el.innerText = maisVendido || "---";
 }
 
-/* ==========================================================================
-   7. CALENDÁRIO DINÂMICO
-   ========================================================================== */
 let dataAtualCalendario = new Date();
-
 function renderizarCalendario() {
     const grade = document.getElementById("calendario-grade");
     const labelMes = document.getElementById("mes-atual");
@@ -356,7 +400,7 @@ function verDetalhesDia(dataFiltro, elemento) {
             <div class="card-horario-detalhe">
                 <div class="horario-badge">${hora}</div>
                 <div class="info-cliente"><h4>${ag.nome}</h4><span><i class="fas fa-cut"></i> ${ag.servico}</span></div>
-                <button class="btn-detalhe-wpp" onclick="enviarLembrete('${ag.telefone}', '${ag.nome}')"><i class="fab fa-whatsapp"></i></button>
+                <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.nome}')"><i class="fab fa-whatsapp"></i></button>
             </div>`;
     });
 }
@@ -380,7 +424,11 @@ window.removerAgendamento = function (id, acao) {
             const serv = servicosCadastrados.find(s => s.nome === agendamento.servico);
             const valor = serv ? serv.preco : 0;
             let fatAtual = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+
             localStorage.setItem("faturamentoHoje", fatAtual + valor);
+            localStorage.setItem("dataUltimoFaturamento", dataHoje);
+            salvarFaturamentoNoHistorico(dataHoje, valor);
         }
 
         ags = ags.filter((a) => String(a.id) !== String(id));
@@ -391,17 +439,11 @@ window.removerAgendamento = function (id, acao) {
 };
 
 window.addEventListener("load", () => {
+    verificarResetDiario();
     atualizarSelectsServicos();
     carregarAgendamentos();
     atualizarProgressoMeta();
 
     const inputMeta = document.getElementById("cfg-meta-valor");
     if (inputMeta) inputMeta.value = localStorage.getItem("metaDiaria") || "400";
-
-    const linksMenu = document.querySelectorAll(".sidebar a, .submenu a");
-    linksMenu.forEach(link => {
-        link.addEventListener("click", () => {
-            if (!link.id.includes("btn-config-master") && window.innerWidth <= 768) fecharMenu();
-        });
-    });
 });

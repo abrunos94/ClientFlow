@@ -1,518 +1,292 @@
 /* =========================================
    1. ESTRUTURA BASE E GERAL
    ========================================= */
+:root {
+    /* Garante que as variáveis existam caso não carregue o variables.css */
+    --cor-fundo: #0a0a0a;
+    --cor-card: #1a1a1a;
+    --cor-texto: #ffffff;
+    --cor-subtexto: #aaaaaa;
+    --cor-borda: #333333;
+}
+
 .body-dashboard {
-  margin: 0;
-  overflow-x: hidden;
-  background-color: var(--cor-fundo);
+    margin: 0;
+    overflow-x: hidden;
+    background-color: var(--cor-fundo);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .dashboard-container {
-  display: flex;
-  min-height: 100vh;
+    display: flex;
+    min-height: 100vh;
 }
 
 .main-content {
-  flex: 1;
-  padding: 40px;
-  background-color: var(--cor-fundo);
+    flex: 1;
+    padding: 40px;
+    background-color: var(--cor-fundo);
 }
 
 .dash-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
 }
 
 /* Elementos auxiliares */
 .overlay {
-  display: none;
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.aba-content {
+    animation: fadeIn 0.3s ease-out;
 }
 
 /* =========================================
    2. SIDEBAR E NAVEGAÇÃO (COM SUBMENU)
    ========================================= */
 .sidebar {
-  width: 250px;
-  background-color: #111;
-  border-right: 1px solid #222;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
+    width: 250px;
+    background-color: #111;
+    border-right: 1px solid #222;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
 }
 
 .sidebar .logo {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
+}
+
+.sidebar .logo span {
+    color: var(--cor-primaria);
 }
 
 .sidebar .menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
 }
 
 .sidebar .menu a {
-  color: var(--cor-texto);
-  text-decoration: none;
-  padding: 12px 15px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: 0.3s;
+    color: var(--cor-texto);
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
 }
 
 .sidebar .menu a.active,
 .sidebar .menu a:hover {
-  background-color: var(--cor-primaria);
-  color: #000;
+    background-color: var(--cor-primaria);
+    color: #000;
 }
 
-/* --- Estilos do Novo Submenu --- */
+/* --- Estilos do Submenu Lateral --- */
 .submenu {
-  display: none; /* Controlado via JS */
-  flex-direction: column;
-  background: rgba(255, 255, 255, 0.03);
-  margin-left: 15px;
-  border-left: 2px solid var(--cor-primaria);
-  margin-bottom: 10px;
-  border-radius: 0 0 0 8px;
+    display: none; /* Controlado via JS */
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    margin-left: 15px;
+    border-left: 2px solid var(--cor-primaria);
+    margin-bottom: 10px;
+    border-radius: 0 0 0 8px;
 }
 
 .submenu a {
-  padding: 10px 15px !important;
-  font-size: 0.85rem !important;
-  color: var(--cor-subtexto) !important;
+    padding: 10px 15px !important;
+    font-size: 0.85rem !important;
+    color: var(--cor-subtexto) !important;
+}
+
+.submenu a:hover {
+    background: transparent !important;
+    color: var(--cor-primaria) !important;
 }
 
 .seta-menu {
-  font-size: 0.7rem;
-  transition: 0.3s;
+    font-size: 0.7rem;
+    transition: 0.3s;
 }
 
 .rotate {
-  transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
+.link-admin {
+    background: transparent;
+    border: 1px solid #333;
+    color: #ff4757;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-top: 20px;
 }
 
 /* =========================================
    3. CARDS E ESTATÍSTICAS
    ========================================= */
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
 }
 
 .stat-card {
-  background-color: #1a1a1a;
-  padding: 20px;
-  border-radius: 8px;
-  border-left: 4px solid var(--cor-primaria);
+    background-color: var(--cor-card);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    border-left: 4px solid var(--cor-primaria);
 }
 
 .card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .card-header i {
-  color: var(--cor-primaria);
-  font-size: 1.2rem;
+    color: var(--cor-primaria);
+    font-size: 1.2rem;
 }
 
 .card-header p {
-  margin: 0;
-  color: var(--cor-texto);
-  font-weight: bold;
+    margin: 0;
+    color: var(--cor-texto);
+    font-weight: bold;
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  display: block;
-  margin-top: 5px;
+    font-size: 2rem;
+    font-weight: 700;
+    display: block;
+    margin-top: 5px;
+    color: #fff;
 }
 
 .stat-desc {
-  font-size: 0.8rem;
-  color: var(--cor-subtexto);
-  margin: 0;
+    font-size: 0.8rem;
+    color: var(--cor-subtexto);
+    margin: 0;
 }
 
 /* =========================================
    4. TABELAS (AGENDA E CLIENTES)
    ========================================= */
+.tabela-container {
+    overflow-x: auto;
+    background: var(--cor-card);
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+}
+
 .tabela-agenda {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  color: var(--cor-texto);
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--cor-texto);
 }
 
 .tabela-agenda th {
-  text-align: left;
-  padding: 15px;
-  color: var(--cor-subtexto);
-  font-size: 0.9rem;
-  border-bottom: 1px solid #222;
+    text-align: left;
+    padding: 15px;
+    color: var(--cor-subtexto);
+    font-size: 0.9rem;
+    border-bottom: 1px solid #222;
+    background: rgba(255,255,255,0.02);
 }
 
 .tabela-agenda td {
-  padding: 15px;
-  border-bottom: 1px solid #1a1a1a;
+    padding: 15px;
+    border-bottom: 1px solid #1a1a1a;
 }
 
 .tabela-agenda tr:hover {
-  background-color: #161616;
+    background-color: #161616;
 }
 
-.cliente-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--cor-primaria);
-}
-
+/* Botões de Ação na Tabela */
 .acoes-buttons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
-/* Botões de Ação */
 .btn-whatsapp {
-  background-color: #25d366;
-  color: white;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: 0.3s;
+    background-color: #25d366;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 .btn-whatsapp:hover {
-  background-color: #128c7e;
-  transform: scale(1.1);
+    background-color: #128c7e;
+    transform: scale(1.1);
 }
 
 .btn-concluir {
-  background-color: var(--cor-primaria);
-  color: #000;
-  font-size: 0.85rem;
-  padding: 8px 12px;
+    background-color: var(--cor-primaria);
+    color: #000;
+    border: none;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .btn-cancelar {
-  background-color: #222;
-  color: var(--cor-subtexto);
-  font-size: 0.85rem;
-  padding: 8px 12px;
+    background-color: #222;
+    color: var(--cor-subtexto);
+    border: none;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 /* =========================================
    5. CALENDÁRIO E AGENDA FLEXÍVEL
    ========================================= */
 .agenda-container-flex {
-  display: flex;
-  gap: 25px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 25px;
+    margin-top: 20px;
+    flex-wrap: wrap;
 }
 
 .calendario-box {
-  flex: 1;
-  min-width: 320px;
-  background: var(--cor-card);
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid #222;
+    flex: 1;
+    min-width: 320px;
+    background: var(--cor-card);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--cor-borda);
 }
 
 .calendario-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
-.calendario-grade {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-}
-
-.dia-item {
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 8px;
-  background: #111;
-  color: #ccc;
-  transition: 0.2s;
-  position: relative;
-}
-
-.dia-item.ativo {
-  background: var(--cor-primaria) !important;
-  color: #000 !important;
-  font-weight: bold;
-}
-
-.agenda-dia-detalhe {
-  width: 380px;
-  background: var(--cor-card);
-  padding: 25px;
-  border-radius: 12px;
-  border-left: 4px solid var(--cor-primaria);
-}
-
-/* =========================================
-   6. MODAIS E CONFIGURAÇÕES
-   ========================================= */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0; top: 0; width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  background-color: var(--bg-card);
-  margin: 10% auto;
-  padding: 25px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 450px;
-  border: 1px solid #444;
-}
-
-.input-group-modal {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Configurações Internas */
-.config-grid-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 20px;
-}
-
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  background: #222;
-  padding: 15px;
-  border-radius: 6px;
-}
-
-.busca-container input {
-  background: #111;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 10px 15px;
-  border-radius: 8px;
-  width: 250px;
-  outline: none;
-}
-
-/* =========================================
-   7. RESPONSIVIDADE E USABILIDADE MOBILE
-   ========================================= */
-
-/* --- AJUSTES GERAIS (Para todas as telas) --- */
-.btn-menu-mobile { display: none; } /* Escondido no desktop */
-
-/* --- TELAS DE CELULAR (iPhone Antigo, Médio e Atual) --- */
-@media (max-width: 768px) {
-    
-    /* 1. Correção do Menu e Fundo Escuro */
-    .btn-menu-mobile {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 1005; /* Acima de tudo */
-        width: 45px;
-        height: 45px;
-        background-color: var(--cor-primaria) !important;
-        border-radius: 8px;
-        border: none;
-        color: #000;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-
-    .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100vh;
-        width: 260px;
-        z-index: 1010; /* Sidebar acima do overlay */
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 10px 0 20px rgba(0,0,0,0.5);
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-    .overlay {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(4px);
-        z-index: 1001; /* Entre o conteúdo e a sidebar */
-        opacity: 0;
-        visibility: hidden;
-        transition: 0.3s;
-        pointer-events: none; /* Não bloqueia cliques quando invisível */
-    }
-
-    .overlay.active {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto; /* Bloqueia cliques fora do menu quando aberto */
-    }
-
-    /* 2. Ajuste de Layout (Conteúdo) */
-    .main-content {
-        padding: 80px 15px 30px !important; /* Espaço para o botão do menu */
-    }
-
-    .dash-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    /* 3. Cards de Estatísticas */
-    .stats-grid {
-        grid-template-columns: 1fr 1fr; /* 2 colunas para iPhones */
-        gap: 12px;
-    }
-
-    .stat-card {
-        padding: 15px;
-    }
-
-    .stat-value {
-        font-size: 1.4rem;
-    }
-
-    /* 4. Tabelas e Listas */
-    .hide-mobile {
-        display: none !important;
-    }
-
-    .tabela-agenda th, 
-    .tabela-agenda td {
-        padding: 12px 8px;
-        font-size: 0.85rem;
-    }
-
-    .acoes-buttons {
-        gap: 12px;
-    }
-
-    .btn-concluir, .btn-cancelar, .btn-whatsapp {
-        width: 44px; /* Tamanho ideal para o polegar */
-        height: 44px;
-        min-width: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* 5. Agenda e Calendário */
-    .agenda-container-flex {
-        flex-direction: column;
-    }
-
-    .calendario-box {
-        min-width: 100%;
-        padding: 15px;
-    }
-
-    .agenda-dia-detalhe {
-        width: 100%;
-        border-left: none;
-        border-top: 4px solid var(--cor-primaria);
-        margin-top: 15px;
-    }
-}
-
-/* --- AJUSTES PARA CELULARES MUITO PEQUENOS (Abaixo de 390px) --- */
-@media (max-width: 390px) {
-    .stats-grid {
-        grid-template-columns: 1fr; /* 1 coluna se for muito estreito */
-    }
-    
-    .stat-value {
-        font-size: 1.8rem;
-    }
-}
-
-/* --- TABLETS (768px a 1024px) --- */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .sidebar {
-        width: 200px;
-        padding: 20px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .main-content {
-        padding: 30px;
-    }
-}
-
-/* --- DESKTOP (Acima de 1024px) --- */
-@media (min-width: 1025px) {
-    .dashboard-container {
-        display: grid;
-        grid-template-columns: 250px 1fr;
-    }
-
-    .sidebar {
-        position: sticky;
-        top: 0;
-        height: 100vh;
-    }
-}
-
-
-/* Força a grade de 7 colunas e centraliza */
 .calendario-grade {
     display: grid;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -520,7 +294,6 @@
     text-align: center;
 }
 
-/* Estilo para as letras dos dias (Dom, Seg, Ter...) */
 .dia-semana {
     color: var(--cor-primaria);
     font-weight: bold;
@@ -529,14 +302,49 @@
     text-transform: uppercase;
 }
 
-/* A MARCAÇÃO: Borda nos dias que têm serviço */
+.dia-item {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #111;
+    color: #ccc;
+    transition: 0.2s;
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.dia-item:hover {
+    background: #222;
+    border-color: #444;
+}
+
+.dia-item.ativo {
+    background: var(--cor-primaria) !important;
+    color: #000 !important;
+    font-weight: bold;
+}
+
 .dia-item.dia-marcado {
     border: 2px solid var(--cor-primaria) !important;
     color: var(--cor-primaria) !important;
     font-weight: bold;
 }
 
-/* Container da lista à direita */
+.agenda-dia-detalhe {
+    width: 380px;
+    background: var(--cor-card);
+    padding: 25px;
+    border-radius: 12px;
+    border-left: 4px solid var(--cor-primaria);
+    border-top: 1px solid var(--cor-borda);
+    border-right: 1px solid var(--cor-borda);
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Card individual de agendamento no detalhe */
 #lista-agenda-clicada {
     display: flex;
     flex-direction: column;
@@ -544,7 +352,6 @@
     margin-top: 20px;
 }
 
-/* O Card individual de agendamento */
 .card-horario-detalhe {
     background: #1a1a1a;
     border: 1px solid #333;
@@ -562,7 +369,6 @@
     transform: translateX(5px);
 }
 
-/* Badge do Horário */
 .horario-badge {
     background: var(--cor-primaria);
     color: #000;
@@ -574,7 +380,6 @@
     text-align: center;
 }
 
-/* Informações */
 .info-cliente {
     flex-grow: 1;
 }
@@ -592,22 +397,323 @@
     margin-top: 3px;
 }
 
-/* Botão de WhatsApp flutuante no card */
-.btn-detalhe-wpp {
-    background: transparent;
-    border: 1px solid #25d366;
-    color: #25d366;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.3s;
+/* =========================================
+   6. MODAIS E CONFIGURAÇÕES
+   ========================================= */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
 }
 
-.btn-detalhe-wpp:hover {
-    background: #25d366;
-    color: #fff;
+.modal-content {
+    background-color: var(--cor-card);
+    margin: 10% auto;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    border: 1px solid #444;
 }
+
+.input-group-modal {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group-modal label {
+    color: var(--cor-subtexto);
+    font-size: 0.9rem;
+}
+
+.input-group-modal input, 
+.input-group-modal select {
+    background: #111;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px;
+    border-radius: 6px;
+    outline: none;
+}
+
+.config-grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: #222;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.busca-container input {
+    background: #111;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: 250px;
+    outline: none;
+}
+
+/* --- SEÇÃO DE RELATÓRIOS (Centralização) --- */
+#secao-relatorios {
+    padding: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.item-relatorio {
+    background: var(--cor-card);
+    border: 1px solid var(--cor-borda);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.item-relatorio:hover {
+    transform: translateX(5px);
+    border-color: var(--cor-primaria);
+}
+
+/* =========================================
+   7. RESPONSIVIDADE E USABILIDADE MOBILE
+   ========================================= */
+
+.btn-menu-mobile { display: none; }
+
+@media (max-width: 768px) {
+    .btn-menu-mobile {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1005;
+        width: 45px;
+        height: 45px;
+        background-color: var(--cor-primaria) !important;
+        border-radius: 8px;
+        border: none;
+        color: #000;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 260px;
+        z-index: 1010;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 10px 0 20px rgba(0,0,0,0.5);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .overlay {
+        display: block;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 1001;
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+        pointer-events: none;
+    }
+
+    .overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .main-content {
+        padding: 80px 15px 30px !important;
+    }
+
+    .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .agenda-container-flex {
+        flex-direction: column;
+    }
+
+    .calendario-box, .agenda-dia-detalhe {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    #secao-relatorios {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 390px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1025px) {
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+    }
+
+    .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+    }
+}
+
+/* ESTILO DEFINITIVO DO BOTÃO WHATSAPP */
+.btn-whatsapp {
+    background-color: #25d366 !important; /* Verde oficial */
+    color: #ffffff !important;           /* Ícone branco */
+    width: 35px;                         /* Largura fixa para ser circular/quadradinho */
+    height: 35px;                        /* Altura fixa */
+    display: inline-flex !important;     /* Alinhamento centralizado */
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;                  /* Bordas arredondadas */
+    text-decoration: none !important;    /* Remove o sublinhado de link */
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-whatsapp:hover {
+    background-color: #128c7e !important; /* Verde mais escuro no hover */
+    transform: scale(1.1);                /* Leve aumento */
+}
+
+.btn-whatsapp i {
+    font-size: 1.1rem !important;
+    color: #ffffff !important;
+}
+
+/* Garante que o conteúdo do card de horário use flexbox */
+.lista-interativa p, 
+.card-horario-detalhe { /* Use a classe que envolve a linha do horário */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.conquista-container {
+      background: var(--cor-card);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid var(--cor-borda);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-conquista {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .texto-meta h3 {
+      color: var(--cor-texto);
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+
+    .texto-meta p {
+      color: var(--cor-subtexto);
+      font-size: 0.9rem;
+    }
+
+    .valor-faturado {
+      color: #2ecc71;
+      font-weight: bold;
+      font-size: 1.3rem;
+      text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+    }
+
+    .barra-progresso-bg {
+      background: #333;
+      height: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #barra-progresso-fill {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      height: 100%;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .meta-batida #barra-progresso-fill {
+      background: linear-gradient(90deg, #ffd700, #ffa500);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Estilos do Submenu Lateral */
+    .submenu {
+      display: none;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.2);
+      margin-left: 15px;
+      border-left: 2px solid var(--cor-primaria);
+      margin-bottom: 10px;
+    }
+
+    .submenu a {
+      padding: 10px 15px !important;
+      font-size: 0.85rem !important;
+      color: var(--cor-subtexto) !important;
+    }
+
+    .btn-dropdown {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rotate {
+      transform: rotate(180deg);
+    }

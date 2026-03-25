@@ -407,6 +407,24 @@ footer {
   opacity: 0.6;
 }
 
+/* Estilo para o botão em estado de sucesso */
+.btn-confirmar.sucesso {
+    background-color: #28a745 !important; /* Verde */
+    color: white !important;
+    pointer-events: none; /* Impede cliques duplos */
+}
+
+/* Opcional: Uma leve animação de pulso */
+@keyframes pulso-sucesso {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.animar-sucesso {
+    animation: pulso-sucesso 0.4s ease-in-out;
+}
+
 /* =========================================
    8. RESPONSIVIDADE
    ========================================= */
