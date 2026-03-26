@@ -717,3 +717,210 @@
     .rotate {
       transform: rotate(180deg);
     }
+
+    .dia-item.tem-marcacao {
+    border-bottom: 3px solid var(--cor-primaria); /* Uma linha embaixo do número */
+    font-weight: bold;
+}
+.dia-item.selecionado {
+    background-color: var(--cor-primaria);
+    color: white;
+    border-radius: 5px;
+}
+
+/* ==========================================================================
+   ESTILO DA AGENDA COMPLETA
+   ========================================================================== */
+
+.agenda-container-flex {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap; /* Ajuste para mobile */
+}
+
+.calendario-box {
+    flex: 1;
+    min-width: 300px;
+    background: var(--cor-card-bg); /* Use a variável do seu variables.css */
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendario-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendario-nav h3 {
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+.calendario-nav button {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--cor-primaria);
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.calendario-nav button:hover {
+    background: var(--cor-primaria);
+    color: #000;
+}
+
+/* Grade do Calendário */
+.calendario-grade {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.dia-item {
+    padding: 12px 5px;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.2s;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.dia-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Marcação de que tem agendamento */
+.dia-item.tem-marcacao::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: var(--cor-primaria);
+    border-radius: 50%;
+}
+
+.dia-item.selecionado {
+    background: var(--cor-primaria) !important;
+    color: #000 !important;
+    font-weight: bold;
+}
+
+/* Detalhes do Dia (Lado Direito) */
+.agenda-dia-detalhe {
+    flex: 1;
+    min-width: 300px;
+    background: var(--cor-card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lista-interativa {
+    margin-top: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Estilo dos Cards de Horário na Lista */
+.item-agenda-lista {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--cor-primaria);
+    transition: 0.3s;
+}
+
+.item-agenda-lista:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.hora-tag {
+    font-weight: bold;
+    color: var(--cor-primaria);
+    margin-right: 15px;
+    min-width: 55px;
+}
+
+.info-tag {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-tag strong {
+    color: #fff;
+    font-size: 1rem;
+}
+
+.info-tag span {
+    color: var(--cor-subtexto);
+    font-size: 0.85rem;
+}
+
+.status-tag {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-tag.pendente { color: #f1c40f; }
+.status-tag.concluido { color: #2ecc71; }
+
+
+/* Esconde o submenu por padrão */
+.submenu {
+    display: none;
+    flex-direction: column;
+    padding-left: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* Classe que o JS vai adicionar para mostrar o menu */
+.submenu.active {
+    display: flex !important;
+}
+
+/* Estilo dos links dentro do submenu */
+.submenu a {
+    font-size: 0.9rem;
+    padding: 10px;
+    color: var(--cor-subtexto);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.submenu a:hover {
+    color: var(--cor-primaria);
+}
+
+/* Rotação da setinha quando abrir */
+.seta-menu {
+    transition: transform 0.3s ease;
+}
+
+.btn-dropdown.open .seta-menu {
+    transform: rotate(180deg);
+}
+
+.submenu { display: none; flex-direction: column; }
+.submenu.active { display: flex !important; }
+

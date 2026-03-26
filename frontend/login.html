@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/home.css"> <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body class="body-login">
 
     <div class="login-container">
@@ -31,14 +34,15 @@
                 </div>
 
                 <button type="submit" class="btn-principal btn-block">Entrar no Painel</button>
-                
+
                 <div id="mensagem-erro" class="error-message"></div>
             </form>
 
             <p class="esqueceu-senha"><a href="#">Esqueceu a senha?</a></p>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth.js"></script>
 </body>
+
 </html>

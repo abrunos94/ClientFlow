@@ -30,14 +30,14 @@
         <a href="#"><i class="fas fa-users"></i> Clientes</a>
         <a href="#" id="link-relatorios"><i class="fas fa-chart-line"></i> Relatórios</a>
         <div class="menu-item-dropdown">
-          <a href="#" id="btn-config-master" class="btn-dropdown">
+          <a href="javascript:void(0)" id="btn-config-master" class="btn-dropdown">
             <span><i class="fas fa-cog"></i> Configurações</span>
             <i class="fas fa-chevron-down seta-menu"></i>
           </a>
           <div class="submenu" id="submenu-links">
-            <a href="#" onclick="abrirSubConfig('expediente')"><i class="fas fa-clock"></i> Expediente</a>
-            <a href="#" onclick="abrirSubConfig('meta')"><i class="fas fa-bullseye"></i> Meta Diária</a>
-            <a href="#" onclick="abrirSubConfig('servicos')"><i class="fas fa-cut"></i> Adicionar Serviço</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('expediente')">Expediente</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('meta')">Meta Diária</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('servicos')">Serviços</a>
           </div>
         </div>
       </nav>
@@ -81,7 +81,7 @@
               <i class="fas fa-clock"></i>
               <p>Próximo horário</p>
             </div>
-            <span class="stat-value" id="proximo-horario">--:--</span>
+            <span class="stat-value" id="proximo-horario-valor">--:--</span>
           </div>
           <div class="stat-card">
             <div class="card-header">
@@ -234,13 +234,15 @@
           <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
             <div class="config-grid-form">
               <div class="input-group-modal">
-                <label>Nome</label><input type="text" id="novo-servico-nome" />
+                <label>Nome</label>
+                <input type="text" id="cfg-servico-nome" />
               </div>
               <div class="input-group-modal">
-                <label>Preço</label><input type="number" id="novo-servico-preco" />
+                <label>Preço</label>
+                <input type="number" id="cfg-servico-preco" />
               </div>
             </div>
-            <button onclick="adicionarNovoServico()" class="btn-principal" style="margin-top: 20px; width: 100%">
+            <button id="btn-add-servico-banco" class="btn-principal" style="margin-top: 20px; width: 100%">
               Adicionar Serviço
             </button>
 
@@ -293,7 +295,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/script-dashboard.js"></script>
 </body>
 

@@ -1,536 +1,506 @@
+/**
+ * ClientFlow - Dashboard Administrativo
+ * Integrado com Supabase - Versão Final e Estável
+ */
+
 /* ==========================================================================
-   1. SEGURANÇA E ACESSO
+   1. SEGURANÇA E CONEXÃO (Executa Imediatamente)
    ========================================================================== */
 if (localStorage.getItem("logado") !== "true") {
     window.location.href = "login.html";
 }
 
-/* ==========================================================================
-   2. CONFIGURAÇÕES E ELEMENTOS GLOBAIS
-   ========================================================================== */
-const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxqDhLWYyszMT7zFZTYhrv9Rp-QPT0tzE0_1vL8ey_cTV2B_NDCIOAytuCsL4QU_Sm9/exec";
+const SUPABASE_URL = "https://cvvixgkiqljpamvnjzzj.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2dml4Z2tpcWxqcGFtdm5qenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTEsImV4cCI6MjA5MDAxNTA5MX0.TfvzM_f-RxbOPIui2EHLYi2i3_dvFjWuE6XzoqQr2WM";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const listaAgendamentos = document.getElementById("lista-agendamentos");
-const sidebar = document.getElementById("sidebar");
-const btnAbrir = document.getElementById("abrir-menu");
-const overlay = document.getElementById("overlay");
-const btnLogout = document.getElementById("btn-logout");
-
-const linkDashboard = document.querySelector(".menu a:nth-child(1)");
-const linkAgenda = document.querySelector(".menu a:nth-child(2)");
-const linkClientes = document.querySelector(".menu a:nth-child(3)");
-const linkRelatorios = document.getElementById("link-relatorios");
-const btnConfigMaster = document.getElementById("btn-config-master");
-
-const secaoHomeTotal = document.getElementById("conteudo-dashboard");
-const secaoAgendaCompleta = document.getElementById("secao-agenda-completa");
-const secaoConfigs = document.getElementById("configuracoes-section");
-const secaoClientes = document.getElementById("secao-clientes");
-const secaoRelatorios = document.getElementById("secao-relatorios");
-
-const SERVICOS_PADRAO = [
-    { nome: "Corte Masculino", preco: 40 },
-    { nome: "Barba", preco: 30 },
-    { nome: "Corte + Barba", preco: 60 },
-    { nome: "Pezinho", preco: 15 }
-];
+const secoes = {
+    home: document.getElementById("conteudo-dashboard"),
+    agenda: document.getElementById("secao-agenda-completa"),
+    configs: document.getElementById("configuracoes-section"),
+    clientes: document.getElementById("secao-clientes"),
+    relatorios: document.getElementById("secao-relatorios"),
+};
 
 /* ==========================================================================
-   3. LÓGICA DE RESET DIÁRIO E HISTÓRICO
+    2. NAVEGAÇÃO E UI (VERSÃO ESPECIALISTA - REVISADA)
    ========================================================================== */
-function verificarResetDiario() {
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    const ultimaDataFaturamento = localStorage.getItem("dataUltimoFaturamento");
 
-    if (ultimaDataFaturamento !== hoje) {
-        localStorage.setItem("faturamentoHoje", "0");
-        localStorage.setItem("dataUltimoFaturamento", hoje);
-    }
-}
-
-function salvarFaturamentoNoHistorico(data, valor) {
-    let historico = JSON.parse(localStorage.getItem("historicoFinanceiro")) || {};
-    historico[data] = (historico[data] || 0) + valor;
-    localStorage.setItem("historicoFinanceiro", JSON.stringify(historico));
-}
-
-/* ==========================================================================
-   4. NAVEGAÇÃO E INTERFACE
-   ========================================================================== */
+// 1. Função para esconder todas as telas principais
 function esconderTodasSessoes() {
-    const secoes = [secaoHomeTotal, secaoAgendaCompleta, secaoConfigs, secaoClientes, secaoRelatorios];
-    secoes.forEach((s) => { if (s) s.style.display = "none"; });
+    Object.values(secoes).forEach((s) => {
+        if (s) s.style.display = "none";
+    });
+    // Remove o 'active' dos links principais da sidebar
     document.querySelectorAll(".menu a").forEach((a) => a.classList.remove("active"));
 }
 
-if (linkDashboard) {
-    linkDashboard.addEventListener("click", (e) => {
-        e.preventDefault();
-        esconderTodasSessoes();
-        if (secaoHomeTotal) secaoHomeTotal.style.display = "block";
-        linkDashboard.classList.add("active");
-        carregarAgendamentos();
-    });
-}
-
-if (linkAgenda) {
-    linkAgenda.addEventListener("click", (e) => {
-        e.preventDefault();
-        esconderTodasSessoes();
-        if (secaoAgendaCompleta) secaoAgendaCompleta.style.display = "block";
-        linkAgenda.classList.add("active");
-        renderizarCalendario();
-    });
-}
-
-if (linkClientes) {
-    linkClientes.addEventListener("click", (e) => {
-        e.preventDefault();
-        esconderTodasSessoes();
-        if (secaoClientes) secaoClientes.style.display = "block";
-        linkClientes.classList.add("active");
-        renderizarListaClientes();
-    });
-}
-
-if (linkRelatorios) {
-    linkRelatorios.addEventListener("click", (e) => {
-        e.preventDefault();
-        esconderTodasSessoes();
-        if (secaoRelatorios) secaoRelatorios.style.display = "block";
-        linkRelatorios.classList.add("active");
-        renderizarRelatorios();
-    });
-}
-
-const fecharMenu = () => {
-    if (sidebar) sidebar.classList.remove("active");
-    if (overlay) overlay.classList.remove("active");
-};
-
-if (btnAbrir && sidebar && overlay) {
-    btnAbrir.addEventListener("click", () => {
-        sidebar.classList.add("active");
-        overlay.classList.add("active");
-    });
-    overlay.addEventListener("click", fecharMenu);
-}
-
-if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-        localStorage.removeItem("logado");
-        window.location.href = "index.html";
-    });
-}
-
-/* ==========================================================================
-   5. GERENCIAMENTO DE SERVIÇOS E META
-   ========================================================================== */
-function obterServicos() {
-    const salvos = localStorage.getItem("meusServicos");
-    return salvos ? JSON.parse(salvos) : SERVICOS_PADRAO;
-}
-
-function atualizarSelectsServicos() {
-    const select = document.getElementById("rapido-servico");
-    if (!select) return;
-    const servicos = obterServicos();
-    select.innerHTML = servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join("");
-}
-
-function renderizarConfigServicos() {
-    const container = document.getElementById("lista-servicos-config");
-    if (!container) return;
-    const servicos = obterServicos();
-    container.innerHTML = "<h4 style='margin-bottom: 10px; color: #fff;'>Serviços Ativos:</h4>";
-    servicos.forEach((servico, index) => {
-        container.innerHTML += `
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--cor-borda);">
-                <div><span style="color: #fff; font-weight: bold;">${servico.nome}</span><span style="color: #2ecc71; margin-left: 10px;">R$ ${servico.preco}</span></div>
-                <button onclick="excluirServico(${index})" style="background: transparent; border: none; color: #ff4d4d; cursor: pointer;"><i class="fas fa-trash"></i></button>
-            </div>`;
-    });
-}
-
-window.adicionarNovoServico = function () {
-    const nomeI = document.getElementById("novo-servico-nome");
-    const precoI = document.getElementById("novo-servico-preco");
-    if (!nomeI.value || !precoI.value) return alert("Preencha todos os campos!");
-    const lista = obterServicos();
-    lista.push({ nome: nomeI.value, preco: parseFloat(precoI.value) });
-    localStorage.setItem("meusServicos", JSON.stringify(lista));
-    nomeI.value = ""; precoI.value = "";
-    renderizarConfigServicos();
-    atualizarSelectsServicos();
-};
-
-window.excluirServico = function (index) {
-    if (confirm("Excluir este serviço?")) {
-        const lista = obterServicos();
-        lista.splice(index, 1);
-        localStorage.setItem("meusServicos", JSON.stringify(lista));
-        renderizarConfigServicos();
-        atualizarSelectsServicos();
-    }
-};
-
-if (btnConfigMaster) {
-    btnConfigMaster.addEventListener("click", (e) => {
-        e.preventDefault();
-        const submenu = document.getElementById("submenu-links");
-        const seta = btnConfigMaster.querySelector(".seta-menu");
-        submenu.style.display = (submenu.style.display === "flex") ? "none" : "flex";
-        if (seta) seta.classList.toggle("rotate");
-    });
-}
-
-window.abrirSubConfig = function (tipo) {
-    esconderTodasSessoes();
-    if (secaoConfigs) secaoConfigs.style.display = "block";
-    btnConfigMaster.classList.add("active");
-    document.querySelectorAll(".config-sub-section").forEach(div => div.style.display = "none");
-    if (tipo === 'expediente') document.getElementById("area-expediente").style.display = "block";
-    if (tipo === 'meta') document.getElementById("area-meta").style.display = "block";
-    if (tipo === 'servicos') {
-        document.getElementById("area-servicos").style.display = "block";
-        renderizarConfigServicos();
-    }
-};
-
-window.salvarMetaDiaria = function () {
-    const valorMeta = document.getElementById("cfg-meta-valor").value;
-    if (valorMeta) {
-        localStorage.setItem("metaDiaria", valorMeta);
-        alert("Meta atualizada!");
-        atualizarProgressoMeta();
-    }
-};
-
-function atualizarProgressoMeta() {
-    const meta = parseFloat(localStorage.getItem("metaDiaria")) || 400;
-    const faturamento = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
-    const elMeta = document.getElementById("meta-valor-display");
-    const elFaturado = document.getElementById("faturamento-real");
-    const elBarra = document.getElementById("barra-progresso-fill");
-    const elFrase = document.getElementById("frase-progresso");
-
-    if (elMeta) elMeta.innerText = `R$ ${meta},00`;
-    if (elFaturado) elFaturado.innerText = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
-
-    let porc = (faturamento / meta) * 100;
-    if (elBarra) elBarra.style.width = `${Math.min(porc, 100)}%`;
-
-    if (elFrase) {
-        if (porc >= 100) {
-            elFrase.innerText = "Meta Batida! 🏆";
-            document.getElementById("painel-conquista")?.classList.add("meta-batida");
-            if (window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        } else {
-            elFrase.innerText = "Sua jornada de hoje começou! 🚀";
+// 2. ESCUTA INDEPENDENTE PARA O BOTÃO DE SAIR (ID: btn-logout)
+// Como ele é um <button> e não um <a>, tratamos ele aqui:
+const btnSair = document.getElementById("btn-logout");
+if (btnSair) {
+    btnSair.onclick = function() {
+        if (confirm("Deseja realmente sair do ClientFlow?")) {
+            localStorage.removeItem("logado");
+            window.location.href = "index.html"; // Ajuste se seu arquivo for login.html
         }
-    }
+    };
 }
 
-/* ==========================================================================
-   6. LÓGICA DE CLIENTES E RELATÓRIOS
-   ========================================================================== */
-function renderizarListaClientes() {
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    const corpoTabela = document.getElementById("corpo-tabela-clientes");
-    if (!corpoTabela) return;
-    corpoTabela.innerHTML = "";
-    const clientesUnicos = {};
-    agendamentos.forEach((ag) => {
-        if (!clientesUnicos[ag.nome] || new Date(ag.data) > new Date(clientesUnicos[ag.nome].data)) {
-            clientesUnicos[ag.nome] = { nome: ag.nome, telefone: ag.telefone || "Não informado", ultimoServico: ag.servico, data: ag.data };
-        }
-    });
-    const listaFinal = Object.values(clientesUnicos);
-    if (listaFinal.length === 0) {
-        corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente cadastrado.</td></tr>';
-        return;
-    }
-    listaFinal.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((c) => {
-        const linha = document.createElement("tr");
-        linha.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.ultimoServico}</td><td>${c.telefone}</td>
-            <td><button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.nome}')"><i class="fab fa-whatsapp"></i></button></td>`;
-        corpoTabela.appendChild(linha);
-    });
+// 3. Lógica para ABRIR/FECHAR o Submenu (Configurações)
+const btnConfig = document.getElementById("btn-config-master");
+const gaveta = document.getElementById("submenu-links");
+
+if (btnConfig && gaveta) {
+    btnConfig.onclick = function(e) {
+        e.preventDefault();
+        gaveta.classList.toggle("active");
+        btnConfig.classList.toggle("open"); // Gira a setinha
+    };
 }
 
-function renderizarRelatorios() {
-    const container = document.getElementById("lista-historico-financeiro");
-    if (!container) return;
-    const historico = JSON.parse(localStorage.getItem("historicoFinanceiro")) || {};
-    const datas = Object.keys(historico).sort((a, b) => {
-        return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
-    });
-    if (datas.length === 0) {
-        container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Sem dados para exibir.</p>';
-        return;
-    }
-    container.innerHTML = datas.map(data => `
-        <div style="display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); margin-bottom: 5px; border-radius: 8px;">
-            <div style="display: flex; flex-direction: column;">
-                <span style="color: #888; font-size: 0.8rem;">Data</span>
-                <span style="color: #fff; font-weight: 500;">${data}</span>
-            </div>
-            <div style="display: flex; flex-direction: column; text-align: right;">
-                <span style="color: #888; font-size: 0.8rem;">Faturamento</span>
-                <span style="color: #2ecc71; font-weight: bold;">R$ ${historico[data].toFixed(2).replace('.', ',')}</span>
-            </div>
-        </div>
-    `).join("");
-}
 
-//BOTÃO NOVO AGENDAMENTO//
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Mapear os elementos
-    const btnNovo = document.getElementById('btn-novo-agendamento');
-    const modal = document.getElementById('modal-agendamento');
-    const btnFechar = document.getElementById('fechar-modal');
 
-    // 2. Função para abrir o modal
-    if (btnNovo && modal) {
-        btnNovo.addEventListener('click', () => {
-            modal.style.display = 'block';
-            console.log("Modal aberto!"); // Para testarmos no F12
-        });
-    }
+// 3. Lógica de Navegação das Abas Principais (Dashboard, Agenda, Clientes)
+document.querySelectorAll(".menu > a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+        // Ignora botões que não são de troca de tela
+        if (link.id === "btn-logout" || link.id === "btn-config-master") return;
 
-    // 3. Função para fechar o modal
-    if (btnFechar && modal) {
-        btnFechar.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-    }
+        e.preventDefault();
+        esconderTodasSessoes();
+        link.classList.add("active");
 
-    // 4. Fechar ao clicar fora do modal
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
+        // Identifica qual tela abrir pelo texto do link
+        const texto = link.innerText.trim();
+        
+        if (texto.includes("Dashboard")) {
+            secoes.home.style.display = "block";
+            carregarAgendamentosDoDia();
+        } else if (texto.includes("Agenda")) {
+            secoes.agenda.style.display = "block";
+            inicializarAgenda();
+        } else if (texto.includes("Clientes")) {
+            secoes.clientes.style.display = "block";
+            renderizarListaClientes();
+        } else if (link.id === "link-relatorios") {
+            secoes.relatorios.style.display = "block";
         }
     });
 });
 
-function agendarAgora() {
-    // 1. Pegar os valores
-    const nome = document.getElementById('rapido-nome').value;
-    const servico = document.getElementById('rapido-servico').value;
-    const telefone = document.getElementById('rapido-telefone').value;
-    
-    // Pegar o horário atual para o agendamento "na hora"
-    const agora = new Date();
-    const horario = agora.getHours().toString().padStart(2, '0') + ":" + 
-                    agora.getMinutes().toString().padStart(2, '0');
-
-    // 2. Validação
-    if (nome === "") {
-        alert("Digite o nome do cliente!");
-        return;
-    }
-
-    // 3. Criar a nova linha da tabela (HTML)
-    const tabela = document.getElementById('lista-agendamentos');
-    const novaLinha = document.createElement('tr');
-
-    novaLinha.innerHTML = `
-        <td>${horario}</td>
-        <td>${nome}</td>
-        <td class="hide-mobile">${servico}</td>
-        <td>
-            <div class="acoes-buttons">
-                <a href="https://wa.me/${telefone.replace(/\D/g,'')}" target="_blank" class="btn-whatsapp">
-                    <i class="fab fa-whatsapp"></i>
-                </a>
-                <button class="btn-concluir" onclick="concluirAgendamento(this, 30)">
-                    <i class="fas fa-check"></i>
-                </button>
-            </div>
-        </td>
-    `;
-
-    // 4. Adicionar na tabela (no topo da lista)
-    tabela.prepend(novaLinha);
-
-    // 5. Atualizar o contador de "Hoje" no card
-    atualizarContadorHoje();
-
-    // 6. Fechar e limpar
-    document.getElementById('modal-agendamento').style.display = 'none';
-    document.getElementById('rapido-nome').value = "";
-    document.getElementById('rapido-telefone').value = "";
-    
-    alert("Agendamento adicionado!");
-}
-
-// Função auxiliar para atualizar o número no card de estatísticas
-function atualizarContadorHoje() {
-    const total = document.querySelectorAll('#lista-agendamentos tr').length;
-    document.getElementById('total-hoje').innerText = total;
-}
-
 /* ==========================================================================
-   7. LÓGICA DE DASHBOARD E CALENDÁRIO
+   3. GESTÃO DE AGENDAMENTOS (HOME)
    ========================================================================== */
-function carregarAgendamentos() {
+async function carregarAgendamentosDoDia() {
     if (!listaAgendamentos) return;
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    const hojeLocal = new Date().toLocaleDateString('en-CA');
-    const hoje = agendamentos.filter(ag => ag.data && ag.data.startsWith(hojeLocal));
+    const hoje = new Date().toLocaleDateString("en-CA");
+
+    const { data: agendamentos, error } = await _supabase
+        .from("agendamentos")
+        .select("*")
+        .eq("data", hoje)
+        .neq("status", "cancelado")
+        .order("horario", { ascending: true });
+
+    if (error) return console.error("Erro Supabase:", error.message);
+
     listaAgendamentos.innerHTML = "";
-    if (hoje.length === 0) {
+
+    if (!agendamentos || agendamentos.length === 0) {
         listaAgendamentos.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento para hoje.</td></tr>';
+        atualizarCardsEstatisticas([]);
     } else {
-        hoje.sort((a, b) => a.data.localeCompare(b.data)).forEach((ag) => {
-            const hora = ag.data.split("T")[1].slice(0, 5);
+        agendamentos.forEach((ag) => {
+            const horaFormatada = String(ag.horario).substring(0, 5);
             const linha = document.createElement("tr");
             linha.innerHTML = `
-                <td>${hora}</td>
-                <td><div class="cliente-info"><span>${ag.nome}</span></div></td>
+                <td>${horaFormatada}h</td>
+                <td><strong>${ag.cliente_nome}</strong></td>
                 <td class="hide-mobile">${ag.servico}</td>
                 <td>
                     <div class="acoes-buttons">
-                        <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.nome}')"><i class="fab fa-whatsapp"></i></button>
-                        <button class="btn-concluir" onclick="removerAgendamento('${ag.id}', 'concluído')"><i class="fas fa-check"></i></button>
-                        <button class="btn-cancelar" onclick="removerAgendamento('${ag.id}', 'cancelado')"><i class="fas fa-times"></i></button>
+                        <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}')" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn-concluir" onclick="mudarStatusAgendamento('${ag.id}', 'concluido', ${ag.valor || 0})" title="Concluir"><i class="fas fa-check"></i></button>
+                        <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')" title="Cancelar"><i class="fas fa-times"></i></button>
                     </div>
                 </td>`;
             listaAgendamentos.appendChild(linha);
         });
+        atualizarCardsEstatisticas(agendamentos);
     }
-    atualizarEstatisticas(hoje.length);
-    atualizarProximoHorario();
-    atualizarServicoMaisVendido();
+    const cont = document.getElementById("total-hoje");
+    if (cont) cont.innerText = agendamentos ? agendamentos.length : 0;
 }
 
-function atualizarEstatisticas(total) {
-    const el = document.getElementById("total-hoje");
-    if (el) el.innerText = total;
-}
+function atualizarCardsEstatisticas(agendamentos) {
+    const elProximo = document.getElementById("proximo-horario-valor");
+    const elServicoVendido = document.getElementById("servico-mais-vendido");
 
-function atualizarProximoHorario() {
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    const agora = new Date();
-    const hoje = agora.toISOString().split("T")[0];
-    const horaAtual = agora.toTimeString().slice(0, 5);
-    const futuros = agendamentos.filter(ag => ag.data.startsWith(hoje) && ag.data.split("T")[1].slice(0, 5) >= horaAtual);
-    futuros.sort((a, b) => a.data.localeCompare(b.data));
-    const el = document.getElementById("proximo-horario");
-    if (el) el.innerText = futuros.length > 0 ? futuros[0].data.split("T")[1].slice(0, 5) : "--:--";
-}
-
-function atualizarServicoMaisVendido() {
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    if (agendamentos.length === 0) return;
-    const contagem = {};
-    agendamentos.forEach((ag) => { if (ag.servico) contagem[ag.servico] = (contagem[ag.servico] || 0) + 1; });
-    let maisVendido = "", max = 0;
-    for (const s in contagem) { if (contagem[s] > max) { max = contagem[s]; maisVendido = s; } }
-    const el = document.getElementById("servico-mais-vendido");
-    if (el) el.innerText = maisVendido || "---";
-}
-
-let dataAtualCalendario = new Date();
-function renderizarCalendario() {
-    const grade = document.getElementById("calendario-grade");
-    const labelMes = document.getElementById("mes-atual");
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    if (!grade) return;
-    grade.innerHTML = "";
-    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    diasSemana.forEach(dia => {
-        const divSemana = document.createElement("div");
-        divSemana.className = "dia-semana";
-        divSemana.innerText = dia;
-        grade.appendChild(divSemana);
-    });
-    const ano = dataAtualCalendario.getFullYear();
-    const mes = dataAtualCalendario.getMonth();
-    const nomeMes = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(dataAtualCalendario);
-    labelMes.innerText = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
-    const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
-    const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
-    for (let i = 0; i < primeiroDiaSemana; i++) grade.appendChild(document.createElement("div"));
-    for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-        const dataIso = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-        const temAgenda = agendamentos.some((ag) => ag.data.startsWith(dataIso));
-        const divDia = document.createElement("div");
-        divDia.className = `dia-item ${temAgenda ? "dia-marcado" : ""}`;
-        divDia.innerText = dia;
-        divDia.onclick = () => verDetalhesDia(dataIso, divDia);
-        grade.appendChild(divDia);
-    }
-}
-
-window.mudarMes = function (direcao) {
-    dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() + direcao);
-    renderizarCalendario();
-};
-
-function verDetalhesDia(dataFiltro, elemento) {
-    document.querySelectorAll(".dia-item").forEach((d) => d.classList.remove("ativo"));
-    elemento.classList.add("ativo");
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    const lista = document.getElementById("lista-agenda-clicada");
-    const titulo = document.getElementById("titulo-agenda-selecionada");
-    const filtrados = agendamentos.filter((ag) => ag.data.startsWith(dataFiltro));
-    titulo.innerText = `Agenda de ${dataFiltro.split("-").reverse().join("/")}`;
-    lista.innerHTML = "";
-    if (filtrados.length === 0) {
-        lista.innerHTML = `<p style="text-align:center; color:gray; margin-top:20px;">Nenhum cliente.</p>`;
+    if (!agendamentos || agendamentos.length === 0) {
+        if (elProximo) elProximo.innerText = "--:--";
         return;
     }
-    filtrados.sort((a, b) => a.data.localeCompare(b.data)).forEach((ag) => {
-        const hora = ag.data.split("T")[1].slice(0, 5);
-        lista.innerHTML += `
-            <div class="card-horario-detalhe">
-                <div class="horario-badge">${hora}</div>
-                <div class="info-cliente"><h4>${ag.nome}</h4><span><i class="fas fa-cut"></i> ${ag.servico}</span></div>
-                <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.nome}')"><i class="fab fa-whatsapp"></i></button>
-            </div>`;
+
+    const agora = new Date();
+    const horaAtualStr = agora.getHours().toString().padStart(2, "0") + ":" + agora.getMinutes().toString().padStart(2, "0");
+
+    const proximos = agendamentos.filter((ag) => {
+        const horaBanco = String(ag.horario || "").substring(0, 5);
+        return horaBanco >= horaAtualStr && String(ag.status).toLowerCase() === "pendente";
+    });
+
+    if (elProximo) {
+        if (proximos.length > 0) {
+            proximos.sort((a, b) => a.horario.localeCompare(b.horario));
+            elProximo.innerText = proximos[0].horario.substring(0, 5) + "h";
+        } else {
+            elProximo.innerText = "Encerrado";
+        }
+    }
+
+    const contagem = {};
+    agendamentos.forEach((ag) => { if (ag.servico) contagem[ag.servico] = (contagem[ag.servico] || 0) + 1; });
+    const chaves = Object.keys(contagem);
+    if (chaves.length > 0 && elServicoVendido) {
+        elServicoVendido.innerText = chaves.reduce((a, b) => contagem[a] > contagem[b] ? a : b);
+    }
+}
+
+window.mudarStatusAgendamento = async function (id, novoStatus, valor = 0) {
+    if (!confirm(`Marcar agendamento como ${novoStatus}?`)) return;
+    const { error } = await _supabase.from("agendamentos").update({ status: novoStatus }).eq("id", id);
+    if (error) return alert("Erro: " + error.message);
+
+    if (novoStatus === "concluido") {
+        let fatAtual = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
+        localStorage.setItem("faturamentoHoje", fatAtual + (parseFloat(valor) || 0));
+    }
+    carregarAgendamentosDoDia();
+    atualizarProgressoMeta();
+};
+
+/* ==========================================================================
+   4. GESTÃO DE SERVIÇOS
+   ========================================================================== */
+async function renderizarConfigServicos() {
+    const container = document.getElementById("lista-servicos-config");
+    if (!container) return;
+    const { data: servicos, error } = await _supabase.from("servicos").select("*").order("nome");
+    if (error) return;
+
+    container.innerHTML = "<h4 style='color:#fff; margin-bottom:10px;'>Serviços Ativos:</h4>";
+    if (servicos && servicos.length > 0) {
+        servicos.forEach((s) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:8px;">
+                    <span>${s.nome} - <strong>R$ ${s.preco}</strong></span>
+                    <button onclick="excluirServico('${s.id}')" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                </div>`;
+        });
+    } else {
+        container.innerHTML += "<p style='color:var(--cor-subtexto);'>Nenhum serviço cadastrado.</p>";
+    }
+}
+
+async function adicionarNovoServico(e) {
+    e.preventDefault(); // Impede a página de recarregar
+
+    const nome = document.getElementById("cfg-servico-nome").value;
+    const preco = document.getElementById("cfg-servico-preco").value;
+
+    if (!nome || !preco) return alert("Preencha nome e preço!");
+
+    // ENVIANDO PARA O SUPABASE
+    const { error } = await _supabase
+        .from("servicos")
+        .insert([{ nome: nome, preco: parseFloat(preco) }]);
+
+    if (error) {
+        alert("Erro ao salvar: " + error.message);
+    } else {
+        // Limpa o formulário e atualiza a lista visual
+        document.getElementById("form-add-servico").reset();
+        renderizarConfigServicos();
+        alert("Serviço adicionado com sucesso!");
+    }
+}
+
+window.excluirServico = async function (id) {
+    if (!confirm("Excluir serviço?")) return;
+    await _supabase.from("servicos").delete().eq("id", id);
+    renderizarConfigServicos();
+};
+
+/* ==========================================================================
+   5. CALENDÁRIO INTERATIVO
+   ========================================================================== */
+let dataCalendario = new Date();
+
+async function inicializarAgenda() {
+    renderizarEstruturaCalendario();
+}
+
+window.mudarMes = (direcao) => {
+    dataCalendario.setMonth(dataCalendario.getMonth() + direcao);
+    renderizarEstruturaCalendario();
+};
+
+async function renderizarEstruturaCalendario() {
+    const grade = document.getElementById("calendario-grade");
+    const mesDisplay = document.getElementById("mes-atual");
+    if (!grade || !mesDisplay) return;
+
+    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    mesDisplay.innerText = `${meses[dataCalendario.getMonth()]} ${dataCalendario.getFullYear()}`;
+    grade.innerHTML = "";
+
+    const ano = dataCalendario.getFullYear();
+    const mes = dataCalendario.getMonth();
+    const primeiroDiaMes = new Date(ano, mes, 1).getDay();
+    const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+    const { data: agendamentosMes } = await _supabase.from('agendamentos').select('data')
+        .gte('data', `${ano}-${String(mes + 1).padStart(2, '0')}-01`)
+        .lte('data', `${ano}-${String(mes + 1).padStart(2, '0')}-${diasNoMes}`);
+
+    const diasComAgenda = new Set(agendamentosMes?.map(a => a.data));
+
+    for (let i = 0; i < primeiroDiaMes; i++) grade.innerHTML += `<div></div>`;
+
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dataFormatada = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const diaElemento = document.createElement("div");
+        diaElemento.className = `dia-item ${diasComAgenda.has(dataFormatada) ? 'tem-marcacao' : ''}`;
+        diaElemento.innerText = dia;
+        diaElemento.onclick = () => selecionarDiaAgenda(dataFormatada, diaElemento);
+        grade.appendChild(diaElemento);
+    }
+}
+
+async function selecionarDiaAgenda(dataISO, elemento) {
+    document.querySelectorAll(".dia-item").forEach(d => d.classList.remove("selecionado"));
+    if (elemento) elemento.classList.add("selecionado");
+
+    const lista = document.getElementById("lista-agenda-clicada");
+    const titulo = document.getElementById("titulo-agenda-selecionada");
+    const [ano, mes, dia] = dataISO.split("-");
+    if (titulo) titulo.innerText = `Agenda: ${dia}/${mes}/${ano}`;
+    if (lista) lista.innerHTML = "<p style='text-align:center;'>Buscando...</p>";
+
+    const { data: agendamentos } = await _supabase.from('agendamentos').select('*').eq('data', dataISO).neq('status', 'cancelado').order('horario');
+
+    if (!agendamentos || agendamentos.length === 0) {
+        lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:var(--cor-subtexto);'>Nenhum agendamento.</p>";
+        return;
+    }
+
+    lista.innerHTML = "";
+    agendamentos.forEach(ag => {
+        const item = document.createElement("div");
+        item.className = "item-agenda-lista";
+        item.innerHTML = `
+            <div class="hora-tag">${String(ag.horario).substring(0, 5)}h</div>
+            <div class="info-tag"><strong>${ag.cliente_nome}</strong><span>${ag.servico}</span></div>
+            <div class="status-tag ${ag.status.toLowerCase()}">${ag.status}</div>`;
+        lista.appendChild(item);
     });
 }
 
 /* ==========================================================================
-   8. FINALIZAÇÃO E REMOÇÃO
+   6. GESTÃO DE CLIENTES (VIEW SQL)
    ========================================================================== */
-window.enviarLembrete = (tel, nome) => {
-    const t = (tel && tel !== "Não informado") ? tel.replace(/\D/g, "") : "";
-    if (!t) return alert("Sem telefone!");
-    window.open(`https://wa.me/55${t}?text=Olá ${nome}, confirmamos seu horário!`, "_blank");
+async function renderizarListaClientes() {
+    const corpoTabela = document.getElementById("corpo-tabela-clientes");
+    if (!corpoTabela) return;
+    corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
+
+    const { data: clientes, error } = await _supabase.from('lista_clientes_resumo').select('*').order('cliente_nome');
+    if (error) return corpoTabela.innerHTML = '<tr><td colspan="4">Erro ao carregar dados.</td></tr>';
+
+    corpoTabela.innerHTML = "";
+    if (!clientes || clientes.length === 0) {
+        corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente.</td></tr>';
+        return;
+    }
+
+    clientes.forEach(c => {
+        const dataVisita = c.data_ultima_visita ? new Date(c.data_ultima_visita).toLocaleDateString('pt-BR') : "---";
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+            <td><strong>${c.cliente_nome}</strong></td>
+            <td>${c.ultimo_servico || '---'} <br><small style="color:var(--cor-subtexto)">Último em: ${dataVisita}</small></td>
+            <td>${c.telefone || '---'}</td>
+            <td>
+                <div class="acoes-buttons">
+                    <button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.cliente_nome}')"><i class="fab fa-whatsapp"></i></button>
+                    <button class="btn-concluir" style="background:#3498db"><i class="fas fa-eye"></i></button>
+                </div>
+            </td>`;
+        corpoTabela.appendChild(linha);
+    });
+}
+
+window.filtrarClientes = function () {
+    const termo = document.getElementById("busca-cliente").value.toLowerCase();
+    document.querySelectorAll("#corpo-tabela-clientes tr").forEach(linha => {
+        linha.style.display = linha.innerText.toLowerCase().includes(termo) ? "" : "none";
+    });
 };
 
-window.removerAgendamento = function (id, acao) {
-    if (confirm(`Marcar como ${acao}?`)) {
-        let ags = JSON.parse(localStorage.getItem("agendamentos")) || [];
-        const agendamento = ags.find(a => String(a.id) === String(id));
+/* ==========================================================================
+   7. FINANCEIRO E UTILITÁRIOS
+   ========================================================================== */
+function atualizarProgressoMeta() {
+    const meta = parseFloat(localStorage.getItem("metaDiaria")) || 400;
+    const faturado = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
+    const porc = Math.min((faturado / meta) * 100, 100);
 
-        if (acao === 'concluído' && agendamento) {
-            const servicosCadastrados = obterServicos();
-            const serv = servicosCadastrados.find(s => s.nome === agendamento.servico);
-            const valor = serv ? serv.preco : 0;
-            let fatAtual = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
-            const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const elM = document.getElementById("meta-valor-display");
+    const elF = document.getElementById("faturamento-real");
+    const elB = document.getElementById("barra-progresso-fill");
 
-            localStorage.setItem("faturamentoHoje", fatAtual + valor);
-            localStorage.setItem("dataUltimoFaturamento", dataHoje);
-            salvarFaturamentoNoHistorico(dataHoje, valor);
-        }
+    if (elM) elM.innerText = `R$ ${meta},00`;
+    if (elF) elF.innerText = `R$ ${faturado.toFixed(2).replace(".", ",")}`;
+    if (elB) elB.style.width = `${porc}%`;
+}
 
-        ags = ags.filter((a) => String(a.id) !== String(id));
-        localStorage.setItem("agendamentos", JSON.stringify(ags));
-        carregarAgendamentos();
-        atualizarProgressoMeta();
+window.enviarLembrete = (tel, nome) => {
+    const t = tel ? tel.replace(/\D/g, "") : "";
+    if (!t) return alert("Sem telefone!");
+    window.open(`https://wa.me/55${t}?text=${encodeURIComponent('Olá ' + nome + ', confirmamos seu horário na Barbearia!')}`, "_blank");
+};
+
+/* ==========================================================================
+    8. FUNÇÕES DE CONFIGURAÇÃO (Globais)
+   ========================================================================== */
+
+// Função para alternar entre as sub-abas (Expediente, Meta, Serviços)
+window.abrirSubConfig = function(tipo) {
+    console.log("🔧 Ativando aba:", tipo);
+
+    // 1. Esconde TUDO (Dashboard, Agenda, Clientes, etc)
+    esconderTodasSessoes();
+
+    // 2. Garante que a seção MÃE das configurações apareça
+    const paiConfig = document.getElementById("configuracoes-section");
+    if (paiConfig) {
+        paiConfig.style.display = "block";
+    }
+
+    // 3. Esconde todas as sub-seções de configuração primeiro
+    document.querySelectorAll('.config-sub-section').forEach(section => {
+        section.style.display = 'none';
+    });
+
+    // 4. Mapeia os IDs e liga o escolhido
+    const areas = {
+        'expediente': 'area-expediente',
+        'meta': 'area-meta',
+        'servicos': 'area-servicos'
+    };
+
+    const elementoAlvo = document.getElementById(areas[tipo]);
+    if (elementoAlvo) {
+        elementoAlvo.style.display = "block"; // Força aparecer
+        console.log("✅ Seção visível:", areas[tipo]);
     }
 };
 
-window.addEventListener("load", () => {
-    verificarResetDiario();
-    atualizarSelectsServicos();
-    carregarAgendamentos();
-    atualizarProgressoMeta();
+// Função para Salvar o Expediente no subapase
+window.salvarConfiguracoes = async function() {
+    // 1. Referência do botão para dar feedback visual
+    const btn = document.querySelector("button[onclick='salvarConfiguracoes()']");
+    const textoOriginal = btn.innerHTML;
+    btn.innerText = "Salvando no Banco...";
+    btn.disabled = true;
 
-    const inputMeta = document.getElementById("cfg-meta-valor");
-    if (inputMeta) inputMeta.value = localStorage.getItem("metaDiaria") || "400";
+    // 2. Coleta os dados do formulário usando os nomes das colunas do Supabase
+    const dadosParaSincronizar = {
+        id: 1, // ID fixo para sua configuração
+        hora_inicio: document.getElementById("cfg-hora-inicio").value,
+        hora_fim: document.getElementById("cfg-hora-fim").value,
+        intervalo: parseInt(document.getElementById("cfg-intervalo").value),
+        almoco_inicio: document.getElementById("cfg-almoco-inicio").value,
+        almoco_fim: document.getElementById("cfg-almoco-fim").value,
+        dias_trabalhados: Array.from(document.querySelectorAll(".cfg-dia:checked")).map(cb => parseInt(cb.value)),
+        meta_diaria: parseFloat(document.getElementById("cfg-meta-valor")?.value || 400)
+    };
+
+    console.log("📤 Enviando para o Supabase:", dadosParaSincronizar);
+
+    // 3. Envia para o Supabase (UPSERT: Insere ou Atualiza se já existir)
+    const { error } = await _supabase
+        .from('configuracoes')
+        .upsert(dadosParaSincronizar);
+
+    if (error) {
+        console.error("❌ Erro ao salvar:", error);
+        alert("Erro ao sincronizar com o banco: " + error.message);
+    } else {
+        console.log("✅ Sincronizado com sucesso!");
+        alert("Expediente atualizado com sucesso! Seus clientes já podem ver os novos horários.");
+    }
+
+    // 4. Restaura o botão
+    btn.innerHTML = textoOriginal;
+    btn.disabled = false;
+};
+
+/* ==========================================================================
+    /* ==========================================================================
+    9. INICIALIZAÇÃO ÚNICA (LOAD) - SINCRONIZADA COM SUPABASE
+   ========================================================================== */
+window.addEventListener("load", async () => {
+    console.log("🚀 Painel ClientFlow Conectado.");
+    
+    // 1. Vincula botões de serviço (Previne erros de clique)
+    const btnAddSrv = document.getElementById("btn-add-servico-banco");
+    if (btnAddSrv) btnAddSrv.onclick = adicionarNovoServico;
+    
+    const formServico = document.getElementById("form-add-servico");
+    if (formServico) formServico.onsubmit = adicionarNovoServico;
+
+    // 2. Reset Diário de Faturamento (Mantido no LocalStorage por ser volátil)
+    const hojeData = new Date().toLocaleDateString("pt-BR");
+    if (localStorage.getItem("dataUltimoAcesso") !== hojeData) {
+        localStorage.setItem("faturamentoHoje", "0");
+        localStorage.setItem("dataUltimoAcesso", hojeData);
+    }
+
+    // 3. BUSCA CONFIGURAÇÕES REAIS DO SUPABASE (O Pulo do Gato)
+    const { data: config, error } = await _supabase
+        .from('configuracoes')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+    if (config) {
+        console.log("📂 Dados carregados do banco:", config);
+        
+        // Preenche os campos com os nomes das colunas do seu banco
+        if (document.getElementById("cfg-hora-inicio")) document.getElementById("cfg-hora-inicio").value = config.hora_inicio;
+        if (document.getElementById("cfg-hora-fim")) document.getElementById("cfg-hora-fim").value = config.hora_fim;
+        if (document.getElementById("cfg-intervalo")) document.getElementById("cfg-intervalo").value = config.intervalo;
+        if (document.getElementById("cfg-almoco-inicio")) document.getElementById("cfg-almoco-inicio").value = config.almoco_inicio;
+        if (document.getElementById("cfg-almoco-fim")) document.getElementById("cfg-almoco-fim").value = config.almoco_fim;
+        if (document.getElementById("cfg-meta-valor")) document.getElementById("cfg-meta-valor").value = config.meta_diaria;
+
+        // Marca os checkboxes dos dias trabalhados
+        if (config.dias_trabalhados) {
+            document.querySelectorAll(".cfg-dia").forEach(cb => {
+                cb.checked = config.dias_trabalhados.includes(parseInt(cb.value));
+            });
+        }
+    } else {
+        console.warn("Nenhuma configuração encontrada no banco, usando campos padrão.");
+    }
+
+    // 4. Chamadas Iniciais de Interface
+    carregarAgendamentosDoDia();
+    renderizarConfigServicos();
+    atualizarProgressoMeta();
 });
+
+
