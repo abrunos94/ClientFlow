@@ -40,7 +40,7 @@ function esconderTodasSessoes() {
 // Como ele é um <button> e não um <a>, tratamos ele aqui:
 const btnSair = document.getElementById("btn-logout");
 if (btnSair) {
-    btnSair.onclick = function() {
+    btnSair.onclick = function () {
         if (confirm("Deseja realmente sair do ClientFlow?")) {
             localStorage.removeItem("logado");
             window.location.href = "index.html"; // Ajuste se seu arquivo for login.html
@@ -53,13 +53,51 @@ const btnConfig = document.getElementById("btn-config-master");
 const gaveta = document.getElementById("submenu-links");
 
 if (btnConfig && gaveta) {
-    btnConfig.onclick = function(e) {
+    btnConfig.onclick = function (e) {
         e.preventDefault();
         gaveta.classList.toggle("active");
         btnConfig.classList.toggle("open"); // Gira a setinha
     };
 }
 
+/* ==========================================================================
+    2.1 LÓGICA DO MENU MOBILE (Hambúrguer)
+   ========================================================================== */
+
+const btnAbrirMenu = document.getElementById("abrir-menu");
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+
+if (btnAbrirMenu && sidebar && overlay) {
+    // ABRE o menu
+    btnAbrirMenu.onclick = () => {
+        sidebar.classList.add("active");
+        overlay.classList.add("active");
+    };
+
+    // FECHA ao clicar no fundo escuro
+    overlay.onclick = () => {
+        sidebar.classList.remove("active");
+        overlay.classList.remove("active");
+    };
+
+    // LÓGICA INTELIGENTE: Fecha ao clicar nos links, mas ignora as Configurações
+    document.querySelectorAll(".menu a").forEach(link => {
+        link.addEventListener("click", () => {
+            // Agora a trava é APENAS para o botão que abre a gaveta
+            const ehBotaoMestreConfig = link.id === "btn-config-master";
+
+            // Se for o botão mestre, "return" (não fecha o menu lateral)
+            if (ehBotaoMestreConfig) return;
+
+            // Se for QUALQUER outro (Dashboard, Agenda, Clientes, Expediente, Meta ou Serviços)
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove("active");
+                overlay.classList.remove("active");
+            }
+        });
+    });
+}
 
 
 // 3. Lógica de Navegação das Abas Principais (Dashboard, Agenda, Clientes)
@@ -74,7 +112,7 @@ document.querySelectorAll(".menu > a").forEach((link) => {
 
         // Identifica qual tela abrir pelo texto do link
         const texto = link.innerText.trim();
-        
+
         if (texto.includes("Dashboard")) {
             secoes.home.style.display = "block";
             carregarAgendamentosDoDia();
@@ -121,7 +159,7 @@ async function carregarAgendamentosDoDia() {
                 <td class="hide-mobile">${ag.servico}</td>
                 <td>
                     <div class="acoes-buttons">
-                        <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}')" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}', '${ag.data}', '${ag.horario}')"title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
                         <button class="btn-concluir" onclick="mudarStatusAgendamento('${ag.id}', 'concluido', ${ag.valor || 0})" title="Concluir"><i class="fas fa-check"></i></button>
                         <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')" title="Cancelar"><i class="fas fa-times"></i></button>
                     </div>
@@ -168,17 +206,22 @@ function atualizarCardsEstatisticas(agendamentos) {
     }
 }
 
-window.mudarStatusAgendamento = async function (id, novoStatus, valor = 0) {
-    if (!confirm(`Marcar agendamento como ${novoStatus}?`)) return;
-    const { error } = await _supabase.from("agendamentos").update({ status: novoStatus }).eq("id", id);
+window.mudarStatusAgendamento = async function (id, novoStatus) {
+    if (!confirm(`Deseja marcar como ${novoStatus}?`)) return;
+
+    // 1. Apenas atualiza o status no Supabase
+    const { error } = await _supabase
+        .from("agendamentos")
+        .update({ status: novoStatus })
+        .eq("id", id);
+
     if (error) return alert("Erro: " + error.message);
 
-    if (novoStatus === "concluido") {
-        let fatAtual = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
-        localStorage.setItem("faturamentoHoje", fatAtual + (parseFloat(valor) || 0));
-    }
+    // 2. Em vez de fazer conta aqui, chamamos o "Cérebro" para atualizar o total
+    await recalcularFaturamentoDoDia();
+
+    // 3. Atualiza a lista na tela
     carregarAgendamentosDoDia();
-    atualizarProgressoMeta();
 };
 
 /* ==========================================================================
@@ -205,14 +248,19 @@ async function renderizarConfigServicos() {
 }
 
 async function adicionarNovoServico(e) {
-    e.preventDefault(); // Impede a página de recarregar
+    if (e) e.preventDefault(); // Evita recarregar a página
 
-    const nome = document.getElementById("cfg-servico-nome").value;
-    const preco = document.getElementById("cfg-servico-preco").value;
+    const inputNome = document.getElementById("cfg-servico-nome");
+    const inputPreco = document.getElementById("cfg-servico-preco");
 
-    if (!nome || !preco) return alert("Preencha nome e preço!");
+    const nome = inputNome.value;
+    const preco = inputPreco.value;
 
-    // ENVIANDO PARA O SUPABASE
+    if (!nome || !preco) return alert("Preencha o nome e o preço do serviço!");
+
+    console.log("Saving service:", { nome, preco });
+
+    // 1. ENVIANDO PARA O SUPABASE
     const { error } = await _supabase
         .from("servicos")
         .insert([{ nome: nome, preco: parseFloat(preco) }]);
@@ -220,13 +268,16 @@ async function adicionarNovoServico(e) {
     if (error) {
         alert("Erro ao salvar: " + error.message);
     } else {
-        // Limpa o formulário e atualiza a lista visual
-        document.getElementById("form-add-servico").reset();
-        renderizarConfigServicos();
+        // 2. LIMPEZA MANUAL (Resolve o erro do 'reset')
+        inputNome.value = "";
+        inputPreco.value = "";
+
+        // 3. ATUALIZAÇÃO DA LISTA (Faz aparecer na hora sem F5)
+        await renderizarConfigServicos();
+
         alert("Serviço adicionado com sucesso!");
     }
 }
-
 window.excluirServico = async function (id) {
     if (!confirm("Excluir serviço?")) return;
     await _supabase.from("servicos").delete().eq("id", id);
@@ -353,31 +404,138 @@ window.filtrarClientes = function () {
    7. FINANCEIRO E UTILITÁRIOS
    ========================================================================== */
 function atualizarProgressoMeta() {
+    // 1. Pegar valores e garantir que são números (evita o erro do NaN)
     const meta = parseFloat(localStorage.getItem("metaDiaria")) || 400;
     const faturado = parseFloat(localStorage.getItem("faturamentoHoje")) || 0;
-    const porc = Math.min((faturado / meta) * 100, 100);
 
-    const elM = document.getElementById("meta-valor-display");
-    const elF = document.getElementById("faturamento-real");
-    const elB = document.getElementById("barra-progresso-fill");
+    // 2. Calcular porcentagem
+    const porc = (faturado / meta) * 100;
 
-    if (elM) elM.innerText = `R$ ${meta},00`;
-    if (elF) elF.innerText = `R$ ${faturado.toFixed(2).replace(".", ",")}`;
-    if (elB) elB.style.width = `${porc}%`;
+    console.log(`📊 Progresso: R$${faturado} de R$${meta} (${porc.toFixed(2)}%)`);
+
+    // 3. Mapear elementos pelos IDs exatos do seu HTML
+    const elFrase = document.getElementById("frase-progresso");
+    const elMetaDisplay = document.getElementById("meta-valor-display");
+    const elFaturadoReal = document.getElementById("faturamento-real");
+    const elBarraFill = document.getElementById("barra-progresso-fill");
+
+    // 4. Atualizar a tela
+    if (elMetaDisplay) elMetaDisplay.innerText = `R$ ${meta.toFixed(2).replace(".", ",")}`;
+    if (elFaturadoReal) elFaturadoReal.innerText = `R$ ${faturado.toFixed(2).replace(".", ",")}`;
+
+    if (elBarraFill) {
+        // Limita a barra em 100% visualmente
+        elBarraFill.style.width = `${Math.min(porc, 100)}%`;
+    }
+
+    // 5. CHECAGEM DA META (GAMIFICAÇÃO)
+    if (porc >= 100) {
+        console.log("🏆 META BATIDA!");
+        if (elFrase) elFrase.innerText = "Meta batida! Você é fera! 🏆";
+        if (elBarraFill) elBarraFill.style.background = "linear-gradient(90deg, #FFD700, #FFA500)";
+
+        // Disparar confete apenas se a biblioteca existir e se ainda não disparou hoje
+        if (typeof confetti === "function" && sessionStorage.getItem("confeteDisparado") !== "true") {
+            dispararConfete();
+            sessionStorage.setItem("confeteDisparado", "true");
+        }
+    } else {
+        if (elFrase) elFrase.innerText = "Sua jornada de hoje começou! 🚀";
+        if (elBarraFill) elBarraFill.style.background = "var(--cor-primaria)";
+        // Reseta o disparador se o valor cair abaixo da meta (opcional)
+        sessionStorage.removeItem("confeteDisparado");
+    }
 }
 
-window.enviarLembrete = (tel, nome) => {
-    const t = tel ? tel.replace(/\D/g, "") : "";
-    if (!t) return alert("Sem telefone!");
-    window.open(`https://wa.me/55${t}?text=${encodeURIComponent('Olá ' + nome + ', confirmamos seu horário na Barbearia!')}`, "_blank");
+// Função do efeito de explosão (Duração de 2 segundos)
+function dispararConfete() {
+    var end = Date.now() + (2 * 1000);
+    var colors = ['#ce9e62', '#ffffff', '#D4AF37']; // Cores da sua marca
+
+    (function frame() {
+        confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors
+        });
+        confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+}
+
+/* ==========================================================================
+    7.1-  Mesagem e link do Botão whatsApp
+   ========================================================================== */
+
+window.enviarLembrete = (tel, nome, dataISO, hora) => {
+    if (!tel) return alert("Sem telefone cadastrado!");
+
+    // 1. Limpeza do número
+    const numLimpo = tel.replace(/\D/g, "");
+    const ddi = numLimpo.startsWith("55") ? "" : "55";
+
+    // 2. Formatação da data
+    const [ano, mes, dia] = dataISO.split("-");
+    const dataBR = `${dia}/${mes}`;
+
+    // 3. Texto direto e profissional (Sem emojis)
+    const texto =
+        `Ola, ${nome}!\n\n` +
+        `Seu agendamento foi confirmado com sucesso no ClientFlow.\n` +
+        `Data: ${dataBR}\n` +
+        `Horario: ${hora.substring(0, 5)}\n\n` +
+        `Atencao: Pedimos que chegue com 5 minutos de antecedencia.\n` +
+        `Qualquer duvida ou alteracao, estamos a disposicao.\n` +
+        `Obrigado pela preferencia!`;
+
+    const mensagemUrl = encodeURIComponent(texto);
+    window.open(`https://wa.me/${ddi}${numLimpo}?text=${mensagemUrl}`, "_blank");
 };
 
+/* ==========================================================================
+    7.2 - Calculo Faturamento
+   ========================================================================== */
+async function recalcularFaturamentoDoDia() {
+    const hoje = new Date().toLocaleDateString("en-CA"); // Formato YYYY-MM-DD
+
+    // 1. Busca todos os valores de serviços concluídos hoje
+    const { data, error } = await _supabase
+        .from("agendamentos")
+        .select("valor")
+        .eq("data", hoje)
+        .eq("status", "concluido");
+
+    if (error) {
+        console.error("Erro ao recalcular faturamento:", error.message);
+        return;
+    }
+
+    // 2. Soma os valores (ou define 0 se não houver nada)
+    const totalReal = data.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
+
+    // 3. Atualiza o LocalStorage apenas para a barra de progresso ler na hora
+    localStorage.setItem("faturamentoHoje", totalReal.toString());
+
+    // 4. Avisa a barra de progresso para se atualizar
+    atualizarProgressoMeta();
+}
 /* ==========================================================================
     8. FUNÇÕES DE CONFIGURAÇÃO (Globais)
    ========================================================================== */
 
 // Função para alternar entre as sub-abas (Expediente, Meta, Serviços)
-window.abrirSubConfig = function(tipo) {
+window.abrirSubConfig = function (tipo) {
     console.log("🔧 Ativando aba:", tipo);
 
     // 1. Esconde TUDO (Dashboard, Agenda, Clientes, etc)
@@ -409,7 +567,7 @@ window.abrirSubConfig = function(tipo) {
 };
 
 // Função para Salvar o Expediente no subapase
-window.salvarConfiguracoes = async function() {
+window.salvarConfiguracoes = async function () {
     // 1. Referência do botão para dar feedback visual
     const btn = document.querySelector("button[onclick='salvarConfiguracoes()']");
     const textoOriginal = btn.innerHTML;
@@ -448,17 +606,36 @@ window.salvarConfiguracoes = async function() {
     btn.disabled = false;
 };
 
+window.salvarMetaDiaria = async function () {
+    const input = document.getElementById("cfg-meta-valor");
+    const novoValor = parseFloat(input.value);
+
+    if (isNaN(novoValor) || novoValor <= 0) return alert("Insira um valor válido!");
+
+    const { error } = await _supabase
+        .from('configuracoes')
+        .upsert({ id: 1, meta_diaria: novoValor });
+
+    if (error) {
+        alert("Erro ao salvar meta: " + error.message);
+    } else {
+        localStorage.setItem("metaDiaria", novoValor); // Atualiza o "motor" da barra
+        atualizarProgressoMeta(); // Atualiza a barra visualmente na hora
+        alert("🎯 Meta diária atualizada!");
+    }
+};
+
+
 /* ==========================================================================
-    /* ==========================================================================
-    9. INICIALIZAÇÃO ÚNICA (LOAD) - SINCRONIZADA COM SUPABASE
-   ========================================================================== */
+9. INICIALIZAÇÃO ÚNICA (LOAD) - SINCRONIZADA COM SUPABASE
+========================================================================== */
 window.addEventListener("load", async () => {
     console.log("🚀 Painel ClientFlow Conectado.");
-    
+
     // 1. Vincula botões de serviço (Previne erros de clique)
     const btnAddSrv = document.getElementById("btn-add-servico-banco");
     if (btnAddSrv) btnAddSrv.onclick = adicionarNovoServico;
-    
+
     const formServico = document.getElementById("form-add-servico");
     if (formServico) formServico.onsubmit = adicionarNovoServico;
 
@@ -478,14 +655,17 @@ window.addEventListener("load", async () => {
 
     if (config) {
         console.log("📂 Dados carregados do banco:", config);
-        
+
         // Preenche os campos com os nomes das colunas do seu banco
         if (document.getElementById("cfg-hora-inicio")) document.getElementById("cfg-hora-inicio").value = config.hora_inicio;
         if (document.getElementById("cfg-hora-fim")) document.getElementById("cfg-hora-fim").value = config.hora_fim;
         if (document.getElementById("cfg-intervalo")) document.getElementById("cfg-intervalo").value = config.intervalo;
         if (document.getElementById("cfg-almoco-inicio")) document.getElementById("cfg-almoco-inicio").value = config.almoco_inicio;
         if (document.getElementById("cfg-almoco-fim")) document.getElementById("cfg-almoco-fim").value = config.almoco_fim;
-        if (document.getElementById("cfg-meta-valor")) document.getElementById("cfg-meta-valor").value = config.meta_diaria;
+        if (document.getElementById("cfg-meta-valor")) {
+            document.getElementById("cfg-meta-valor").value = config.meta_diaria;
+            localStorage.setItem("metaDiaria", config.meta_diaria); // <--- ADICIONE ESTA LINHA AQUI
+        }
 
         // Marca os checkboxes dos dias trabalhados
         if (config.dias_trabalhados) {
@@ -501,6 +681,7 @@ window.addEventListener("load", async () => {
     carregarAgendamentosDoDia();
     renderizarConfigServicos();
     atualizarProgressoMeta();
+    await recalcularFaturamentoDoDia();
 });
 
 
