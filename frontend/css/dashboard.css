@@ -41,8 +41,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .aba-content {
@@ -96,7 +103,8 @@
 
 /* --- Estilos do Submenu Lateral --- */
 .submenu {
-    display: none; /* Controlado via JS */
+    display: none;
+    /* Controlado via JS */
     flex-direction: column;
     background: rgba(255, 255, 255, 0.03);
     margin-left: 15px;
@@ -207,7 +215,7 @@
     color: var(--cor-subtexto);
     font-size: 0.9rem;
     border-bottom: 1px solid #222;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .tabela-agenda td {
@@ -404,11 +412,40 @@
     display: none;
     position: fixed;
     z-index: 1000;
-    left: 0; top: 0; width: 100%; height: 100%;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
 }
 
+.modal-header {
+    display: flex;
+    /* Isso joga o título para a esquerda e o X para a direita */
+    justify-content: space-between; 
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #333;
+}
+.btn-fechar-modal {
+    position: relative;
+    background: none;
+    border: none;
+    color: var(--cor-subtexto);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: 0.3s;
+    /* Ajuste para alinhar perfeitamente no topo */
+    left: 40px;
+    margin-top: -90px;    
+}
+
+.btn-fechar-modal:hover {
+    color: #ff4d4d;
+    transform: scale(1.2);
+}
 .modal-content {
     background-color: var(--cor-card);
     margin: 10% auto;
@@ -417,6 +454,8 @@
     width: 90%;
     max-width: 450px;
     border: 1px solid #444;
+    /* Toque do Dashboard: Borda dourada na esquerda */
+    border-left: 5px solid var(--cor-primaria);
 }
 
 .input-group-modal {
@@ -431,7 +470,7 @@
     font-size: 0.9rem;
 }
 
-.input-group-modal input, 
+.input-group-modal input,
 .input-group-modal select {
     background: #111;
     border: 1px solid #333;
@@ -439,12 +478,6 @@
     padding: 12px;
     border-radius: 6px;
     outline: none;
-}
-
-.config-grid-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 20px;
 }
 
 .checkbox-group {
@@ -466,6 +499,9 @@
     outline: none;
 }
 
+.btn-fechar-modal:hover {
+    color: #ff4d4d !important;
+}
 /* --- SEÇÃO DE RELATÓRIOS (Centralização) --- */
 #secao-relatorios {
     padding: 20px;
@@ -495,7 +531,9 @@
    7. RESPONSIVIDADE E USABILIDADE MOBILE
    ========================================= */
 
-.btn-menu-mobile { display: none; }
+.btn-menu-mobile {
+    display: none;
+}
 
 @media (max-width: 768px) {
     .btn-menu-mobile {
@@ -512,7 +550,7 @@
         border-radius: 8px;
         border: none;
         color: #000;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
     .sidebar {
@@ -524,7 +562,7 @@
         z-index: 1010;
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 10px 0 20px rgba(0,0,0,0.5);
+        box-shadow: 10px 0 20px rgba(0, 0, 0, 0.5);
     }
 
     .sidebar.active {
@@ -534,7 +572,10 @@
     .overlay {
         display: block;
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(4px);
         z-index: 1001;
@@ -573,7 +614,8 @@
         flex-direction: column;
     }
 
-    .calendario-box, .agenda-dia-detalhe {
+    .calendario-box,
+    .agenda-dia-detalhe {
         width: 100%;
         min-width: 100%;
     }
@@ -602,25 +644,77 @@
     }
 }
 
+@media (max-width: 768px) {
+
+    /* 1. Diminuímos o "respiro" do card para sobrar espaço para os dias */
+    .calendario-box {
+        padding: 15px 10px !important;
+        min-width: 0 !important;
+        /* Remove o mínimo que estava travando em 320px */
+    }
+
+    /* 2. Ajustamos a grade para ser bem apertadinha */
+    .calendario-grade {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr) !important;
+        gap: 4px !important;
+        /* Diminuímos o espaço entre os números */
+    }
+
+    /* 3. Ajustamos o tamanho do círculo/quadrado do dia */
+    .dia-item {
+        padding: 8px 0 !important;
+        /* Menos altura */
+        font-size: 0.8rem !important;
+        /* Fonte levemente menor */
+        aspect-ratio: 1 / 1;
+        /* Garante que continue quadradinho */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 4. Ajuste dos nomes dos dias (Seg, Ter...) */
+    .dia-semana {
+        font-size: 0.65rem !important;
+        letter-spacing: 0;
+    }
+
+    /* 5. Ajuste do container pai para não forçar largura */
+    .agenda-container-flex {
+        padding: 0;
+        gap: 15px;
+    }
+}
+
 /* ESTILO DEFINITIVO DO BOTÃO WHATSAPP */
 .btn-whatsapp {
-    background-color: #25d366 !important; /* Verde oficial */
-    color: #ffffff !important;           /* Ícone branco */
-    width: 35px;                         /* Largura fixa para ser circular/quadradinho */
-    height: 35px;                        /* Altura fixa */
-    display: inline-flex !important;     /* Alinhamento centralizado */
+    background-color: #25d366 !important;
+    /* Verde oficial */
+    color: #ffffff !important;
+    /* Ícone branco */
+    width: 35px;
+    /* Largura fixa para ser circular/quadradinho */
+    height: 35px;
+    /* Altura fixa */
+    display: inline-flex !important;
+    /* Alinhamento centralizado */
     align-items: center;
     justify-content: center;
-    border-radius: 6px;                  /* Bordas arredondadas */
-    text-decoration: none !important;    /* Remove o sublinhado de link */
+    border-radius: 6px;
+    /* Bordas arredondadas */
+    text-decoration: none !important;
+    /* Remove o sublinhado de link */
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
 }
 
 .btn-whatsapp:hover {
-    background-color: #128c7e !important; /* Verde mais escuro no hover */
-    transform: scale(1.1);                /* Leve aumento */
+    background-color: #128c7e !important;
+    /* Verde mais escuro no hover */
+    transform: scale(1.1);
+    /* Leve aumento */
 }
 
 .btn-whatsapp i {
@@ -629,8 +723,9 @@
 }
 
 /* Garante que o conteúdo do card de horário use flexbox */
-.lista-interativa p, 
-.card-horario-detalhe { /* Use a classe que envolve a linha do horário */
+.lista-interativa p,
+.card-horario-detalhe {
+    /* Use a classe que envolve a linha do horário */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -639,89 +734,91 @@
 }
 
 .conquista-container {
-      background: var(--cor-card);
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 25px;
-      border: 1px solid var(--cor-borda);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
+    background: var(--cor-card);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid var(--cor-borda);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
 
-    .header-conquista {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 10px;
-    }
+.header-conquista {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
 
-    .texto-meta h3 {
-      color: var(--cor-texto);
-      font-size: 1.1rem;
-      margin-bottom: 5px;
-    }
+.texto-meta h3 {
+    color: var(--cor-texto);
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
 
-    .texto-meta p {
-      color: var(--cor-subtexto);
-      font-size: 0.9rem;
-    }
+.texto-meta p {
+    color: var(--cor-subtexto);
+    font-size: 0.9rem;
+}
 
-    .valor-faturado {
-      color: #2ecc71;
-      font-weight: bold;
-      font-size: 1.3rem;
-      text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
-    }
+.valor-faturado {
+    color: #2ecc71;
+    font-weight: bold;
+    font-size: 1.3rem;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+}
 
-    .barra-progresso-bg {
-      background: #333;
-      height: 12px;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-    }
+.barra-progresso-bg {
+    background: #333;
+    height: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
 
-    #barra-progresso-fill {
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      height: 100%;
-      width: 0%;
-      transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+#barra-progresso-fill {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    height: 100%;
+    width: 0%;
+    transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-    .meta-batida #barra-progresso-fill {
-      background: linear-gradient(90deg, #ffd700, #ffa500);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-    }
+.meta-batida #barra-progresso-fill {
+    background: linear-gradient(90deg, #ffd700, #ffa500);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
 
-    /* Estilos do Submenu Lateral */
-    .submenu {
-      display: none;
-      flex-direction: column;
-      background: rgba(0, 0, 0, 0.2);
-      margin-left: 15px;
-      border-left: 2px solid var(--cor-primaria);
-      margin-bottom: 10px;
-    }
+/* Estilos do Submenu Lateral */
+.submenu {
+    display: none;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.2);
+    margin-left: 15px;
+    border-left: 2px solid var(--cor-primaria);
+    margin-bottom: 10px;
+}
 
-    .submenu a {
-      padding: 10px 15px !important;
-      font-size: 0.85rem !important;
-      color: var(--cor-subtexto) !important;
-    }
+.submenu a {
+    padding: 10px 15px !important;
+    font-size: 0.85rem !important;
+    color: var(--cor-subtexto) !important;
+}
 
-    .btn-dropdown {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.btn-dropdown {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .rotate {
-      transform: rotate(180deg);
-    }
+.rotate {
+    transform: rotate(180deg);
+}
 
-    .dia-item.tem-marcacao {
-    border-bottom: 3px solid var(--cor-primaria); /* Uma linha embaixo do número */
+.dia-item.tem-marcacao {
+    border-bottom: 3px solid var(--cor-primaria);
+    /* Uma linha embaixo do número */
     font-weight: bold;
 }
+
 .dia-item.selecionado {
     background-color: var(--cor-primaria);
     color: white;
@@ -736,13 +833,15 @@
     display: flex;
     gap: 20px;
     margin-top: 20px;
-    flex-wrap: wrap; /* Ajuste para mobile */
+    flex-wrap: wrap;
+    /* Ajuste para mobile */
 }
 
 .calendario-box {
     flex: 1;
     min-width: 300px;
-    background: var(--cor-card-bg); /* Use a variável do seu variables.css */
+    background: var(--cor-card-bg);
+    /* Use a variável do seu variables.css */
     padding: 20px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -879,8 +978,13 @@
     font-weight: bold;
 }
 
-.status-tag.pendente { color: #f1c40f; }
-.status-tag.concluido { color: #2ecc71; }
+.status-tag.pendente {
+    color: #f1c40f;
+}
+
+.status-tag.concluido {
+    color: #2ecc71;
+}
 
 
 /* Esconde o submenu por padrão */
@@ -921,6 +1025,11 @@
     transform: rotate(180deg);
 }
 
-.submenu { display: none; flex-direction: column; }
-.submenu.active { display: flex !important; }
+.submenu {
+    display: none;
+    flex-direction: column;
+}
 
+.submenu.active {
+    display: flex !important;
+}

@@ -24,7 +24,7 @@ const secoes = {
 };
 
 /* ==========================================================================
-    2. NAVEGAÇÃO E UI (VERSÃO ESPECIALISTA - REVISADA)
+    2. NAVEGAÇÃO E UI 
    ========================================================================== */
 
 // 1. Função para esconder todas as telas principais
@@ -43,7 +43,7 @@ if (btnSair) {
     btnSair.onclick = function () {
         if (confirm("Deseja realmente sair do ClientFlow?")) {
             localStorage.removeItem("logado");
-            window.location.href = "index.html"; // Ajuste se seu arquivo for login.html
+            window.location.href = "index.html";
         }
     };
 }
@@ -61,7 +61,7 @@ if (btnConfig && gaveta) {
 }
 
 /* ==========================================================================
-    2.1 LÓGICA DO MENU MOBILE (Hambúrguer)
+    2.1 LÓGICA DO MENU MOBILE 
    ========================================================================== */
 
 const btnAbrirMenu = document.getElementById("abrir-menu");
@@ -99,8 +99,9 @@ if (btnAbrirMenu && sidebar && overlay) {
     });
 }
 
-
-// 3. Lógica de Navegação das Abas Principais (Dashboard, Agenda, Clientes)
+/* ==========================================================================
+   2.1 Lógica de Navegação das Abas Principais (Dashboard, Agenda, Clientes)
+========================================================================== */
 document.querySelectorAll(".menu > a").forEach((link) => {
     link.addEventListener("click", (e) => {
         // Ignora botões que não são de troca de tela
@@ -127,6 +128,33 @@ document.querySelectorAll(".menu > a").forEach((link) => {
         }
     });
 });
+
+// Seleção dos elementos do Modal
+const modalAgendamento = document.getElementById("modal-agendamento");
+const btnAbrirModal = document.getElementById("btn-novo-agendamento");
+const btnFecharModal = document.getElementById("fechar-modal");
+
+// 1. Abre o modal ao clicar no botão "+ Novo Agendamento"
+if (btnAbrirModal) {
+    btnAbrirModal.onclick = () => {
+        modalAgendamento.style.display = "block";
+    };
+}
+
+// 2. Fecha o modal ao clicar no "X"
+if (btnFecharModal) {
+    btnFecharModal.onclick = () => {
+        modalAgendamento.style.display = "none";
+    };
+}
+
+// 3. Fecha o modal se clicar fora da caixa branca
+window.onclick = (event) => {
+    if (event.target == modalAgendamento) {
+        modalAgendamento.style.display = "none";
+    }
+};
+
 
 /* ==========================================================================
    3. GESTÃO DE AGENDAMENTOS (HOME)
@@ -287,6 +315,7 @@ window.excluirServico = async function (id) {
 /* ==========================================================================
    5. CALENDÁRIO INTERATIVO
    ========================================================================== */
+   
 let dataCalendario = new Date();
 
 async function inicializarAgenda() {
@@ -360,7 +389,7 @@ async function selecionarDiaAgenda(dataISO, elemento) {
 }
 
 /* ==========================================================================
-   6. GESTÃO DE CLIENTES (VIEW SQL)
+   6. GESTÃO DE CLIENTES (VIEW SUPABASE/SQL)
    ========================================================================== */
 async function renderizarListaClientes() {
     const corpoTabela = document.getElementById("corpo-tabela-clientes");
@@ -506,6 +535,7 @@ window.enviarLembrete = (tel, nome, dataISO, hora) => {
 /* ==========================================================================
     7.2 - Calculo Faturamento
    ========================================================================== */
+   
 async function recalcularFaturamentoDoDia() {
     const hoje = new Date().toLocaleDateString("en-CA"); // Formato YYYY-MM-DD
 
@@ -646,7 +676,7 @@ window.addEventListener("load", async () => {
         localStorage.setItem("dataUltimoAcesso", hojeData);
     }
 
-    // 3. BUSCA CONFIGURAÇÕES REAIS DO SUPABASE (O Pulo do Gato)
+    // 3. BUSCA CONFIGURAÇÕES REAIS DO SUPABASE
     const { data: config, error } = await _supabase
         .from('configuracoes')
         .select('*')
@@ -656,7 +686,6 @@ window.addEventListener("load", async () => {
     if (config) {
         console.log("📂 Dados carregados do banco:", config);
 
-        // Preenche os campos com os nomes das colunas do seu banco
         if (document.getElementById("cfg-hora-inicio")) document.getElementById("cfg-hora-inicio").value = config.hora_inicio;
         if (document.getElementById("cfg-hora-fim")) document.getElementById("cfg-hora-fim").value = config.hora_fim;
         if (document.getElementById("cfg-intervalo")) document.getElementById("cfg-intervalo").value = config.intervalo;
@@ -664,17 +693,47 @@ window.addEventListener("load", async () => {
         if (document.getElementById("cfg-almoco-fim")) document.getElementById("cfg-almoco-fim").value = config.almoco_fim;
         if (document.getElementById("cfg-meta-valor")) {
             document.getElementById("cfg-meta-valor").value = config.meta_diaria;
-            localStorage.setItem("metaDiaria", config.meta_diaria); // <--- ADICIONE ESTA LINHA AQUI
+            localStorage.setItem("metaDiaria", config.meta_diaria);
         }
 
-        // Marca os checkboxes dos dias trabalhados
         if (config.dias_trabalhados) {
             document.querySelectorAll(".cfg-dia").forEach(cb => {
                 cb.checked = config.dias_trabalhados.includes(parseInt(cb.value));
             });
         }
-    } else {
-        console.warn("Nenhuma configuração encontrada no banco, usando campos padrão.");
+    }
+
+    // Máscara para o telefone (27) 99999-9999
+    const inputTel = document.getElementById('rapido-telefone');
+    if (inputTel) {
+        inputTel.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.substring(0, 11);
+            if (v.length > 2) v = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+            if (v.length > 9) v = `${v.substring(0, 10)}-${v.substring(10)}`;
+            e.target.value = v;
+        });
+    }
+
+    // Função para carregar os serviços no select do modal
+    async function popularServicosNoModal() {
+        const select = document.getElementById("rapido-servico");
+        if (!select) return;
+
+        const { data: servicos, error } = await _supabase
+            .from("servicos")
+            .select("nome, preco")
+            .order("nome");
+
+        if (error) return console.error("Erro ao buscar serviços:", error);
+
+        select.innerHTML = '<option value="" disabled selected>Selecione um serviço</option>';
+        servicos.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s.nome;
+            opt.innerText = `${s.nome} - R$ ${s.preco}`;
+            select.appendChild(opt);
+        });
     }
 
     // 4. Chamadas Iniciais de Interface
@@ -682,6 +741,59 @@ window.addEventListener("load", async () => {
     renderizarConfigServicos();
     atualizarProgressoMeta();
     await recalcularFaturamentoDoDia();
+    
+    // EXECUÇÃO: Busca os serviços para o modal assim que a página carrega
+    await popularServicosNoModal();
 });
 
+/* ==========================================================================
+   10. ATENDIMENTO RÁPIDO (FORA DO LOAD PARA SER GLOBAL)
+   ========================================================================== */
+window.agendarAgora = async function() {
+    console.log("✂️ Registrando atendimento agora...");
+    
+    const nome = document.getElementById("rapido-nome").value;
+    const servico = document.getElementById("rapido-servico").value;
+    const telefone = document.getElementById("rapido-telefone").value;
 
+    if (!nome || !servico) {
+        return alert("Por favor, preencha o nome e o serviço.");
+    }
+
+    const agora = new Date();
+    const dataISO = agora.toLocaleDateString("en-CA");
+    const horaAtual = agora.getHours().toString().padStart(2, "0") + ":" + 
+                     agora.getMinutes().toString().padStart(2, "0");
+
+    // Busca o preço real do serviço no banco para a meta
+    const { data: servicoInfo } = await _supabase
+        .from('servicos')
+        .select('preco')
+        .eq('nome', servico)
+        .single();
+
+    const valorServico = servicoInfo ? servicoInfo.preco : 0;
+
+    const { error } = await _supabase.from("agendamentos").insert([{
+        cliente_nome: nome,
+        servico: servico,
+        telefone: telefone,
+        data: dataISO,
+        horario: horaAtual,
+        status: 'concluido',
+        valor: valorServico
+    }]);
+
+    if (error) {
+        alert("Erro ao salvar: " + error.message);
+    } else {
+        document.getElementById("modal-agendamento").style.display = "none";
+        document.getElementById("rapido-nome").value = "";
+        document.getElementById("rapido-telefone").value = "";
+        
+        await carregarAgendamentosDoDia();
+        await recalcularFaturamentoDoDia();
+        
+        alert("Atendimento registrado com sucesso! ✅");
+    }
+};

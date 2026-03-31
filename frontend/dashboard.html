@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
 
+  <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon" />
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
@@ -267,28 +269,29 @@
   <div id="modal-agendamento" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
-        <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
-      </div>
+    <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
+    <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
+</div>
+
       <div class="modal-body">
         <div class="input-group-modal">
           <label>Nome do Cliente</label>
           <input type="text" id="rapido-nome" placeholder="Ex: Alex Silva" />
         </div>
+
         <div class="input-group-modal">
           <label>Serviço</label>
           <select id="rapido-servico">
-            <option value="Corte Masculino">Corte Masculino</option>
-            <option value="Barba">Barba</option>
-            <option value="Corte + Barba">Corte + Barba</option>
-            <option value="Pezinho">Pezinho</option>
+            <option value="" disabled selected>Carregando serviços...</option>
           </select>
         </div>
+
         <div class="input-group-modal">
           <label>Telefone (Opcional)</label>
-          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" />
+          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" maxlength="15" />
         </div>
-        <button onclick="agendarAgora()" class="btn-salvar-modal">
+
+        <button onclick="agendarAgora()" class="btn-principal btn-block" style="margin-top: 10px;">
           Finalizar e Adicionar
         </button>
       </div>
