@@ -50,7 +50,7 @@
     </aside>
 
     <main class="main-content">
-      <header class="dash-header">
+      <header class="dash-header" id="header-principal">
         <h1>Olá, Alex!</h1>
         <button id="btn-novo-agendamento" class="btn-principal">+ Novo Agendamento</button>
       </header>
@@ -253,14 +253,63 @@
         </div>
       </section>
 
-      <section id="secao-relatorios" style="display: none;">
-        <div class="header-sessao">
-          <h2><i class="fas fa-chart-line"></i> Relatórios de Faturamento</h2>
-        </div>
-        <div class="card-dashboard">
-          <h3>Histórico Recente (Últimos 7 dias)</h3>
-          <div id="lista-historico-financeiro">
+      <section id="secao-relatorios" class="aba-content" style="display: none;">
+        <div class="relatorio-header">
+          <div class="relatorio-titulo-area">
+            <h2>Relatório do Barbeiro</h2>
+            <p id="subtitulo-periodo">Visão geral • Mês atual (<span id="data-range">01/03 – 31/03</span>)</p>
           </div>
+          <div class="relatorio-icon-area">
+            <div class="wrapper-seletor-data">
+              <i class="fas fa-calendar-alt"></i>
+              <select id="filtro-periodo-relatorio" onchange="mudarPeriodoRelatorio(this.value)">
+                <option value="7">Últimos 7 dias</option>
+                <option value="30" selected>Últimos 30 dias</option>
+                <option value="90">Últimos 3 meses</option>
+                <option value="365">Este Ano</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid-relatorios">
+          <div class="stat-card-advanced faturamento">
+            <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+            <p class="label">Faturamento</p>
+            <span class="value" id="rel-faturamento">R$ 0,00</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+          </div>
+
+          <div class="stat-card-advanced atendimentos">
+            <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+            <p class="label">Atendimentos</p>
+            <span class="value" id="rel-atendimentos">0</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+          </div>
+
+          <div class="stat-card-advanced ticket">
+            <div class="card-icon"><i class="fas fa-gem"></i></div>
+            <p class="label">Ticket Médio</p>
+            <span class="value" id="rel-ticket">R$ 0,00</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+          </div>
+
+          <div class="stat-card-advanced comparecimento">
+            <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+            <p class="label">Taxa de Comparecimento</p>
+            <span class="value" id="rel-comparecimento">0%</span>
+            <div class="progress-mini">
+              <div class="fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grafico-container-full">
+          <div class="grafico-header">
+            <h3>Evolução do Faturamento</h3>
+            <p id="insight-rapido"><i class="fas fa-chart-line"></i> Carregando dados...</p>
+          </div>
+          <canvas id="graficoEvolucao"></canvas>
         </div>
       </section>
     </main>
@@ -269,9 +318,9 @@
   <div id="modal-agendamento" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-    <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
-    <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
-</div>
+        <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
+        <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
+      </div>
 
       <div class="modal-body">
         <div class="input-group-modal">
@@ -298,9 +347,12 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/script-dashboard.js"></script>
+</body>
+
+</html>
 </body>
 
 </html>

@@ -22,6 +22,7 @@ const secoes = {
     clientes: document.getElementById("secao-clientes"),
     relatorios: document.getElementById("secao-relatorios"),
 };
+let chartFaturamento = null; // Variável para controlar a instância do gráfico
 
 /* ==========================================================================
     2. NAVEGAÇÃO E UI 
@@ -104,27 +105,43 @@ if (btnAbrirMenu && sidebar && overlay) {
 ========================================================================== */
 document.querySelectorAll(".menu > a").forEach((link) => {
     link.addEventListener("click", (e) => {
-        // Ignora botões que não são de troca de tela
         if (link.id === "btn-logout" || link.id === "btn-config-master") return;
 
         e.preventDefault();
         esconderTodasSessoes();
         link.classList.add("active");
 
-        // Identifica qual tela abrir pelo texto do link
         const texto = link.innerText.trim();
+        const headerPrincipal = document.getElementById("header-principal");
+        const painelConquista = document.getElementById("painel-conquista");
 
         if (texto.includes("Dashboard")) {
+            // MODO NORMAL: Mostra tudo
+            if (headerPrincipal) headerPrincipal.style.display = "flex";
+            if (painelConquista) painelConquista.style.display = "block";
             secoes.home.style.display = "block";
             carregarAgendamentosDoDia();
-        } else if (texto.includes("Agenda")) {
-            secoes.agenda.style.display = "block";
-            inicializarAgenda();
-        } else if (texto.includes("Clientes")) {
-            secoes.clientes.style.display = "block";
-            renderizarListaClientes();
-        } else if (link.id === "link-relatorios") {
+        }
+        else if (link.id === "link-relatorios") {
+            // FOCUS MODE: Esconde o topo para focar nos dados
+            if (headerPrincipal) headerPrincipal.style.display = "none";
+            if (painelConquista) painelConquista.style.display = "none";
             secoes.relatorios.style.display = "block";
+            // Chama a função de relatórios
+            if (typeof inicializarRelatorios === "function") inicializarRelatorios();
+        }
+        else {
+            // OUTRAS TELAS: Mostra header, mas esconde o painel de meta
+            if (headerPrincipal) headerPrincipal.style.display = "flex";
+            if (painelConquista) painelConquista.style.display = "none";
+
+            if (texto.includes("Agenda")) {
+                secoes.agenda.style.display = "block";
+                inicializarAgenda();
+            } else if (texto.includes("Clientes")) {
+                secoes.clientes.style.display = "block";
+                renderizarListaClientes();
+            }
         }
     });
 });
@@ -315,7 +332,7 @@ window.excluirServico = async function (id) {
 /* ==========================================================================
    5. CALENDÁRIO INTERATIVO
    ========================================================================== */
-   
+
 let dataCalendario = new Date();
 
 async function inicializarAgenda() {
@@ -535,7 +552,7 @@ window.enviarLembrete = (tel, nome, dataISO, hora) => {
 /* ==========================================================================
     7.2 - Calculo Faturamento
    ========================================================================== */
-   
+
 async function recalcularFaturamentoDoDia() {
     const hoje = new Date().toLocaleDateString("en-CA"); // Formato YYYY-MM-DD
 
@@ -741,7 +758,7 @@ window.addEventListener("load", async () => {
     renderizarConfigServicos();
     atualizarProgressoMeta();
     await recalcularFaturamentoDoDia();
-    
+
     // EXECUÇÃO: Busca os serviços para o modal assim que a página carrega
     await popularServicosNoModal();
 });
@@ -749,9 +766,9 @@ window.addEventListener("load", async () => {
 /* ==========================================================================
    10. ATENDIMENTO RÁPIDO (FORA DO LOAD PARA SER GLOBAL)
    ========================================================================== */
-window.agendarAgora = async function() {
+window.agendarAgora = async function () {
     console.log("✂️ Registrando atendimento agora...");
-    
+
     const nome = document.getElementById("rapido-nome").value;
     const servico = document.getElementById("rapido-servico").value;
     const telefone = document.getElementById("rapido-telefone").value;
@@ -762,8 +779,8 @@ window.agendarAgora = async function() {
 
     const agora = new Date();
     const dataISO = agora.toLocaleDateString("en-CA");
-    const horaAtual = agora.getHours().toString().padStart(2, "0") + ":" + 
-                     agora.getMinutes().toString().padStart(2, "0");
+    const horaAtual = agora.getHours().toString().padStart(2, "0") + ":" +
+        agora.getMinutes().toString().padStart(2, "0");
 
     // Busca o preço real do serviço no banco para a meta
     const { data: servicoInfo } = await _supabase
@@ -790,10 +807,139 @@ window.agendarAgora = async function() {
         document.getElementById("modal-agendamento").style.display = "none";
         document.getElementById("rapido-nome").value = "";
         document.getElementById("rapido-telefone").value = "";
-        
+
         await carregarAgendamentosDoDia();
         await recalcularFaturamentoDoDia();
-        
+
         alert("Atendimento registrado com sucesso! ✅");
     }
 };
+
+
+/* ==========================================================================
+   11. LÓGICA DE RELATÓRIOS (PASSO 2 - VERSÃO FINAL)
+   ========================================================================== */
+
+async function inicializarRelatorios() {
+    console.log("📊 Gerando relatórios estratégicos...");
+
+    const dataFim = new Date().toLocaleDateString("en-CA");
+    const dataInicio = new Date();
+    dataInicio.setDate(dataInicio.getDate() - 30);
+    const dataInicioISO = dataInicio.toLocaleDateString("en-CA");
+
+    const { data: agendamentos, error } = await _supabase
+        .from("agendamentos")
+        .select("valor, data")
+        .eq("status", "concluido")
+        .gte("data", dataInicioISO)
+        .lte("data", dataFim);
+
+    if (error) return console.error("Erro ao carregar relatórios:", error.message);
+
+    const totalFaturado = agendamentos.reduce((acc, ag) => acc + (parseFloat(ag.valor) || 0), 0);
+    const totalAtendimentos = agendamentos.length;
+    const ticketMédio = totalAtendimentos > 0 ? (totalFaturado / totalAtendimentos) : 0;
+
+    const elFaturamento = document.getElementById("rel-faturamento");
+    const elAtendimentos = document.getElementById("rel-atendimentos");
+    const elTicket = document.getElementById("rel-ticket");
+
+    if (elFaturamento) elFaturamento.innerText = `R$ ${totalFaturado.toFixed(2).replace(".", ",")}`;
+    if (elAtendimentos) elAtendimentos.innerText = totalAtendimentos;
+    if (elTicket) elTicket.innerText = `R$ ${ticketMédio.toFixed(2).replace(".", ",")}`;
+
+    renderizarGraficoEvolucao(agendamentos);
+}
+
+function renderizarGraficoEvolucao(dadosRecebidos) {
+    const elGrafico = document.getElementById('graficoEvolucao');
+    if (!elGrafico) return;
+
+    const ctx = elGrafico.getContext('2d');
+    if (chartFaturamento) chartFaturamento.destroy();
+
+    // Voltamos para d.data
+    const labels = [...new Set(dadosRecebidos.map(d => d.data.substring(8, 10) + "/" + d.data.substring(5, 7)))].sort();
+    const valoresPorDia = labels.map(label => {
+        const dia = label.split("/").reverse().join("-");
+        return dadosRecebidos.filter(d => d.data.includes(dia)).reduce((acc, cur) => acc + parseFloat(cur.valor), 0);
+    });
+
+    // Armazena a nova instância na variável global
+    chartFaturamento = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Faturamento Diário',
+                data: valoresPorDia,
+                borderColor: '#ce9e62',
+                backgroundColor: 'rgba(206, 158, 98, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#aaa' } },
+                x: { grid: { display: false }, ticks: { color: '#aaa' } }
+            }
+        }
+    });
+}
+
+// 1. Função chamada pelo "onchange" do HTML
+window.mudarPeriodoRelatorio = function (dias) {
+    const labels = {
+        "7": "Últimos 7 dias",
+        "30": "Mês atual",
+        "90": "Últimos 3 meses",
+        "365": "Este Ano"
+    };
+
+    // Atualiza o texto do subtítulo na tela
+    const elTexto = document.getElementById("data-range");
+    if (elTexto) elTexto.innerText = labels[dias] || "Período personalizado";
+
+    // Recarrega os relatórios com a nova quantidade de dias
+    inicializarRelatorios(parseInt(dias));
+};
+
+// 2. Ajuste a assinatura da função inicializarRelatorios para aceitar os dias
+// (Mude a linha: async function inicializarRelatorios() { para a de baixo)
+async function inicializarRelatorios(dias = 30) {
+    console.log(`📊 Buscando dados dos últimos ${dias} dias...`);
+
+    const dataFim = new Date().toLocaleDateString("en-CA");
+    const dataInicio = new Date();
+    dataInicio.setDate(dataInicio.getDate() - dias);
+    const dataInicioISO = dataInicio.toLocaleDateString("en-CA");
+
+    // Voltamos para 'data' conforme sua lógica original que funciona
+    const { data: agendamentos, error } = await _supabase
+        .from("agendamentos")
+        .select("valor, data") // <--- Voltamos para 'data'
+        .eq("status", "concluido")
+        .gte("data", dataInicioISO) // <--- Voltamos para 'data'
+        .lte("data", dataFim);     // <--- Voltamos para 'data'
+
+    if (error) return console.error("Erro no Supabase:", error.message);
+
+    const totalFaturado = agendamentos.reduce((acc, ag) => acc + (parseFloat(ag.valor) || 0), 0);
+    const totalAtendimentos = agendamentos.length;
+    const ticketMédio = totalAtendimentos > 0 ? (totalFaturado / totalAtendimentos) : 0;
+
+    const elFaturamento = document.getElementById("rel-faturamento");
+    const elAtendimentos = document.getElementById("rel-atendimentos");
+    const elTicket = document.getElementById("rel-ticket");
+
+    if (elFaturamento) elFaturamento.innerText = `R$ ${totalFaturado.toFixed(2).replace(".", ",")}`;
+    if (elAtendimentos) elAtendimentos.innerText = totalAtendimentos;
+    if (elTicket) elTicket.innerText = `R$ ${ticketMédio.toFixed(2).replace(".", ",")}`;
+
+    renderizarGraficoEvolucao(agendamentos);
+}
