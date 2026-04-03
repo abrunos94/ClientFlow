@@ -817,129 +817,253 @@ window.agendarAgora = async function () {
 
 
 /* ==========================================================================
-   11. LÓGICA DE RELATÓRIOS (PASSO 2 - VERSÃO FINAL)
+   11. LÓGICA DE RELATÓRIOS (INTELIGÊNCIA COMPARATIVA MISTA)
    ========================================================================== */
 
-async function inicializarRelatorios() {
-    console.log("📊 Gerando relatórios estratégicos...");
+/**
+ * 1. FUNÇÃO PRINCIPAL: Faz a gestão de datas, busca no banco e atualiza os cards.
+ * @param {number} dias - Define o período (7, 30, 90 ou 365 dias).
+ */
+async function inicializarRelatorios(dias = 30) {
+    console.log(`📊 Gerando inteligência de dados: últimos ${dias} dias...`);
 
-    const dataFim = new Date().toLocaleDateString("en-CA");
-    const dataInicio = new Date();
-    dataInicio.setDate(dataInicio.getDate() - 30);
-    const dataInicioISO = dataInicio.toLocaleDateString("en-CA");
+    const dataHoje = new Date();
+    const dataFimAtual = dataHoje.toLocaleDateString("en-CA");
 
-    const { data: agendamentos, error } = await _supabase
+    let dataInicioAtual;
+    let dataInicioAnterior;
+    let dataFimAnterior;
+
+    // --- 1.1 DEFINIÇÃO DINÂMICA DE PERÍODOS (ATUAL VS ANTERIOR) ---
+    // Esta lógica garante que o comparativo seja justo (semana vs semana, mês vs mês) [cite: 2026-04-03]
+    if (dias === 30) {
+        // Mês Atual: do dia 01 até hoje
+        dataInicioAtual = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1);
+        // Comparativo: Mês anterior completo
+        dataFimAnterior = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 0).toLocaleDateString("en-CA");
+        dataInicioAnterior = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 1, 1);
+    } else if (dias === 365) {
+        // Ano Atual: de 01/01 até hoje
+        dataInicioAtual = new Date(dataHoje.getFullYear(), 0, 1);
+        // Comparativo: Ano anterior completo
+        dataFimAnterior = new Date(dataHoje.getFullYear() - 1, 11, 31).toLocaleDateString("en-CA");
+        dataInicioAnterior = new Date(dataHoje.getFullYear() - 1, 0, 1);
+    } else {
+        // Janela Rolante: ex. 7 dias atrás vs os 7 dias anteriores a esses [cite: 2026-04-03]
+        dataInicioAtual = new Date();
+        dataInicioAtual.setDate(dataHoje.getDate() - dias);
+        dataFimAnterior = dataInicioAtual.toLocaleDateString("en-CA");
+        dataInicioAnterior = new Date();
+        dataInicioAnterior.setDate(dataInicioAtual.getDate() - dias);
+    }
+
+    const dataInicioAtualISO = dataInicioAtual.toLocaleDateString("en-CA");
+    const dataInicioAnteriorISO = dataInicioAnterior instanceof Date
+        ? dataInicioAnterior.toLocaleDateString("en-CA")
+        : dataInicioAnterior;
+
+    // --- 1.2 BUSCA NO SUPABASE ---
+    // Buscamos concluídos e cancelados para calcular a Taxa de Comparecimento
+    const { data: agendAtuais } = await _supabase
         .from("agendamentos")
-        .select("valor, data")
-        .eq("status", "concluido")
-        .gte("data", dataInicioISO)
-        .lte("data", dataFim);
+        .select("valor, data, status")
+        .in("status", ["concluido", "cancelado"])
+        .gte("data", dataInicioAtualISO)
+        .lte("data", dataFimAtual);
 
-    if (error) return console.error("Erro ao carregar relatórios:", error.message);
+    const { data: agendAntigos } = await _supabase
+        .from("agendamentos")
+        .select("valor, status")
+        .in("status", ["concluido", "cancelado"])
+        .gte("data", dataInicioAnteriorISO)
+        .lte("data", dataFimAnterior);
 
-    const totalFaturado = agendamentos.reduce((acc, ag) => acc + (parseFloat(ag.valor) || 0), 0);
-    const totalAtendimentos = agendamentos.length;
-    const ticketMédio = totalAtendimentos > 0 ? (totalFaturado / totalAtendimentos) : 0;
+    // --- 1.3 CÁLCULOS DO PERÍODO ATUAL ---
+    const concluidosAtuais = agendAtuais?.filter(a => a.status === "concluido") || [];
+    const canceladosAtuais = agendAtuais?.filter(a => a.status === "cancelado") || [];
 
-    const elFaturamento = document.getElementById("rel-faturamento");
-    const elAtendimentos = document.getElementById("rel-atendimentos");
-    const elTicket = document.getElementById("rel-ticket");
+    const fatAtual = concluidosAtuais.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
+    const atendAtual = concluidosAtuais.length;
+    const ticketAtual = atendAtual > 0 ? fatAtual / atendAtual : 0;
 
-    if (elFaturamento) elFaturamento.innerText = `R$ ${totalFaturado.toFixed(2).replace(".", ",")}`;
-    if (elAtendimentos) elAtendimentos.innerText = totalAtendimentos;
-    if (elTicket) elTicket.innerText = `R$ ${ticketMédio.toFixed(2).replace(".", ",")}`;
+    // Comparecimento = (Concluídos / Total) * 100 [cite: 2026-04-03]
+    const totalAtuais = atendAtual + canceladosAtuais.length;
+    const taxaAtual = totalAtuais > 0 ? (atendAtual / totalAtuais) * 100 : 0;
 
-    renderizarGraficoEvolucao(agendamentos);
+    // --- 1.4 CÁLCULOS DO PERÍODO ANTERIOR (COMPARATIVO) ---
+    const concluidosAntigos = agendAntigos?.filter(a => a.status === "concluido") || [];
+    const fatAntigo = concluidosAntigos.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
+    const atendAntigo = concluidosAntigos.length;
+    const totalAntigos = atendAntigo + (agendAntigos?.filter(a => a.status === "cancelado").length || 0);
+    const taxaAntiga = totalAntigos > 0 ? (atendAntigo / totalAntigos) * 100 : 0;
+
+    // --- 1.5 ATUALIZAÇÃO VISUAL E TENDÊNCIAS ---
+    const atualizarTrend = (seletor, atual, antigo) => {
+        const el = document.querySelector(`${seletor} .trend`);
+        if (!el) return;
+        let porcentagem = antigo > 0 ? ((atual - antigo) / antigo) * 100 : 0;
+        const cor = porcentagem >= 0 ? "#2ecc71" : "#ff4757";
+        el.style.color = cor;
+        el.innerHTML = `<i class="fas ${porcentagem >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${Math.abs(porcentagem).toFixed(0)}% <span>vs anterior</span>`;
+    };
+
+    document.getElementById("rel-faturamento").innerText = `R$ ${fatAtual.toFixed(2).replace(".", ",")}`;
+    document.getElementById("rel-atendimentos").innerText = atendAtual;
+    document.getElementById("rel-ticket").innerText = `R$ ${ticketAtual.toFixed(2).replace(".", ",")}`;
+    document.getElementById("rel-comparecimento").innerText = `${taxaAtual.toFixed(0)}%`;
+
+    // Atualiza a barra visual de comparecimento
+    const elFill = document.querySelector(".progress-mini .fill");
+    if (elFill) elFill.style.width = `${taxaAtual}%`;
+
+    // Dispara as setinhas comparativas
+    atualizarTrend(".faturamento", fatAtual, fatAntigo);
+    atualizarTrend(".atendimentos", atendAtual, atendAntigo);
+    atualizarTrend(".ticket", ticketAtual, (atendAntigo > 0 ? fatAntigo / atendAntigo : 0));
+    atualizarTrend(".comparecimento", taxaAtual, taxaAntiga);
+
+    renderizarGraficoEvolucao(concluidosAtuais);
 }
 
-function renderizarGraficoEvolucao(dadosRecebidos) {
+/**
+ * 2. FUNÇÃO DE GRÁFICO: Cria o Gráfico Misto (Barras = R$, Linha = Atendimentos).
+ * Organiza as datas cronologicamente e aplica formatação de moeda [cite: 2026-04-03].
+ */
+function renderizarGraficoEvolucao(dados) {
     const elGrafico = document.getElementById('graficoEvolucao');
-    if (!elGrafico) return;
+    if (!elGrafico || !dados) return;
 
     const ctx = elGrafico.getContext('2d');
     if (chartFaturamento) chartFaturamento.destroy();
 
-    // Voltamos para d.data
-    const labels = [...new Set(dadosRecebidos.map(d => d.data.substring(8, 10) + "/" + d.data.substring(5, 7)))].sort();
-    const valoresPorDia = labels.map(label => {
-        const dia = label.split("/").reverse().join("-");
-        return dadosRecebidos.filter(d => d.data.includes(dia)).reduce((acc, cur) => acc + parseFloat(cur.valor), 0);
+    // Ordena os dados
+    const dadosOrdenados = [...dados].sort((a, b) => a.data.localeCompare(b.data));
+
+    const labels = [...new Set(
+        dadosOrdenados.map(d => d.data.substring(8, 10) + "/" + d.data.substring(5, 7))
+    )];
+
+    const fatPorDia = labels.map(label => {
+        const diaISO = label.split("/").reverse().join("-");
+        return dadosOrdenados
+            .filter(d => d.data.includes(diaISO))
+            .reduce((acc, cur) => acc + (parseFloat(cur.valor) || 0), 0);
     });
 
-    // Armazena a nova instância na variável global
+    // 🔥 Gradiente (igual ao da imagem)
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(46, 204, 113, 0.4)');
+    gradient.addColorStop(1, 'rgba(46, 204, 113, 0)');
+
     chartFaturamento = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Faturamento Diário',
-                data: valoresPorDia,
-                borderColor: '#ce9e62',
-                backgroundColor: 'rgba(206, 158, 98, 0.1)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true
+                data: fatPorDia,
+                borderColor: '#2ecc71',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4, // 🔥 deixa a linha suave
+                pointBackgroundColor: '#2ecc71',
+                pointBorderWidth: 0,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            let val = context.parsed.y || 0;
+                            return `R$ ${val.toFixed(2).replace('.', ',')}`;
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#aaa' } },
-                x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#aaa' }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: {
+                        color: '#aaa',
+                        callback: (v) => 'R$ ' + v
+                    }
+                }
             }
         }
     });
 }
 
-// 1. Função chamada pelo "onchange" do HTML
+/**
+ * 3. EVENTO DO SELETOR: Atualiza o título e reinicia a análise.
+ */
 window.mudarPeriodoRelatorio = function (dias) {
-    const labels = {
-        "7": "Últimos 7 dias",
-        "30": "Mês atual",
-        "90": "Últimos 3 meses",
-        "365": "Este Ano"
-    };
-
-    // Atualiza o texto do subtítulo na tela
+    const labels = { "7": "Últimos 7 dias", "30": "Mês atual", "90": "Últimos 3 meses", "365": "Este Ano" };
     const elTexto = document.getElementById("data-range");
     if (elTexto) elTexto.innerText = labels[dias] || "Período personalizado";
 
-    // Recarrega os relatórios com a nova quantidade de dias
     inicializarRelatorios(parseInt(dias));
 };
 
-// 2. Ajuste a assinatura da função inicializarRelatorios para aceitar os dias
-// (Mude a linha: async function inicializarRelatorios() { para a de baixo)
-async function inicializarRelatorios(dias = 30) {
-    console.log(`📊 Buscando dados dos últimos ${dias} dias...`);
+// Função para analisar horários e dar dicas [cite: 2026-04-03]
+function processarInsightsHorarios(agendamentos) {
+    const contagemHoras = {};
+    agendamentos.forEach(ag => {
+        const hora = parseInt(ag.horario.substring(0, 2));
+        const faixa = `${hora}h - ${hora + 2}h`;
+        contagemHoras[faixa] = (contagemHoras[faixa] || 0) + (parseFloat(ag.valor) || 0);
+    });
 
-    const dataFim = new Date().toLocaleDateString("en-CA");
-    const dataInicio = new Date();
-    dataInicio.setDate(dataInicio.getDate() - dias);
-    const dataInicioISO = dataInicio.toLocaleDateString("en-CA");
+    const ordenados = Object.entries(contagemHoras).sort((a, b) => b[1] - a[1]);
+    const listaEl = document.getElementById("lista-horarios-pico");
+    const dicaEl = document.getElementById("insight-horario-texto");
 
-    // Voltamos para 'data' conforme sua lógica original que funciona
-    const { data: agendamentos, error } = await _supabase
-        .from("agendamentos")
-        .select("valor, data") // <--- Voltamos para 'data'
-        .eq("status", "concluido")
-        .gte("data", dataInicioISO) // <--- Voltamos para 'data'
-        .lte("data", dataFim);     // <--- Voltamos para 'data'
+    if (listaEl && ordenados.length > 0) {
+        listaEl.innerHTML = ordenados.slice(0, 2).map((item, i) => `
+            <div class="metrica-item">
+                <span>${i + 1}º ${item[0]}</span>
+                <strong>R$ ${item[1].toFixed(2)}</strong>
+            </div>
+        `).join("");
 
-    if (error) return console.error("Erro no Supabase:", error.message);
+        // Dica dinâmica baseada nos dados [cite: 2026-04-03]
+        if (ordenados[0][0].includes("18h") || ordenados[0][0].includes("20h")) {
+            dicaEl.innerText = "Dica: Suas noites são fortes! Que tal um 'Happy Hour' com preço especial à tarde?";
+        } else {
+            dicaEl.innerText = "Dica: Mantenha a consistência. Seus clientes preferem o horário comercial.";
+        }
+    }
+}
 
-    const totalFaturado = agendamentos.reduce((acc, ag) => acc + (parseFloat(ag.valor) || 0), 0);
-    const totalAtendimentos = agendamentos.length;
-    const ticketMédio = totalAtendimentos > 0 ? (totalFaturado / totalAtendimentos) : 0;
+// Função para calcular novos vs recorrentes [cite: 2026-04-03]
+async function processarInsightsClientes(agendamentosAtuais) {
+    // Buscamos todos os nomes de clientes da história para saber quem é novo
+    const { data: todosAnteriores } = await _supabase.from("agendamentos").select("cliente_nome, data").eq("status", "concluido");
 
-    const elFaturamento = document.getElementById("rel-faturamento");
-    const elAtendimentos = document.getElementById("rel-atendimentos");
-    const elTicket = document.getElementById("rel-ticket");
+    const nomesAtuais = new Set(agendamentosAtuais.map(a => a.cliente_nome));
+    let recorrentes = 0;
+    let novos = 0;
 
-    if (elFaturamento) elFaturamento.innerText = `R$ ${totalFaturado.toFixed(2).replace(".", ",")}`;
-    if (elAtendimentos) elAtendimentos.innerText = totalAtendimentos;
-    if (elTicket) elTicket.innerText = `R$ ${ticketMédio.toFixed(2).replace(".", ",")}`;
+    nomesAtuais.forEach(nome => {
+        const histórico = todosAnteriores.filter(h => h.cliente_nome === nome);
+        histórico.length > 1 ? recorrentes++ : novos++;
+    });
 
-    renderizarGraficoEvolucao(agendamentos);
+    const taxa = (recorrentes / (novos + recorrentes)) * 100 || 0;
+
+    document.getElementById("rel-novos-clientes").innerText = novos;
+    document.getElementById("rel-recorrentes").innerText = recorrentes;
+    document.getElementById("rel-taxa-retencao").innerText = `${taxa.toFixed(0)}%`;
+    document.getElementById("fill-retencao").style.width = `${taxa}%`;
+
+    const feedback = document.getElementById("feedback-cliente-texto");
+    feedback.innerText = taxa > 50 ? "Boa fidelização! Seus clientes confiam no seu trabalho." : "Dica: Tente criar um cartão fidelidade para aumentar o retorno dos clientes.";
 }

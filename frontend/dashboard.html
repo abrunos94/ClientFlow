@@ -254,17 +254,18 @@
       </section>
 
       <section id="secao-relatorios" class="aba-content" style="display: none;">
+
         <div class="relatorio-header">
           <div class="relatorio-titulo-area">
             <h2>Relatório do Barbeiro</h2>
-            <p id="subtitulo-periodo">Visão geral • Mês atual (<span id="data-range">01/03 – 31/03</span>)</p>
+            <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
           </div>
           <div class="relatorio-icon-area">
             <div class="wrapper-seletor-data">
               <i class="fas fa-calendar-alt"></i>
               <select id="filtro-periodo-relatorio" onchange="mudarPeriodoRelatorio(this.value)">
                 <option value="7">Últimos 7 dias</option>
-                <option value="30" selected>Últimos 30 dias</option>
+                <option value="30" selected>Mês Atual</option>
                 <option value="90">Últimos 3 meses</option>
                 <option value="365">Este Ano</option>
               </select>
@@ -277,40 +278,87 @@
             <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
             <p class="label">Faturamento</p>
             <span class="value" id="rel-faturamento">R$ 0,00</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
           </div>
 
           <div class="stat-card-advanced atendimentos">
             <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
             <p class="label">Atendimentos</p>
             <span class="value" id="rel-atendimentos">0</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
           </div>
 
           <div class="stat-card-advanced ticket">
             <div class="card-icon"><i class="fas fa-gem"></i></div>
             <p class="label">Ticket Médio</p>
             <span class="value" id="rel-ticket">R$ 0,00</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs mês passado</span></p>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
           </div>
 
           <div class="stat-card-advanced comparecimento">
             <div class="card-icon"><i class="fas fa-check-circle"></i></div>
             <p class="label">Taxa de Comparecimento</p>
             <span class="value" id="rel-comparecimento">0%</span>
+            <p class="trend positivo">0% <span>vs anterior</span></p>
             <div class="progress-mini">
-              <div class="fill" style="width: 0%"></div>
+              <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
             </div>
           </div>
         </div>
+        <div class="stats-grid-insights">
+          <div class="insight-card">
+            <div class="card-header-insight">
+              <i class="fas fa-clock"></i>
+              <h3>Horários que Mais Faturam</h3>
+            </div>
+            <div id="lista-horarios-pico" class="lista-insights">
+              <p class="loading-text">Analisando horários...</p>
+            </div>
+            <div class="dica-box">
+              <i class="fas fa-lightbulb"></i>
+              <p id="insight-horario-texto">Carregando dica...</p>
+            </div>
+          </div>
 
+          <div class="insight-card">
+            <div class="card-header-insight">
+              <i class="fas fa-users"></i>
+              <h3>Fidelização e Clientes</h3>
+            </div>
+            <div class="metricas-clientes">
+              <div class="metrica-item">
+                <span>Novos Clientes</span>
+                <strong id="rel-novos-clientes">0</strong>
+              </div>
+              <div class="metrica-item">
+                <span>Recorrentes</span>
+                <strong id="rel-recorrentes">0</strong>
+              </div>
+            </div>
+            <div class="retencao-container">
+              <div class="retencao-header">
+                <span>Taxa de Retenção</span>
+                <strong id="rel-taxa-retencao">0%</strong>
+              </div>
+              <div class="barra-progresso-fina">
+                <div id="fill-retencao" class="fill"></div>
+              </div>
+            </div>
+            <div class="feedback-box">
+              <i class="fas fa-heart"></i>
+              <p id="feedback-cliente-texto">Continue cuidando da sua base!</p>
+            </div>
+          </div>
+        </div>
         <div class="grafico-container-full">
           <div class="grafico-header">
-            <h3>Evolução do Faturamento</h3>
-            <p id="insight-rapido"><i class="fas fa-chart-line"></i> Carregando dados...</p>
+            <h2>Revolução do Faturamento</h2>
           </div>
           <canvas id="graficoEvolucao"></canvas>
         </div>
+      </section>
+
+
       </section>
     </main>
   </div>
@@ -352,7 +400,6 @@
   <script src="js/script-dashboard.js"></script>
 </body>
 
-</html>
-</body>
+
 
 </html>
