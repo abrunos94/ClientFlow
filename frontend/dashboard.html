@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
 
+  <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon" />
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
@@ -30,14 +32,14 @@
         <a href="#"><i class="fas fa-users"></i> Clientes</a>
         <a href="#" id="link-relatorios"><i class="fas fa-chart-line"></i> Relatórios</a>
         <div class="menu-item-dropdown">
-          <a href="#" id="btn-config-master" class="btn-dropdown">
+          <a href="javascript:void(0)" id="btn-config-master" class="btn-dropdown">
             <span><i class="fas fa-cog"></i> Configurações</span>
             <i class="fas fa-chevron-down seta-menu"></i>
           </a>
           <div class="submenu" id="submenu-links">
-            <a href="#" onclick="abrirSubConfig('expediente')"><i class="fas fa-clock"></i> Expediente</a>
-            <a href="#" onclick="abrirSubConfig('meta')"><i class="fas fa-bullseye"></i> Meta Diária</a>
-            <a href="#" onclick="abrirSubConfig('servicos')"><i class="fas fa-cut"></i> Adicionar Serviço</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('expediente')">Expediente</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('meta')">Meta Diária</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfig('servicos')">Serviços</a>
           </div>
         </div>
       </nav>
@@ -48,7 +50,7 @@
     </aside>
 
     <main class="main-content">
-      <header class="dash-header">
+      <header class="dash-header" id="header-principal">
         <h1>Olá, Alex!</h1>
         <button id="btn-novo-agendamento" class="btn-principal">+ Novo Agendamento</button>
       </header>
@@ -81,7 +83,7 @@
               <i class="fas fa-clock"></i>
               <p>Próximo horário</p>
             </div>
-            <span class="stat-value" id="proximo-horario">--:--</span>
+            <span class="stat-value" id="proximo-horario-valor">--:--</span>
           </div>
           <div class="stat-card">
             <div class="card-header">
@@ -234,13 +236,15 @@
           <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
             <div class="config-grid-form">
               <div class="input-group-modal">
-                <label>Nome</label><input type="text" id="novo-servico-nome" />
+                <label>Nome</label>
+                <input type="text" id="cfg-servico-nome" />
               </div>
               <div class="input-group-modal">
-                <label>Preço</label><input type="number" id="novo-servico-preco" />
+                <label>Preço</label>
+                <input type="number" id="cfg-servico-preco" />
               </div>
             </div>
-            <button onclick="adicionarNovoServico()" class="btn-principal" style="margin-top: 20px; width: 100%">
+            <button id="btn-add-servico-banco" class="btn-principal" style="margin-top: 20px; width: 100%">
               Adicionar Serviço
             </button>
 
@@ -249,15 +253,112 @@
         </div>
       </section>
 
-      <section id="secao-relatorios" style="display: none;">
-        <div class="header-sessao">
-          <h2><i class="fas fa-chart-line"></i> Relatórios de Faturamento</h2>
-        </div>
-        <div class="card-dashboard">
-          <h3>Histórico Recente (Últimos 7 dias)</h3>
-          <div id="lista-historico-financeiro">
+      <section id="secao-relatorios" class="aba-content" style="display: none;">
+
+        <div class="relatorio-header">
+          <div class="relatorio-titulo-area">
+            <h2>Relatório do Barbeiro</h2>
+            <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
+          </div>
+          <div class="relatorio-icon-area">
+            <div class="wrapper-seletor-data">
+              <i class="fas fa-calendar-alt"></i>
+              <select id="filtro-periodo-relatorio" onchange="mudarPeriodoRelatorio(this.value)">
+                <option value="7">Últimos 7 dias</option>
+                <option value="30" selected>Mês Atual</option>
+                <option value="90">Últimos 3 meses</option>
+                <option value="365">Este Ano</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        <div class="stats-grid-relatorios">
+          <div class="stat-card-advanced faturamento">
+            <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+            <p class="label">Faturamento</p>
+            <span class="value" id="rel-faturamento">R$ 0,00</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+          </div>
+
+          <div class="stat-card-advanced atendimentos">
+            <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+            <p class="label">Atendimentos</p>
+            <span class="value" id="rel-atendimentos">0</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+          </div>
+
+          <div class="stat-card-advanced ticket">
+            <div class="card-icon"><i class="fas fa-gem"></i></div>
+            <p class="label">Ticket Médio</p>
+            <span class="value" id="rel-ticket">R$ 0,00</span>
+            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+          </div>
+
+          <div class="stat-card-advanced comparecimento">
+            <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+            <p class="label">Taxa de Comparecimento</p>
+            <span class="value" id="rel-comparecimento">0%</span>
+            <p class="trend positivo">0% <span>vs anterior</span></p>
+            <div class="progress-mini">
+              <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="stats-grid-insights">
+          <div class="insight-card">
+            <div class="card-header-insight">
+              <i class="fas fa-clock"></i>
+              <h3>Horários que Mais Faturam</h3>
+            </div>
+            <div id="lista-horarios-pico" class="lista-insights">
+              <p class="loading-text">Analisando horários...</p>
+            </div>
+            <div class="dica-box">
+              <i class="fas fa-lightbulb"></i>
+              <p id="insight-horario-texto">Carregando dica...</p>
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <div class="card-header-insight">
+              <i class="fas fa-users"></i>
+              <h3>Fidelização e Clientes</h3>
+            </div>
+            <div class="metricas-clientes">
+              <div class="metrica-item">
+                <span>Novos Clientes</span>
+                <strong id="rel-novos-clientes">0</strong>
+              </div>
+              <div class="metrica-item">
+                <span>Recorrentes</span>
+                <strong id="rel-recorrentes">0</strong>
+              </div>
+            </div>
+            <div class="retencao-container">
+              <div class="retencao-header">
+                <span>Taxa de Retenção</span>
+                <strong id="rel-taxa-retencao">0%</strong>
+              </div>
+              <div class="barra-progresso-fina">
+                <div id="fill-retencao" class="fill"></div>
+              </div>
+            </div>
+            <div class="feedback-box">
+              <i class="fas fa-heart"></i>
+              <p id="feedback-cliente-texto">Continue cuidando da sua base!</p>
+            </div>
+          </div>
+        </div>
+        <div class="grafico-container-full">
+          <div class="grafico-header">
+            <h2>Revolução do Faturamento</h2>
+          </div>
+          <canvas id="graficoEvolucao"></canvas>
+        </div>
+      </section>
+
+
       </section>
     </main>
   </div>
@@ -268,33 +369,37 @@
         <h2><i class="fas fa-bolt"></i> Atendimento na Hora</h2>
         <button id="fechar-modal" class="btn-fechar-modal">&times;</button>
       </div>
+
       <div class="modal-body">
         <div class="input-group-modal">
           <label>Nome do Cliente</label>
           <input type="text" id="rapido-nome" placeholder="Ex: Alex Silva" />
         </div>
+
         <div class="input-group-modal">
           <label>Serviço</label>
           <select id="rapido-servico">
-            <option value="Corte Masculino">Corte Masculino</option>
-            <option value="Barba">Barba</option>
-            <option value="Corte + Barba">Corte + Barba</option>
-            <option value="Pezinho">Pezinho</option>
+            <option value="" disabled selected>Carregando serviços...</option>
           </select>
         </div>
+
         <div class="input-group-modal">
           <label>Telefone (Opcional)</label>
-          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" />
+          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" maxlength="15" />
         </div>
-        <button onclick="agendarAgora()" class="btn-salvar-modal">
+
+        <button onclick="agendarAgora()" class="btn-principal btn-block" style="margin-top: 10px;">
           Finalizar e Adicionar
         </button>
       </div>
     </div>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/script-dashboard.js"></script>
 </body>
+
+
 
 </html>

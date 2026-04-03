@@ -1,4 +1,7 @@
-/* --- Estrutura da Página de Login --- */
+/* ==========================================================================
+   1. LAYOUT E ESTRUTURA GLOBAL
+   ========================================================================== */
+
 .body-login {
     background-color: var(--cor-fundo);
     height: 100vh;
@@ -6,6 +9,7 @@
     align-items: center;
     justify-content: center;
     margin: 0;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .login-container {
@@ -23,9 +27,21 @@
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
 }
 
+/* ==========================================================================
+   2. ELEMENTOS DE TEXTO E NAVEGAÇÃO
+   ========================================================================== */
+
 .login-box h2 {
     color: var(--cor-primaria);
-    margin: 20px 0 10px;
+    margin: 20px 0 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.login-box p {
+    color: var(--cor-subtexto);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
 }
 
 .btn-voltar {
@@ -34,19 +50,17 @@
     font-size: 0.85rem;
     display: block;
     text-align: left;
-    transition: color 0.3s;
+    transition: 0.3s;
 }
 
 .btn-voltar:hover {
     color: var(--cor-primaria);
 }
 
-.btn-block {
-    width: 100%;
-    margin-top: 15px;
-}
+/* ==========================================================================
+   3. FORMULÁRIOS E INPUTS (Incluindo o Olho)
+   ========================================================================== */
 
-/* --- Inputs e Mensagens --- */
 .input-group {
     text-align: left;
     margin-bottom: 20px;
@@ -59,33 +73,76 @@
     font-size: 0.9rem;
 }
 
+/* Wrapper para o ícone do olho ficar dentro do input */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
 .input-group input:focus {
     outline: none;
     border-color: var(--cor-primaria);
     box-shadow: 0 0 8px rgba(184, 134, 75, 0.2);
 }
 
-.error-message {
-    color: #ff4d4d;
-    margin-top: 15px;
-    font-size: 0.85rem;
-    display: none;
-    background: rgba(255, 77, 77, 0.1);
-    padding: 10px;
-    border-radius: 4px;
-    border-left: 3px solid #ff4d4d;
+/* Ícone de visualizar senha */
+#toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--cor-primaria);
+    font-size: 1.1rem;
+    transition: 0.3s;
+    opacity: 0.7;
 }
 
-.esqueceu-senha {
+#toggle-password:hover {
+    opacity: 1;
+    color: #fff;
+}
+
+/* ==========================================================================
+   4. BOTÕES E LINKS DE AÇÃO
+   ========================================================================== */
+
+.btn-block {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px; /* Aumenta a área de clique */
+    font-weight: bold;
+}
+
+/* Link de Recuperação (Unificado) */
+.esqueceu-senha, 
+#btn-recuperar-senha {
+    display: inline-block;
     margin-top: 25px;
-}
-
-.esqueceu-senha a {
     color: var(--cor-subtexto);
     font-size: 0.8rem;
-    text-decoration: none;
+    text-decoration: underline;
+    transition: 0.3s;
+    cursor: pointer;
 }
 
-.esqueceu-senha a:hover {
-    text-decoration: underline;
+.esqueceu-senha:hover, 
+#btn-recuperar-senha:hover {
+    color: var(--cor-primaria);
+}
+
+/* ==========================================================================
+   5. MENSAGENS DE FEEDBACK (ERRO/SUCESSO)
+   ========================================================================== */
+
+.error-message {
+    color: #ff4d4d;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    display: none; /* Controlado via JS */
+    background: rgba(255, 77, 77, 0.1);
+    padding: 12px;
+    border-radius: 4px;
+    border-left: 4px solid #ff4d4d;
+    text-align: left;
 }

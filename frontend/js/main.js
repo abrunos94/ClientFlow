@@ -1,10 +1,12 @@
 /**
  * ClientFlow - Script Principal (Landing Page)
- * Focado em UX, Validação de Horários e Sincronização Dinâmica
+ * Focado em UX, Conexão com Supabase e Sincronização Real-time
  */
 
-// 1. CONFIGURAÇÃO E ELEMENTOS GLOBAIS
-const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxqDhLWYyszMT7zFZTYhrv9Rp-QPT0tzE0_1vL8ey_cTV2B_NDCIOAytuCsL4QU_Sm9/exec";
+// 1. CONFIGURAÇÃO SUPABASE E ELEMENTOS GLOBAIS
+const SUPABASE_URL = "https://cvvixgkiqljpamvnjzzj.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2dml4Z2tpcWxqcGFtdm5qenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTEsImV4cCI6MjA5MDAxNTA5MX0.TfvzM_f-RxbOPIui2EHLYi2i3_dvFjWuE6XzoqQr2WM";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const formulario = document.getElementById("form-agendamento");
 const campoData = document.getElementById("data");
@@ -22,16 +24,21 @@ const SERVICOS_PADRAO = [
 ];
 
 /* ==========================================================================
-   2. RENDERIZAÇÃO DINÂMICA (HOME E FORMULÁRIO)
+   2. RENDERIZAÇÃO DINÂMICA
    ========================================================================== */
 
-function renderizarServicosNaHome() {
+// Agora busca os serviços direto do Supabase para garantir sincronia total
+async function buscarServicosDoBanco() {
+    const { data, error } = await _supabase.from('servicos').select('*').order('nome');
+    if (error || !data || data.length === 0) return SERVICOS_PADRAO;
+    return data;
+}
+
+async function renderizarServicosNaHome() {
     const container = document.getElementById("container-servicos-cliente");
     if (!container) return;
 
-    const salvos = localStorage.getItem("meusServicos");
-    const servicos = salvos ? JSON.parse(salvos) : SERVICOS_PADRAO;
-
+    const servicos = await buscarServicosDoBanco();
     container.innerHTML = "";
 
     servicos.forEach(servico => {
@@ -52,13 +59,11 @@ function renderizarServicosNaHome() {
 
 function atualizarSelectFormularioCliente(servicos) {
     if (selectServico) {
-        // Mantém a opção padrão e adiciona as dinâmicas
         selectServico.innerHTML = '<option value="">Selecione um serviço</option>' +
             servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join("");
     }
 }
 
-// Função chamada pelo clique no card
 window.selecionarServicoEIrParaForm = function (nomeServico) {
     if (selectServico) {
         selectServico.value = nomeServico;
@@ -67,11 +72,12 @@ window.selecionarServicoEIrParaForm = function (nomeServico) {
 };
 
 /* ==========================================================================
-   3. MÁSCARAS E VALIDAÇÕES DE INTERFACE
+   3. MÁSCARAS E VALIDAÇÕES
    ========================================================================== */
 
 if (campoData) {
-    campoData.min = new Date().toISOString().split("T")[0];
+    // Define o mínimo como hoje no formato YYYY-MM-DD local
+    campoData.min = new Date().toLocaleDateString('en-CA');
 }
 
 if (campoTelefone) {
@@ -102,71 +108,69 @@ if (campoData) {
     });
 }
 
-function gerarSlots(dataEscolhida) {
-    gridHorarios.innerHTML = "";
+async function gerarSlots(dataEscolhida) {
+    gridHorarios.innerHTML = "<p style='color: var(--cor-subtexto);'>Buscando horários...</p>";
     containerHorarios.style.display = "block";
-    inputHorarioFinal.value = "";
 
-    const configs = JSON.parse(localStorage.getItem("configAgenda")) || {
-        inicio: "09:00",
-        fim: "18:00",
-        almocoInicio: "12:00",
-        almocoFim: "13:00",
-        intervalo: 30,
-        dias: [1, 2, 3, 4, 5, 6]
+    // BUSCANDO AS CONFIGURAÇÕES REAIS DO ALEX NO BANCO
+    const { data: configBanco, error: errConfig } = await _supabase
+        .from('configuracoes')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+    // Se o banco falhar, usa um padrão de segurança
+    const configs = configBanco || {
+        hora_inicio: "09:00", hora_fim: "18:00",
+        almoco_inicio: "12:00", almoco_fim: "13:00",
+        intervalo: 30, dias_trabalhados: [1, 2, 3, 4, 5, 6]
     };
 
-    const agora = new Date();
-    const hojeDataLocal = agora.toLocaleString('sv-SE').split(' ')[0];
-    const hojeHoraLocal = agora.getHours().toString().padStart(2, '0') + ":" +
-        agora.getMinutes().toString().padStart(2, '0');
-
     const diaSemana = new Date(dataEscolhida + "T00:00:00").getDay();
-    if (!configs.dias.includes(diaSemana)) {
+    if (!configs.dias_trabalhados.includes(diaSemana)) {
         gridHorarios.innerHTML = "<p style='grid-column: 1/-1; color: var(--cor-primaria);'>Não funcionamos neste dia.</p>";
         return;
     }
 
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-    let horaLoop = configs.inicio;
+    // Busca agendamentos para bloquear os slots ocupados
+    const { data: agendamentosMarcados } = await _supabase
+        .from('agendamentos')
+        .select('horario')
+        .eq('data', dataEscolhida)
+        .neq('status', 'cancelado');
+
+    gridHorarios.innerHTML = "";
+    const agora = new Date();
+    const hojeDataLocal = agora.toLocaleDateString('en-CA');
+    const hojeHoraLocal = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+
+    let horaLoop = configs.hora_inicio;
     let slotsGerados = 0;
 
-    while (horaLoop < configs.fim) {
-        const noAlmoco = (configs.almocoInicio && configs.almocoFim) &&
-            (horaLoop >= configs.almocoInicio && horaLoop < configs.almocoFim);
+    while (horaLoop < configs.hora_fim) {
+        const noAlmoco = (horaLoop >= configs.almoco_inicio && horaLoop < configs.almoco_fim);
 
-        if (noAlmoco) {
-            horaLoop = somarMinutos(horaLoop, configs.intervalo);
-            continue;
+        if (!noAlmoco) {
+            const isOcupado = agendamentosMarcados?.some(a => a.horario.substring(0, 5) === horaLoop);
+            const isPassado = (dataEscolhida === hojeDataLocal) && (horaLoop <= hojeHoraLocal);
+
+            if (!isOcupado && !isPassado) {
+                const slot = document.createElement("div");
+                slot.className = "slot";
+                slot.innerText = horaLoop;
+                slot.onclick = function () {
+                    document.querySelectorAll(".slot").forEach(s => s.classList.remove("selecionado"));
+                    this.classList.add("selecionado");
+                    inputHorarioFinal.value = `${dataEscolhida}|${this.innerText.trim()}`;
+                };
+                gridHorarios.appendChild(slot);
+                slotsGerados++;
+            }
         }
-
-        const dataHoraID = `${dataEscolhida}T${horaLoop}`;
-        const isOcupado = agendamentos.some((a) => a.data === dataHoraID);
-        const isPassado = (dataEscolhida === hojeDataLocal) && (horaLoop <= hojeHoraLocal);
-
-        if (isOcupado || isPassado) {
-            horaLoop = somarMinutos(horaLoop, configs.intervalo);
-            continue;
-        }
-
-        const slot = document.createElement("div");
-        slot.className = "slot";
-        slot.innerText = horaLoop;
-
-        slot.addEventListener("click", function () {
-            document.querySelectorAll(".slot").forEach((s) => s.classList.remove("selecionado"));
-            slot.classList.add("selecionado");
-            inputHorarioFinal.value = dataHoraID;
-        });
-
-        gridHorarios.appendChild(slot);
-        slotsGerados++;
         horaLoop = somarMinutos(horaLoop, configs.intervalo);
     }
 
-    if (slotsGerados === 0) {
-        gridHorarios.innerHTML = "<p style='grid-column: 1/-1; color: var(--cor-subtexto);'>Nenhum horário disponível.</p>";
-    }
+    if (slotsGerados === 0) gridHorarios.innerHTML = "<p style='grid-column: 1/-1;'>Sem horários disponíveis para hoje.</p>";
 }
 
 function somarMinutos(hora, minutos) {
@@ -177,7 +181,7 @@ function somarMinutos(hora, minutos) {
 }
 
 /* ==========================================================================
-   5. ENVIO DO FORMULÁRIO
+   5. ENVIO PARA O SUPABASE
    ========================================================================== */
 
 if (formulario) {
@@ -185,64 +189,56 @@ if (formulario) {
         e.preventDefault();
 
         if (!inputHorarioFinal.value) {
-            alert("Por favor, selecione um horário na grade!");
+            alert("Por favor, selecione um horário!");
             return;
         }
 
         const botaoSubmit = formulario.querySelector('button[type="submit"]');
         const textoOriginal = botaoSubmit.innerText;
-
-        // Estado de carregamento
         botaoSubmit.disabled = true;
-        botaoSubmit.innerText = "Enviando...";
+        botaoSubmit.innerText = "Agendando...";
+
+        const [dataS, horaS] = inputHorarioFinal.value.split("|");
+
+        // Busca o preço real do serviço
+        const servicos = await buscarServicosDoBanco();
+        const servicoSelecionado = servicos.find(s => s.nome === selectServico.value);
+        const precoReal = servicoSelecionado ? servicoSelecionado.preco : 0;
 
         const novoAgendamento = {
-            nome: document.getElementById("nome").value,
+            cliente_nome: document.getElementById("nome").value,
             telefone: campoTelefone.value,
             servico: selectServico.value,
-            data: inputHorarioFinal.value,
-            id: Date.now(),
+            data: dataS,    // String "YYYY-MM-DD"
+            horario: horaS, // String "HH:mm"
             status: "Pendente",
+            valor: precoReal
         };
 
         try {
-            const agendamentosSalvos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-            agendamentosSalvos.push(novoAgendamento);
-            localStorage.setItem("agendamentos", JSON.stringify(agendamentosSalvos));
+            const { error } = await _supabase.from('agendamentos').insert([novoAgendamento]);
+            if (error) throw error;
 
-            await fetch(URL_PLANILHA, {
-                method: "POST",
-                mode: "no-cors",
-                cache: "no-cache",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(novoAgendamento),
-            });
+            botaoSubmit.innerHTML = '<i class="fas fa-check"></i> Concluído!';
+            botaoSubmit.classList.add("sucesso");
 
-            // --- SUCESSO: ATIVA O CHECK VERDE ---
-            botaoSubmit.innerHTML = '<i class="fas fa-check"></i> Agendado com Sucesso!';
-            botaoSubmit.classList.add("sucesso", "animar-sucesso");
-
-            // Aguarda 3 segundos para o cliente ver o sucesso e limpa tudo
             setTimeout(() => {
                 formulario.reset();
-                if (containerHorarios) containerHorarios.style.display = "none";
-
-                // Volta o botão ao estado original
-                botaoSubmit.classList.remove("sucesso", "animar-sucesso");
+                containerHorarios.style.display = "none";
+                botaoSubmit.classList.remove("sucesso");
                 botaoSubmit.innerText = textoOriginal;
                 botaoSubmit.disabled = false;
+                inputHorarioFinal.value = "";
+                // Recarrega os serviços para garantir preços novos se houver
+                renderizarServicosNaHome();
             }, 3000);
 
         } catch (erro) {
-            console.error("Erro no envio:", erro);
-            alert("Erro ao sincronizar, mas salvamos o horário no seu navegador!");
-
-            // Em caso de erro, volta o botão imediatamente para tentar de novo
+            alert("Erro: " + erro.message);
             botaoSubmit.disabled = false;
             botaoSubmit.innerText = textoOriginal;
         }
     });
 }
 
-// INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", renderizarServicosNaHome);
