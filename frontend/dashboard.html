@@ -30,7 +30,16 @@
         <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
         <a href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
         <a href="#"><i class="fas fa-users"></i> Clientes</a>
-        <a href="#" id="link-relatorios"><i class="fas fa-chart-line"></i> Relatórios</a>
+        <div class="menu-item-dropdown">
+          <a href="javascript:void(0)" id="btn-relatorio-master" class="btn-dropdown">
+            <span><i class="fas fa-chart-line"></i> Relatórios</span>
+            <i class="fas fa-chevron-down seta-menu"></i>
+          </a>
+          <div class="submenu" id="submenu-relatorios">
+            <a href="javascript:void(0)" onclick="abrirSubRelatorio('resultados')">Resultados</a>
+            <a href="javascript:void(0)" onclick="abrirSubRelatorio('desempenho')">Desempenho</a>
+          </div>
+        </div>
         <div class="menu-item-dropdown">
           <a href="javascript:void(0)" id="btn-config-master" class="btn-dropdown">
             <span><i class="fas fa-cog"></i> Configurações</span>
@@ -257,7 +266,7 @@
 
         <div class="relatorio-header">
           <div class="relatorio-titulo-area">
-            <h2>Relatório do Barbeiro</h2>
+            <h2 id="titulo-sub-relatorio">Relatório: Resultados</h2>
             <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
           </div>
           <div class="relatorio-icon-area">
@@ -273,89 +282,74 @@
           </div>
         </div>
 
-        <div class="stats-grid-relatorios">
-          <div class="stat-card-advanced faturamento">
-            <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
-            <p class="label">Faturamento</p>
-            <span class="value" id="rel-faturamento">R$ 0,00</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+        <div id="area-resultados" class="relatorio-sub-section">
+          <div class="stats-grid-relatorios">
+            <div class="stat-card-advanced faturamento">
+              <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+              <p class="label">Faturamento</p>
+              <span class="value" id="rel-faturamento">R$ 0,00</span>
+              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+            </div>
+            <div class="stat-card-advanced atendimentos">
+              <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+              <p class="label">Atendimentos</p>
+              <span class="value" id="rel-atendimentos">0</span>
+              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+            </div>
+            <div class="stat-card-advanced ticket">
+              <div class="card-icon"><i class="fas fa-gem"></i></div>
+              <p class="label">Ticket Médio</p>
+              <span class="value" id="rel-ticket">R$ 0,00</span>
+              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+            </div>
+            <div class="stat-card-advanced comparecimento">
+              <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+              <p class="label">Taxa de Comparecimento</p>
+              <span class="value" id="rel-comparecimento">0%</span>
+              <p class="trend positivo">0% <span>vs anterior</span></p>
+              <div class="progress-mini">
+                <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
 
-          <div class="stat-card-advanced atendimentos">
-            <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
-            <p class="label">Atendimentos</p>
-            <span class="value" id="rel-atendimentos">0</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
-          </div>
-
-          <div class="stat-card-advanced ticket">
-            <div class="card-icon"><i class="fas fa-gem"></i></div>
-            <p class="label">Ticket Médio</p>
-            <span class="value" id="rel-ticket">R$ 0,00</span>
-            <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
-          </div>
-
-          <div class="stat-card-advanced comparecimento">
-            <div class="card-icon"><i class="fas fa-check-circle"></i></div>
-            <p class="label">Taxa de Comparecimento</p>
-            <span class="value" id="rel-comparecimento">0%</span>
-            <p class="trend positivo">0% <span>vs anterior</span></p>
-            <div class="progress-mini">
-              <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
+          <div class="stats-grid-insights">
+            <div class="insight-card">
+              <div class="card-header-insight"><i class="fas fa-clock"></i>
+                <h3>Horários que Mais Faturam</h3>
+              </div>
+              <div id="lista-horarios-pico" class="lista-insights">
+                <p class="loading-text">Analisando...</p>
+              </div>
+              <div class="dica-box"><i class="fas fa-lightbulb"></i>
+                <p id="insight-horario-texto">Carregando dica...</p>
+              </div>
+            </div>
+            <div class="insight-card">
+              <div class="card-header-insight"><i class="fas fa-users"></i>
+                <h3>Fidelização e Clientes</h3>
+              </div>
+              <div class="metricas-clientes">
+                <div class="metrica-item"><span>Novos Clientes</span><strong id="rel-novos-clientes">0</strong></div>
+                <div class="metrica-item"><span>Recorrentes</span><strong id="rel-recorrentes">0</strong></div>
+              </div>
+              <div class="retencao-container">
+                <div class="retencao-header"><span>Taxa de Retenção</span><strong id="rel-taxa-retencao">0%</strong>
+                </div>
+                <div class="barra-progresso-fina">
+                  <div id="fill-retencao" class="fill"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="stats-grid-insights">
-          <div class="insight-card">
-            <div class="card-header-insight">
-              <i class="fas fa-clock"></i>
-              <h3>Horários que Mais Faturam</h3>
-            </div>
-            <div id="lista-horarios-pico" class="lista-insights">
-              <p class="loading-text">Analisando horários...</p>
-            </div>
-            <div class="dica-box">
-              <i class="fas fa-lightbulb"></i>
-              <p id="insight-horario-texto">Carregando dica...</p>
-            </div>
-          </div>
 
-          <div class="insight-card">
-            <div class="card-header-insight">
-              <i class="fas fa-users"></i>
-              <h3>Fidelização e Clientes</h3>
-            </div>
-            <div class="metricas-clientes">
-              <div class="metrica-item">
-                <span>Novos Clientes</span>
-                <strong id="rel-novos-clientes">0</strong>
-              </div>
-              <div class="metrica-item">
-                <span>Recorrentes</span>
-                <strong id="rel-recorrentes">0</strong>
-              </div>
-            </div>
-            <div class="retencao-container">
-              <div class="retencao-header">
-                <span>Taxa de Retenção</span>
-                <strong id="rel-taxa-retencao">0%</strong>
-              </div>
-              <div class="barra-progresso-fina">
-                <div id="fill-retencao" class="fill"></div>
-              </div>
-            </div>
-            <div class="feedback-box">
-              <i class="fas fa-heart"></i>
-              <p id="feedback-cliente-texto">Continue cuidando da sua base!</p>
-            </div>
+        <div id="area-desempenho" class="relatorio-sub-section" style="display: none;">
+          <h2>Evolução do Faturamento</h2>
+          <div class="grafico-container-full" style="height: 500px;"> <canvas id="graficoEvolucao"></canvas>
           </div>
         </div>
-        <div class="grafico-container-full">
-          <div class="grafico-header">
-            <h2>Revolução do Faturamento</h2>
-          </div>
-          <canvas id="graficoEvolucao"></canvas>
-        </div>
+
       </section>
 
 

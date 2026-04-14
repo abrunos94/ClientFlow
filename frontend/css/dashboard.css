@@ -423,11 +423,12 @@
 .modal-header {
     display: flex;
     /* Isso joga o título para a esquerda e o X para a direita */
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
     padding: 20px 25px;
     border-bottom: 1px solid #333;
 }
+
 .btn-fechar-modal {
     position: relative;
     background: none;
@@ -439,13 +440,14 @@
     transition: 0.3s;
     /* Ajuste para alinhar perfeitamente no topo */
     left: 40px;
-    margin-top: -90px;    
+    margin-top: -90px;
 }
 
 .btn-fechar-modal:hover {
     color: #ff4d4d;
     transform: scale(1.2);
 }
+
 .modal-content {
     background-color: var(--cor-card);
     margin: 10% auto;
@@ -502,6 +504,7 @@
 .btn-fechar-modal:hover {
     color: #ff4d4d !important;
 }
+
 /* --- SEÇÃO DE RELATÓRIOS (Centralização) --- */
 #secao-relatorios {
     padding: 20px;
@@ -1089,7 +1092,8 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 15px;
-    background: rgba(206, 158, 98, 0.1); /* Cor de destaque suave */
+    background: rgba(206, 158, 98, 0.1);
+    /* Cor de destaque suave */
     color: var(--cor-primaria);
 }
 
@@ -1131,13 +1135,19 @@
 
 /* --- Responsividade Passo 1 --- */
 @media (max-width: 1024px) {
-    .stats-grid-relatorios { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 480px) {
-    .stats-grid-relatorios { grid-template-columns: 1fr; }
+    .stats-grid-relatorios {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
-#header-principal, #painel-conquista {
+@media (max-width: 480px) {
+    .stats-grid-relatorios {
+        grid-template-columns: 1fr;
+    }
+}
+
+#header-principal,
+#painel-conquista {
     transition: opacity 0.3s ease;
 }
 
@@ -1205,8 +1215,15 @@
     gap: 12px;
 }
 
-.card-header-insight i { color: var(--cor-primaria); }
-.card-header-insight h3 { font-size: 1.1rem; color: #fff; margin: 0; }
+.card-header-insight i {
+    color: var(--cor-primaria);
+}
+
+.card-header-insight h3 {
+    font-size: 1.1rem;
+    color: #fff;
+    margin: 0;
+}
 
 /* Barras de progresso e métricas */
 .metrica-item {
@@ -1216,11 +1233,24 @@
     border-bottom: 1px solid #222;
 }
 
-.metrica-item span { color: var(--cor-subtexto); font-size: 0.9rem; }
-.metrica-item strong { color: #fff; }
+.metrica-item span {
+    color: var(--cor-subtexto);
+    font-size: 0.9rem;
+}
 
-.retencao-container { margin-top: 10px; }
-.retencao-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.metrica-item strong {
+    color: #fff;
+}
+
+.retencao-container {
+    margin-top: 10px;
+}
+
+.retencao-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
 
 .barra-progresso-fina {
     background: #222;
@@ -1237,7 +1267,8 @@
 }
 
 /* Caixas de Dica/Feedback */
-.dica-box, .feedback-box {
+.dica-box,
+.feedback-box {
     background: rgba(206, 158, 98, 0.05);
     border-radius: 8px;
     padding: 15px;
@@ -1246,13 +1277,27 @@
     align-items: flex-start;
 }
 
-.dica-box i { color: #f1c40f; }
-.feedback-box i { color: #2ecc71; }
-.dica-box p, .feedback-box p { font-size: 0.85rem; color: #ddd; margin: 0; line-height: 1.4; }
+.dica-box i {
+    color: #f1c40f;
+}
+
+.feedback-box i {
+    color: #2ecc71;
+}
+
+.dica-box p,
+.feedback-box p {
+    font-size: 0.85rem;
+    color: #ddd;
+    margin: 0;
+    line-height: 1.4;
+}
 
 /* Mobile */
 @media (max-width: 768px) {
-    .stats-grid-insights { grid-template-columns: 1fr; }
+    .stats-grid-insights {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* =========================================
@@ -1260,6 +1305,7 @@
    ========================================= */
 
 @media (max-width: 768px) {
+
     /* 1. Removemos espaços laterais excessivos da seção */
     #secao-relatorios {
         padding: 10px;
@@ -1274,7 +1320,8 @@
 
     /* 3. Compactação interna do card (Aproveitando o espaço) */
     .stat-card-advanced {
-        padding: 12px !important; /* Reduzimos o padding para o conteúdo respirar melhor */
+        padding: 12px !important;
+        /* Reduzimos o padding para o conteúdo respirar melhor */
         min-height: auto !important;
         display: flex;
         flex-direction: column;
@@ -1311,4 +1358,44 @@
     .stat-card-advanced .value {
         font-size: 1rem !important;
     }
+}
+
+/* No final do seu dashboard.css */
+.relatorio-sub-section {
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
+}
+
+#area-desempenho .grafico-container-full {
+    width: 100%;
+    min-height: 450px;
+    /* Gráfico maior para análise profissional [cite: 2026-04-03] */
+}
+
+.insight-row {
+    margin-bottom: 15px;
+}
+
+.insight-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.insight-info .posicao { font-weight: bold; font-size: 1.1rem; min-width: 30px; }
+.insight-info .faixa { flex: 1; color: #fff; font-weight: 500; }
+.insight-info .porcentagem { font-size: 0.85rem; color: var(--cor-subtexto); }
+.insight-info .porcentagem strong { color: var(--cor-primaria); }
+
+.barra-progresso-fina {
+    background: #222;
+    height: 6px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.barra-progresso-fina .fill {
+    height: 100%;
+    transition: 1s ease-in-out;
 }

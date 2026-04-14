@@ -60,9 +60,58 @@ if (btnConfig && gaveta) {
         btnConfig.classList.toggle("open"); // Gira a setinha
     };
 }
+// 1. Lógica para abrir/fechar o Dropdown de Relatórios [cite: 2026-04-03]
+const btnRelatorioMaster = document.getElementById("btn-relatorio-master");
+const gavetaRelatorios = document.getElementById("submenu-relatorios");
 
+if (btnRelatorioMaster && gavetaRelatorios) {
+    btnRelatorioMaster.onclick = function (e) {
+        e.preventDefault();
+        gavetaRelatorios.classList.toggle("active");
+        btnRelatorioMaster.classList.toggle("open");
+    };
+}
+
+// 2. Função para alternar entre Resultados e Desempenho [cite: 2026-04-03]
+// 2. Função para alternar entre Resultados e Desempenho com FOCUS MODE [cite: 2026-04-03]
+window.abrirSubRelatorio = function (tipo) {
+    // 1. Limpa as outras telas (Agenda, Clientes, etc)
+    esconderTodasSessoes();
+
+    // 2. Garante que a seção principal de relatórios esteja visível
+    secoes.relatorios.style.display = "block";
+
+    // --- LOGICA FOCUS MODE (Reaproveitando sua ideia original) ---
+    const headerPrincipal = document.getElementById("header-principal");
+    const painelConquista = document.getElementById("painel-conquista");
+
+    // Escondemos o topo para ganhar tela para os dados [cite: 2026-04-03]
+    if (headerPrincipal) headerPrincipal.style.display = "none";
+    if (painelConquista) painelConquista.style.display = "none";
+
+    // 3. Esconde as sub-áreas internas dos relatórios antes de mostrar a correta
+    document.querySelectorAll('.relatorio-sub-section').forEach(area => area.style.display = 'none');
+
+    const titulo = document.getElementById("titulo-sub-relatorio");
+
+    if (tipo === 'resultados') {
+        document.getElementById("area-resultados").style.display = "block";
+        if (titulo) titulo.innerText = "Relatório: Resultados";
+    } else if (tipo === 'desempenho') {
+        document.getElementById("area-desempenho").style.display = "block";
+        if (titulo) titulo.innerText = "Relatório: Desempenho";
+    }
+
+    // 4. Dispara a atualização dos dados (importante para carregar o gráfico ou os cards)
+    const filtroAtivo = document.getElementById("filtro-periodo-relatorio");
+    const dias = filtroAtivo ? parseInt(filtroAtivo.value) : 30;
+
+    if (typeof inicializarRelatorios === "function") {
+        inicializarRelatorios(dias);
+    }
+};
 /* ==========================================================================
-    2.1 LÓGICA DO MENU MOBILE 
+    2.1 LÓGICA DO MENU MOBILE (ABRIR / FECHAR)
    ========================================================================== */
 
 const btnAbrirMenu = document.getElementById("abrir-menu");
@@ -70,28 +119,26 @@ const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 
 if (btnAbrirMenu && sidebar && overlay) {
-    // ABRE o menu
+    // 1. ABRE o menu lateral
     btnAbrirMenu.onclick = () => {
         sidebar.classList.add("active");
         overlay.classList.add("active");
     };
 
-    // FECHA ao clicar no fundo escuro
+    // 2. FECHA ao clicar no fundo escuro (overlay)
     overlay.onclick = () => {
         sidebar.classList.remove("active");
         overlay.classList.remove("active");
     };
 
-    // LÓGICA INTELIGENTE: Fecha ao clicar nos links, mas ignora as Configurações
-    document.querySelectorAll(".menu a").forEach(link => {
+    // 3. LÓGICA INTELIGENTE DE FECHAMENTO AUTOMÁTICO
+    document.querySelectorAll(".menu a, .submenu a").forEach(link => {
         link.addEventListener("click", () => {
-            // Agora a trava é APENAS para o botão que abre a gaveta
-            const ehBotaoMestreConfig = link.id === "btn-config-master";
+            // AJUSTE: Não fecha o menu se o usuário clicar em um botão de abrir submenu [cite: 2026-04-03]
+            const ehBotaoMestre = link.id === "btn-config-master" || link.id === "btn-relatorio-master";
+            if (ehBotaoMestre) return;
 
-            // Se for o botão mestre, "return" (não fecha o menu lateral)
-            if (ehBotaoMestreConfig) return;
-
-            // Se for QUALQUER outro (Dashboard, Agenda, Clientes, Expediente, Meta ou Serviços)
+            // Se for um link comum (Dashboard, Agenda, Resultados, etc), fecha no mobile
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove("active");
                 overlay.classList.remove("active");
@@ -101,13 +148,19 @@ if (btnAbrirMenu && sidebar && overlay) {
 }
 
 /* ==========================================================================
-   2.1 Lógica de Navegação das Abas Principais (Dashboard, Agenda, Clientes)
-========================================================================== */
-document.querySelectorAll(".menu > a").forEach((link) => {
-    link.addEventListener("click", (e) => {
-        if (link.id === "btn-logout" || link.id === "btn-config-master") return;
+    2.2 NAVEGAÇÃO ENTRE ABAS PRINCIPAIS (DASHBOARD, AGENDA, CLIENTES)
+   ========================================================================== */
 
-        e.preventDefault();
+document.querySelectorAll(".menu > a, .menu .btn-dropdown").forEach((link) => {
+    link.addEventListener("click", (e) => {
+        // Ignora botões que são apenas para abrir submenus ou sair
+        const ehApenasGaveta = link.id === "btn-logout" ||
+            link.id === "btn-config-master" ||
+            link.id === "btn-relatorio-master";
+
+        if (ehApenasGaveta) return;
+
+        e.preventDefault(); // Impede o pulo da página
         esconderTodasSessoes();
         link.classList.add("active");
 
@@ -115,23 +168,24 @@ document.querySelectorAll(".menu > a").forEach((link) => {
         const headerPrincipal = document.getElementById("header-principal");
         const painelConquista = document.getElementById("painel-conquista");
 
+        // --- LÓGICA DE EXIBIÇÃO POR TELA ---
         if (texto.includes("Dashboard")) {
-            // MODO NORMAL: Mostra tudo
+            // MODO COMPLETO: Mostra cabeçalho e progresso da meta
             if (headerPrincipal) headerPrincipal.style.display = "flex";
             if (painelConquista) painelConquista.style.display = "block";
             secoes.home.style.display = "block";
             carregarAgendamentosDoDia();
         }
-        else if (link.id === "link-relatorios") {
-            // FOCUS MODE: Esconde o topo para focar nos dados
+        else if (link.id === "link-relatorios" || link.closest('#submenu-relatorios')) {
+            // FOCUS MODE: Esconde o topo para focar nos gráficos e relatórios [cite: 2026-04-03]
             if (headerPrincipal) headerPrincipal.style.display = "none";
             if (painelConquista) painelConquista.style.display = "none";
             secoes.relatorios.style.display = "block";
-            // Chama a função de relatórios
+
             if (typeof inicializarRelatorios === "function") inicializarRelatorios();
         }
         else {
-            // OUTRAS TELAS: Mostra header, mas esconde o painel de meta
+            // TELAS SECUNDÁRIAS: Mostra apenas o header
             if (headerPrincipal) headerPrincipal.style.display = "flex";
             if (painelConquista) painelConquista.style.display = "none";
 
@@ -146,31 +200,28 @@ document.querySelectorAll(".menu > a").forEach((link) => {
     });
 });
 
-// Seleção dos elementos do Modal
+/* ==========================================================================
+    2.3 GESTÃO DO MODAL DE AGENDAMENTO
+   ========================================================================== */
+
 const modalAgendamento = document.getElementById("modal-agendamento");
 const btnAbrirModal = document.getElementById("btn-novo-agendamento");
 const btnFecharModal = document.getElementById("fechar-modal");
 
-// 1. Abre o modal ao clicar no botão "+ Novo Agendamento"
 if (btnAbrirModal) {
-    btnAbrirModal.onclick = () => {
-        modalAgendamento.style.display = "block";
-    };
+    btnAbrirModal.onclick = () => modalAgendamento.style.display = "block";
 }
 
-// 2. Fecha o modal ao clicar no "X"
 if (btnFecharModal) {
-    btnFecharModal.onclick = () => {
-        modalAgendamento.style.display = "none";
-    };
+    btnFecharModal.onclick = () => modalAgendamento.style.display = "none";
 }
 
-// 3. Fecha o modal se clicar fora da caixa branca
-window.onclick = (event) => {
+// Fecha o modal ao clicar fora dele
+window.addEventListener("click", (event) => {
     if (event.target == modalAgendamento) {
         modalAgendamento.style.display = "none";
     }
-};
+});
 
 
 /* ==========================================================================
@@ -830,26 +881,21 @@ async function inicializarRelatorios(dias = 30) {
     const dataHoje = new Date();
     const dataFimAtual = dataHoje.toLocaleDateString("en-CA");
 
+
     let dataInicioAtual;
     let dataInicioAnterior;
     let dataFimAnterior;
 
-    // --- 1.1 DEFINIÇÃO DINÂMICA DE PERÍODOS (ATUAL VS ANTERIOR) ---
-    // Esta lógica garante que o comparativo seja justo (semana vs semana, mês vs mês) [cite: 2026-04-03]
+    // --- 1. DEFINIÇÃO DOS PERÍODOS (Respeita o Filtro) ---
     if (dias === 30) {
-        // Mês Atual: do dia 01 até hoje
         dataInicioAtual = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1);
-        // Comparativo: Mês anterior completo
         dataFimAnterior = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 0).toLocaleDateString("en-CA");
         dataInicioAnterior = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 1, 1);
     } else if (dias === 365) {
-        // Ano Atual: de 01/01 até hoje
         dataInicioAtual = new Date(dataHoje.getFullYear(), 0, 1);
-        // Comparativo: Ano anterior completo
         dataFimAnterior = new Date(dataHoje.getFullYear() - 1, 11, 31).toLocaleDateString("en-CA");
         dataInicioAnterior = new Date(dataHoje.getFullYear() - 1, 0, 1);
     } else {
-        // Janela Rolante: ex. 7 dias atrás vs os 7 dias anteriores a esses [cite: 2026-04-03]
         dataInicioAtual = new Date();
         dataInicioAtual.setDate(dataHoje.getDate() - dias);
         dataFimAnterior = dataInicioAtual.toLocaleDateString("en-CA");
@@ -858,15 +904,13 @@ async function inicializarRelatorios(dias = 30) {
     }
 
     const dataInicioAtualISO = dataInicioAtual.toLocaleDateString("en-CA");
-    const dataInicioAnteriorISO = dataInicioAnterior instanceof Date
-        ? dataInicioAnterior.toLocaleDateString("en-CA")
-        : dataInicioAnterior;
+    const dataInicioAnteriorISO = dataInicioAnterior instanceof Date ? dataInicioAnterior.toLocaleDateString("en-CA") : dataInicioAnterior;
 
-    // --- 1.2 BUSCA NO SUPABASE ---
-    // Buscamos concluídos e cancelados para calcular a Taxa de Comparecimento
+    // --- 2. BUSCA NO BANCO ---
+    
     const { data: agendAtuais } = await _supabase
         .from("agendamentos")
-        .select("valor, data, status")
+        .select("valor, data, status, horario, cliente_nome") // Adicionado aqui [cite: 2026-04-04]
         .in("status", ["concluido", "cancelado"])
         .gte("data", dataInicioAtualISO)
         .lte("data", dataFimAtual);
@@ -878,51 +922,20 @@ async function inicializarRelatorios(dias = 30) {
         .gte("data", dataInicioAnteriorISO)
         .lte("data", dataFimAnterior);
 
-    // --- 1.3 CÁLCULOS DO PERÍODO ATUAL ---
+    // --- 3. CÁLCULOS E ATUALIZAÇÃO DOS CARDS ---
     const concluidosAtuais = agendAtuais?.filter(a => a.status === "concluido") || [];
-    const canceladosAtuais = agendAtuais?.filter(a => a.status === "cancelado") || [];
-
     const fatAtual = concluidosAtuais.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
     const atendAtual = concluidosAtuais.length;
-    const ticketAtual = atendAtual > 0 ? fatAtual / atendAtual : 0;
 
-    // Comparecimento = (Concluídos / Total) * 100 [cite: 2026-04-03]
-    const totalAtuais = atendAtual + canceladosAtuais.length;
-    const taxaAtual = totalAtuais > 0 ? (atendAtual / totalAtuais) * 100 : 0;
-
-    // --- 1.4 CÁLCULOS DO PERÍODO ANTERIOR (COMPARATIVO) ---
-    const concluidosAntigos = agendAntigos?.filter(a => a.status === "concluido") || [];
-    const fatAntigo = concluidosAntigos.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
-    const atendAntigo = concluidosAntigos.length;
-    const totalAntigos = atendAntigo + (agendAntigos?.filter(a => a.status === "cancelado").length || 0);
-    const taxaAntiga = totalAntigos > 0 ? (atendAntigo / totalAntigos) * 100 : 0;
-
-    // --- 1.5 ATUALIZAÇÃO VISUAL E TENDÊNCIAS ---
-    const atualizarTrend = (seletor, atual, antigo) => {
-        const el = document.querySelector(`${seletor} .trend`);
-        if (!el) return;
-        let porcentagem = antigo > 0 ? ((atual - antigo) / antigo) * 100 : 0;
-        const cor = porcentagem >= 0 ? "#2ecc71" : "#ff4757";
-        el.style.color = cor;
-        el.innerHTML = `<i class="fas ${porcentagem >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${Math.abs(porcentagem).toFixed(0)}% <span>vs anterior</span>`;
-    };
-
+    // Atualiza os valores na tela
     document.getElementById("rel-faturamento").innerText = `R$ ${fatAtual.toFixed(2).replace(".", ",")}`;
     document.getElementById("rel-atendimentos").innerText = atendAtual;
-    document.getElementById("rel-ticket").innerText = `R$ ${ticketAtual.toFixed(2).replace(".", ",")}`;
-    document.getElementById("rel-comparecimento").innerText = `${taxaAtual.toFixed(0)}%`;
+    document.getElementById("rel-ticket").innerText = `R$ ${(atendAtual > 0 ? fatAtual / atendAtual : 0).toFixed(2).replace(".", ",")}`;
 
-    // Atualiza a barra visual de comparecimento
-    const elFill = document.querySelector(".progress-mini .fill");
-    if (elFill) elFill.style.width = `${taxaAtual}%`;
-
-    // Dispara as setinhas comparativas
-    atualizarTrend(".faturamento", fatAtual, fatAntigo);
-    atualizarTrend(".atendimentos", atendAtual, atendAntigo);
-    atualizarTrend(".ticket", ticketAtual, (atendAntigo > 0 ? fatAntigo / atendAntigo : 0));
-    atualizarTrend(".comparecimento", taxaAtual, taxaAntiga);
-
+    // --- 4. CHAMADA DAS FUNÇÕES DE INTELIGÊNCIA (O que estava faltando!) ---
     renderizarGraficoEvolucao(concluidosAtuais);
+    processarInsightsHorarios(concluidosAtuais); // Agora o card de horários recebe os dados filtrados!
+    processarInsightsClientes(concluidosAtuais); // O card de fidelização também!
 }
 
 /**
@@ -1013,39 +1026,93 @@ window.mudarPeriodoRelatorio = function (dias) {
     inicializarRelatorios(parseInt(dias));
 };
 
-// Função para analisar horários e dar dicas [cite: 2026-04-03]
-function processarInsightsHorarios(agendamentos) {
-    const contagemHoras = {};
-    agendamentos.forEach(ag => {
-        const hora = parseInt(ag.horario.substring(0, 2));
-        const faixa = `${hora}h - ${hora + 2}h`;
-        contagemHoras[faixa] = (contagemHoras[faixa] || 0) + (parseFloat(ag.valor) || 0);
-    });
-
-    const ordenados = Object.entries(contagemHoras).sort((a, b) => b[1] - a[1]);
+/* ==========================================================================
+   FUNÇÃO: ANÁLISE DE HORÁRIOS DE PICO (INTELIGÊNCIA DE NEGÓCIOS)
+   ========================================================================== */
+async function processarInsightsHorarios(agendamentos) {
     const listaEl = document.getElementById("lista-horarios-pico");
     const dicaEl = document.getElementById("insight-horario-texto");
+    if (!listaEl || !dicaEl) return;
 
-    if (listaEl && ordenados.length > 0) {
-        listaEl.innerHTML = ordenados.slice(0, 2).map((item, i) => `
-            <div class="metrica-item">
-                <span>${i + 1}º ${item[0]}</span>
-                <strong>R$ ${item[1].toFixed(2)}</strong>
-            </div>
-        `).join("");
+    // 1. BUSCA O EXPEDIENTE REAL (Sincronizado com o Supabase)
+    const { data: config } = await _supabase.from('configuracoes').select('hora_inicio, hora_fim').eq('id', 1).single();
 
-        // Dica dinâmica baseada nos dados [cite: 2026-04-03]
-        if (ordenados[0][0].includes("18h") || ordenados[0][0].includes("20h")) {
-            dicaEl.innerText = "Dica: Suas noites são fortes! Que tal um 'Happy Hour' com preço especial à tarde?";
-        } else {
-            dicaEl.innerText = "Dica: Mantenha a consistência. Seus clientes preferem o horário comercial.";
+    // Fallback caso não encontre no banco (padrão 09h às 19h)
+    const inicioExp = config ? parseInt(config.hora_inicio.substring(0, 2)) : 9;
+    const fimExp = config ? parseInt(config.hora_fim.substring(0, 2)) : 19;
+
+    // 2. AGRUPAMENTO INTELIGENTE POR FAIXAS DE 2 HORAS
+    const faturamentoPorBloco = {};
+    let faturamentoTotalPeriodo = 0;
+
+    agendamentos.forEach(ag => {
+        const horaAtendimento = parseInt(ag.horario.substring(0, 2));
+        const valor = parseFloat(ag.valor) || 0;
+
+        // Verifica se o agendamento está dentro do expediente [cite: 2026-04-03]
+        if (horaAtendimento >= inicioExp && horaAtendimento <= fimExp) {
+            const inicioBloco = Math.floor(horaAtendimento / 2) * 2;
+            const faixa = `${inicioBloco.toString().padStart(2, '0')}h - ${(inicioBloco + 2).toString().padStart(2, '0')}h`;
+
+            faturamentoPorBloco[faixa] = (faturamentoPorBloco[faixa] || 0) + valor;
+            faturamentoTotalPeriodo += valor;
         }
+    });
+
+    const ordenados = Object.entries(faturamentoPorBloco)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2);
+
+    if (ordenados.length === 0) {
+        listaEl.innerHTML = "<p class='loading-text'>Sem dados no período.</p>";
+        dicaEl.innerText = "Registre atendimentos concluídos para ver a análise.";
+        return;
     }
+
+    // 3. RENDERIZAÇÃO VISUAL (Padrão Black & Gold)
+    listaEl.innerHTML = ordenados.map((item, index) => {
+        const porc = (item[1] / faturamentoTotalPeriodo) * 100;
+        const cor = index === 0 ? "var(--cor-primaria)" : "#aaa";
+        return `
+            <div class="insight-row" style="margin-bottom: 15px;">
+                <div class="insight-info" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: ${cor}; font-weight: bold;">${index + 1}º ${item[0]}</span>
+                    <span style="color: var(--cor-subtexto); font-size: 0.85rem;"><strong>${porc.toFixed(0)}%</strong> do faturamento</span>
+                </div>
+                <div class="barra-progresso-fina" style="background: #222; height: 6px; border-radius: 10px; overflow: hidden;">
+                    <div class="fill" style="width: ${porc}%; background: ${cor}; height: 100%; transition: 1s;"></div>
+                </div>
+            </div>`;
+    }).join("");
+
+    // 4. SISTEMA DE 10 DICAS ESTRATÉGICAS (5 POR TURNO) [cite: 2026-04-03]
+    const topFaixaInicio = parseInt(ordenados[0][0]);
+
+    // Pool de dicas para Manhã/Início de Tarde (até as 14h)
+    const dicasManha = [
+        "Manhãs produtivas! Tente combos para o período da tarde que costuma ser mais calmo.",
+        "O café da manhã está rendendo! Ofereça um serviço rápido de 'barba express' para quem vai ao trabalho.",
+        "Sua agenda matutina é disputada. Que tal um valor diferenciado para fidelizar o horário de almoço?",
+        "Grande movimento matinal. Garanta que o estoque de finalizadores esteja em dia para esse pico.",
+        "O início do dia é seu ponto forte. Use as redes sociais para mostrar os resultados desse turno."
+    ];
+
+    // Pool de dicas para Tarde/Noite (após as 14h)
+    const dicasNoite = [
+        "Seu horário da noite está bombando! Que tal criar uma promoção para atrair clientes matinais?",
+        "Fim de expediente agitado! Ofereça uma bebida de cortesia para tornar a espera mais agradável.",
+        "As tardes são lucrativas. Foque em serviços premium (como pigmentação) para subir o ticket médio.",
+        "Pico de fim de dia detectado. Reforce a organização entre os cortes para evitar atrasos na fila.",
+        "Movimento intenso após às 17h. Aproveite o fluxo para vender pacotes mensais de manutenção."
+    ];
+
+    // Seleção aleatória dentro do grupo correto para variar o dashboard [cite: 2026-04-03]
+    const randomIdx = Math.floor(Math.random() * 5);
+    dicaEl.innerText = topFaixaInicio < 14 ? dicasManha[randomIdx] : dicasNoite[randomIdx];
 }
 
 // Função para calcular novos vs recorrentes [cite: 2026-04-03]
 async function processarInsightsClientes(agendamentosAtuais) {
-    // Buscamos todos os nomes de clientes da história para saber quem é novo
     const { data: todosAnteriores } = await _supabase.from("agendamentos").select("cliente_nome, data").eq("status", "concluido");
 
     const nomesAtuais = new Set(agendamentosAtuais.map(a => a.cliente_nome));
@@ -1059,11 +1126,22 @@ async function processarInsightsClientes(agendamentosAtuais) {
 
     const taxa = (recorrentes / (novos + recorrentes)) * 100 || 0;
 
-    document.getElementById("rel-novos-clientes").innerText = novos;
-    document.getElementById("rel-recorrentes").innerText = recorrentes;
-    document.getElementById("rel-taxa-retencao").innerText = `${taxa.toFixed(0)}%`;
-    document.getElementById("fill-retencao").style.width = `${taxa}%`;
+    // --- TRAVA DE SEGURANÇA (Verifica se os elementos existem antes de mudar) ---
+    const elNovos = document.getElementById("rel-novos-clientes");
+    const elRecorrentes = document.getElementById("rel-recorrentes");
+    const elTaxa = document.getElementById("rel-taxa-retencao");
+    const elFill = document.getElementById("fill-retencao");
+    const elFeedback = document.getElementById("feedback-cliente-texto");
 
-    const feedback = document.getElementById("feedback-cliente-texto");
-    feedback.innerText = taxa > 50 ? "Boa fidelização! Seus clientes confiam no seu trabalho." : "Dica: Tente criar um cartão fidelidade para aumentar o retorno dos clientes.";
+    if (elNovos) elNovos.innerText = novos;
+    if (elRecorrentes) elRecorrentes.innerText = recorrentes;
+    if (elTaxa) elTaxa.innerText = `${taxa.toFixed(0)}%`;
+    if (elFill) elFill.style.width = `${taxa}%`;
+
+    // Atualiza o texto de dica apenas se o elemento existir [cite: 2026-04-03]
+    if (elFeedback) {
+        elFeedback.innerText = taxa > 50
+            ? "Boa fidelização! Seus clientes confiam no seu trabalho."
+            : "Dica: Tente criar um cartão fidelidade para aumentar o retorno dos clientes.";
+    }
 }
