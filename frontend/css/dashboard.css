@@ -1399,3 +1399,20 @@
     height: 100%;
     transition: 1s ease-in-out;
 }
+
+/* Estilo das Estrelas de Fidelidade */
+#estrelas-fidelidade i {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.fidelidade-box {
+    border: 1px solid rgba(241, 196, 15, 0.2);
+}
+
+@media (max-width: 768px) {
+    #modal-detalhes-cliente .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 15px;
+    }
+}

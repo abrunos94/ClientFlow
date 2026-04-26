@@ -242,3 +242,51 @@ if (formulario) {
 }
 
 document.addEventListener("DOMContentLoaded", renderizarServicosNaHome);
+
+/* ==========================================================================
+   6. CARREGAMENTO DE CONTEÚDO PERSONALIZADO [cite: 2026-04-26]
+   ========================================================================== */
+async function carregarConteudoPersonalizado() {
+    // Trocamos .single() por .maybeSingle() para evitar o erro 406 [cite: 2026-04-26]
+    const { data: config, error } = await _supabase
+        .from('configuracoes1')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+    if (error) {
+        console.warn("Aviso: Falha ao buscar configurações personalizadas.");
+        return;
+    }
+
+    // Se não houver dados (config é null), o site mantém o que já está no HTML [cite: 2026-04-26]
+    if (config) {
+        if (config.hero_titulo) {
+            const h1 = document.querySelector(".hero-content h1");
+            if (h1) h1.innerText = config.hero_titulo;
+        }
+
+        if (config.sobre_texto) {
+            const pSobre = document.querySelector(".texto-sobre p");
+            if (pSobre) pSobre.innerText = config.sobre_texto;
+        }
+
+        const footerInfo = document.querySelector(".info-contato");
+        if (footerInfo && config.end_rua) {
+            const ps = footerInfo.querySelectorAll("p");
+            if (ps.length >= 3) {
+                ps[0].innerText = `${config.end_rua}, ${config.end_numero} - ${config.end_cidade}, ${config.end_estado}`;
+                ps[1].innerText = `CEP: ${config.end_cep}`;
+                ps[2].innerText = `Telefone: ${config.end_tel}`;
+            }
+        }
+
+        if (config.mapa_iframe) {
+            const mapaContainer = document.querySelector(".mapa-container");
+            if (mapaContainer) mapaContainer.innerHTML = config.mapa_iframe;
+        }
+    }
+}
+
+// Garante que o conteúdo carregue assim que o site abrir [cite: 2026-04-26]
+document.addEventListener("DOMContentLoaded", carregarConteudoPersonalizado);
