@@ -51,6 +51,18 @@
             <a href="javascript:void(0)" onclick="abrirSubConfig('servicos')">Serviços</a>
           </div>
         </div>
+        <div class="menu-item-dropdown">
+          <a href="javascript:void(0)" id="btn-config-geral-master" class="btn-dropdown">
+            <span><i class="fas fa-tools"></i> Configurações Gerais</span>
+            <i class="fas fa-chevron-down seta-menu"></i>
+          </a>
+          <div class="submenu" id="submenu-config-geral">
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu1')">Conteúdo da Home</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu2')">Vitrine e Mídias</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu3')">Submenu 3</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu4')">Submenu 4</a>
+          </div>
+        </div>
       </nav>
 
       <button id="btn-logout" class="link-admin">
@@ -260,13 +272,87 @@
             <div id="lista-servicos-config" style="margin-top: 20px"></div>
           </div>
         </div>
+        <div id="area-config-home" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-edit"></i> Editar Conteúdo da Home</h3>
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
+
+            <div class="input-group-modal">
+              <label>Título Principal (Hero)</label>
+              <input type="text" id="cfg-hero-titulo" placeholder="Ex: Cortes Modernos e Barba de Respeito" />
+            </div>
+
+            <div class="input-group-modal">
+              <label>Texto 'Sobre Nós'</label>
+              <textarea id="cfg-sobre-texto" rows="4"
+                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+            <p style="color: var(--cor-primaria); font-weight: bold; margin-bottom: 10px;">Endereço e Contato</p>
+
+            <div class="config-grid-form">
+              <div class="input-group-modal"><label>Rua</label><input type="text" id="cfg-end-rua" /></div>
+              <div class="input-group-modal"><label>Número</label><input type="text" id="cfg-end-numero" /></div>
+              <div class="input-group-modal"><label>Cidade</label><input type="text" id="cfg-end-cidade" /></div>
+              <div class="input-group-modal"><label>Estado</label><input type="text" id="cfg-end-estado" /></div>
+              <div class="input-group-modal"><label>CEP</label><input type="text" id="cfg-end-cep" /></div>
+              <div class="input-group-modal"><label>Telefone Comercial</label><input type="text" id="cfg-end-tel" />
+              </div>
+            </div>
+
+            <div class="input-group-modal" style="margin-top: 20px;">
+              <label>Link do Google Maps (Iframe)</label>
+              <textarea id="cfg-mapa-iframe" placeholder="Cole aqui o <iframe> do Google Maps" rows="3"
+                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+            </div>
+
+            <button onclick="salvarConteudoHome()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              <i class="fas fa-save"></i> Atualizar Site
+            </button>
+          </div>
+        </div>
+        <div id="area-galeria-midia" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-camera"></i> Vitrine e Mídias</h3>
+
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-bottom: 20px;">
+            <p style="font-weight: bold; margin-bottom: 15px;">Imagens Principais (Hero e Sobre)</p>
+            <div class="config-grid-form">
+              <div class="input-group-modal">
+                <label>Imagem Hero (Fundo Entrada)</label>
+                <input type="file" id="up-hero" accept="image/*" onchange="uploadMidia('hero')" />
+              </div>
+              <div class="input-group-modal">
+                <label>Imagem 'Sobre Nós'</label>
+                <input type="file" id="up-sobre" accept="image/*" onchange="uploadMidia('sobre')" />
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card" style="border-left: 4px solid #3498db; margin-bottom: 20px;">
+            <div class="checkbox-group" style="background: #111; padding: 20px; border-radius: 8px;">
+              <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">Escolha o que mostrar no site:</p>
+              <label><input type="radio" name="opt-exibicao" value="galeria" checked
+                  onclick="alternarLayoutMidia('galeria')"> Apenas Galeria</label>
+              <label><input type="radio" name="opt-exibicao" value="produtos" onclick="alternarLayoutMidia('produtos')">
+                Apenas Produtos</label>
+              <label><input type="radio" name="opt-exibicao" value="ambos" onclick="alternarLayoutMidia('ambos')">
+                Galeria + Produtos</label>
+            </div>
+
+            <div id="container-inputs-dinamicos" style="margin-top: 20px;"></div>
+
+            <button onclick="salvarVitrineMídias()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              <i class="fas fa-sync"></i> Atualizar Vitrine do Site
+            </button>
+          </div>
+        </div>
       </section>
 
       <section id="secao-relatorios" class="aba-content" style="display: none;">
 
         <div class="relatorio-header">
           <div class="relatorio-titulo-area">
-            <h2 id="titulo-sub-relatorio">Relatório: Resultados</h2>
+            <h2 id="titulo-sub-relatorio"> Resultados</h2>
             <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
           </div>
           <div class="relatorio-icon-area">
@@ -288,25 +374,25 @@
               <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
               <p class="label">Faturamento</p>
               <span class="value" id="rel-faturamento">R$ 0,00</span>
-              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+              <p class="trend" id="trend-faturamento">--% <span>vs anterior</span></p>
             </div>
             <div class="stat-card-advanced atendimentos">
               <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
               <p class="label">Atendimentos</p>
               <span class="value" id="rel-atendimentos">0</span>
-              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+              <p class="trend" id="trend-atendimentos">--% <span>vs anterior</span></p>
             </div>
             <div class="stat-card-advanced ticket">
               <div class="card-icon"><i class="fas fa-gem"></i></div>
               <p class="label">Ticket Médio</p>
               <span class="value" id="rel-ticket">R$ 0,00</span>
-              <p class="trend positivo"><i class="fas fa-arrow-up"></i> 0% <span>vs anterior</span></p>
+              <p class="trend" id="trend-ticket">--% <span>vs anterior</span></p>
             </div>
             <div class="stat-card-advanced comparecimento">
               <div class="card-icon"><i class="fas fa-check-circle"></i></div>
               <p class="label">Taxa de Comparecimento</p>
               <span class="value" id="rel-comparecimento">0%</span>
-              <p class="trend positivo">0% <span>vs anterior</span></p>
+              <p class="trend" id="trend-comparecimento">--% <span>vs anterior</span></p>
               <div class="progress-mini">
                 <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
               </div>
@@ -378,13 +464,46 @@
         </div>
 
         <div class="input-group-modal">
-          <label>Telefone (Opcional)</label>
-          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" maxlength="15" />
+          <label>Telefone (Obrigatório para Fidelidade)</label>
+          <input type="tel" id="rapido-telefone" placeholder="(27) 99999-9999" maxlength="15" required />
         </div>
 
         <button onclick="agendarAgora()" class="btn-principal btn-block" style="margin-top: 10px;">
           Finalizar e Adicionar
         </button>
+      </div>
+    </div>
+  </div>
+  <div id="modal-detalhes-cliente" class="modal">
+    <div class="modal-content" style="border-left: 5px solid #f1c40f;">
+      <div class="modal-header">
+        <h2><i class="fas fa-user-tag"></i> Histórico do Cliente</h2>
+        <button onclick="fecharModalDetalhes()" class="btn-fechar-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="dados-cliente-fidelidade">
+          <h3 id="detalhe-nome-cliente" style="color: #fff; margin-bottom: 20px;">---</h3>
+
+          <div class="metrica-item">
+            <span>Último Corte</span>
+            <strong id="detalhe-data-corte">--/--/--</strong>
+          </div>
+          <div class="metrica-item">
+            <span>Serviço Realizado</span>
+            <strong id="detalhe-servico">---</strong>
+          </div>
+
+          <div class="fidelidade-box"
+            style="margin-top: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px;">
+            <p style="color: var(--cor-subtexto); font-size: 0.85rem; margin-bottom: 10px;">Cartão Fidelidade (Serviços
+              Realizados)</p>
+            <div id="estrelas-fidelidade"
+              style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 1.2rem; color: #f1c40f;">
+            </div>
+            <p id="total-servicos-texto" style="font-size: 0.75rem; color: var(--cor-subtexto); margin-top: 10px;">0
+              serviços concluídos</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

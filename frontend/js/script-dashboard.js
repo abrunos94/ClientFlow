@@ -72,6 +72,19 @@ if (btnRelatorioMaster && gavetaRelatorios) {
     };
 }
 
+// Lógica para o novo Dropdown de Configurações Gerais [cite: 2026-04-26]
+const btnConfigGeralMaster = document.getElementById("btn-config-geral-master");
+const gavetaConfigGeral = document.getElementById("submenu-config-geral");
+
+if (btnConfigGeralMaster && gavetaConfigGeral) {
+    btnConfigGeralMaster.onclick = function (e) {
+        e.preventDefault();
+        gavetaConfigGeral.classList.toggle("active");
+        btnConfigGeralMaster.classList.toggle("open");
+    };
+}
+
+
 // 2. Função para alternar entre Resultados e Desempenho [cite: 2026-04-03]
 // 2. Função para alternar entre Resultados e Desempenho com FOCUS MODE [cite: 2026-04-03]
 window.abrirSubRelatorio = function (tipo) {
@@ -96,10 +109,12 @@ window.abrirSubRelatorio = function (tipo) {
 
     if (tipo === 'resultados') {
         document.getElementById("area-resultados").style.display = "block";
-        if (titulo) titulo.innerText = "Relatório: Resultados";
+        // Removido "Relatório: "
+        if (titulo) titulo.innerText = "Resultados";
     } else if (tipo === 'desempenho') {
         document.getElementById("area-desempenho").style.display = "block";
-        if (titulo) titulo.innerText = "Relatório: Desempenho";
+        // Removido "Relatório: "
+        if (titulo) titulo.innerText = "Desempenho";
     }
 
     // 4. Dispara a atualização dos dados (importante para carregar o gráfico ou os cards)
@@ -483,7 +498,9 @@ async function renderizarListaClientes() {
             <td>
                 <div class="acoes-buttons">
                     <button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.cliente_nome}')"><i class="fab fa-whatsapp"></i></button>
-                    <button class="btn-concluir" style="background:#3498db"><i class="fas fa-eye"></i></button>
+                   <button class="btn-concluir" style="background:#3498db" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')">
+                   <i class="fas fa-eye"></i>
+                   </button>
                 </div>
             </td>`;
         corpoTabela.appendChild(linha);
@@ -572,32 +589,38 @@ function dispararConfete() {
 }
 
 /* ==========================================================================
-    7.1-  Mesagem e link do Botão whatsApp
+    7.1 - GESTÃO DE WHATSAPP (CONFIRMAÇÃO VS CONTATO DIRETO) [cite: 2026-04-25]
    ========================================================================== */
 
 window.enviarLembrete = (tel, nome, dataISO, hora) => {
     if (!tel) return alert("Sem telefone cadastrado!");
 
-    // 1. Limpeza do número
+    // 1. Limpeza do número para o link do WhatsApp
     const numLimpo = tel.replace(/\D/g, "");
     const ddi = numLimpo.startsWith("55") ? "" : "55";
 
-    // 2. Formatação da data
-    const [ano, mes, dia] = dataISO.split("-");
-    const dataBR = `${dia}/${mes}`;
+    // 2. LÓGICA DE DECISÃO [cite: 2026-04-25]
+    if (dataISO && hora) {
+        // --- CASO A: Dashboard (Confirmação de Agendamento) ---
+        // Aqui usamos a data e hora que você passa na tabela da Home
+        const [ano, mes, dia] = dataISO.split("-");
+        const dataBR = `${dia}/${mes}`;
 
-    // 3. Texto direto e profissional (Sem emojis)
-    const texto =
-        `Ola, ${nome}!\n\n` +
-        `Seu agendamento foi confirmado com sucesso no ClientFlow.\n` +
-        `Data: ${dataBR}\n` +
-        `Horario: ${hora.substring(0, 5)}\n\n` +
-        `Atencao: Pedimos que chegue com 5 minutos de antecedencia.\n` +
-        `Qualquer duvida ou alteracao, estamos a disposicao.\n` +
-        `Obrigado pela preferencia!`;
+        const texto =
+            `Ola, ${nome}!\n\n` +
+            `Seu agendamento foi confirmado com sucesso no ClientFlow.\n` +
+            `Data: ${dataBR}\n` +
+            `Horario: ${hora.substring(0, 5)}h\n\n` +
+            `Atencao: Pedimos que chegue com 5 minutos de antecedencia.\n` +
+            `Obrigado pela preferencia!`;
 
-    const mensagemUrl = encodeURIComponent(texto);
-    window.open(`https://wa.me/${ddi}${numLimpo}?text=${mensagemUrl}`, "_blank");
+        const mensagemUrl = encodeURIComponent(texto);
+        window.open(`https://wa.me/${ddi}${numLimpo}?text=${mensagemUrl}`, "_blank");
+    } else {
+        // --- CASO B: Aba Clientes (Contato Direto sem Sugestão) ---
+        // Abre apenas o chat direto com o número, sem parâmetro de texto [cite: 2026-04-25]
+        window.open(`https://wa.me/${ddi}${numLimpo}`, "_blank");
+    }
 };
 
 /* ==========================================================================
@@ -876,17 +899,13 @@ window.agendarAgora = async function () {
  * @param {number} dias - Define o período (7, 30, 90 ou 365 dias).
  */
 async function inicializarRelatorios(dias = 30) {
-    console.log(`📊 Gerando inteligência de dados: últimos ${dias} dias...`);
+    console.log(`📊 Gerando inteligência comparativa: últimos ${dias} dias...`);
 
     const dataHoje = new Date();
     const dataFimAtual = dataHoje.toLocaleDateString("en-CA");
+    let dataInicioAtual, dataInicioAnterior, dataFimAnterior;
 
-
-    let dataInicioAtual;
-    let dataInicioAnterior;
-    let dataFimAnterior;
-
-    // --- 1. DEFINIÇÃO DOS PERÍODOS (Respeita o Filtro) ---
+    // 1. DEFINIÇÃO DOS PERÍODOS
     if (dias === 30) {
         dataInicioAtual = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1);
         dataFimAnterior = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 0).toLocaleDateString("en-CA");
@@ -906,36 +925,69 @@ async function inicializarRelatorios(dias = 30) {
     const dataInicioAtualISO = dataInicioAtual.toLocaleDateString("en-CA");
     const dataInicioAnteriorISO = dataInicioAnterior instanceof Date ? dataInicioAnterior.toLocaleDateString("en-CA") : dataInicioAnterior;
 
-    // --- 2. BUSCA NO BANCO ---
-    
-    const { data: agendAtuais } = await _supabase
-        .from("agendamentos")
-        .select("valor, data, status, horario, cliente_nome") // Adicionado aqui [cite: 2026-04-04]
-        .in("status", ["concluido", "cancelado"])
-        .gte("data", dataInicioAtualISO)
-        .lte("data", dataFimAtual);
+    // 2. BUSCA NO BANCO (Período Atual e Anterior)
+    const { data: agendAtuais } = await _supabase.from("agendamentos").select("*")
+        .in("status", ["concluido", "cancelado"]).gte("data", dataInicioAtualISO).lte("data", dataFimAtual);
 
-    const { data: agendAntigos } = await _supabase
-        .from("agendamentos")
-        .select("valor, status")
-        .in("status", ["concluido", "cancelado"])
-        .gte("data", dataInicioAnteriorISO)
-        .lte("data", dataFimAnterior);
+    const { data: agendAntigos } = await _supabase.from("agendamentos").select("*")
+        .in("status", ["concluido", "cancelado"]).gte("data", dataInicioAnteriorISO).lte("data", dataFimAnterior);
 
-    // --- 3. CÁLCULOS E ATUALIZAÇÃO DOS CARDS ---
+    // 3. PROCESSAMENTO DE DADOS ATUAIS
     const concluidosAtuais = agendAtuais?.filter(a => a.status === "concluido") || [];
-    const fatAtual = concluidosAtuais.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
+    const canceladosAtuais = agendAtuais?.filter(a => a.status === "cancelado") || [];
+    const fatAtual = concluidosAtuais.reduce((acc, i) => acc + (parseFloat(i.valor) || 0), 0);
     const atendAtual = concluidosAtuais.length;
+    const ticketAtual = atendAtual > 0 ? fatAtual / atendAtual : 0;
+    const taxaCompAtual = (atendAtual + canceladosAtuais.length) > 0 ? (atendAtual / (atendAtual + canceladosAtuais.length)) * 100 : 0;
 
-    // Atualiza os valores na tela
+    // 4. PROCESSAMENTO DE DADOS ANTERIORES (Para Comparação)
+    const concluidosAntigos = agendAntigos?.filter(a => a.status === "concluido") || [];
+    const canceladosAntigos = agendAntigos?.filter(a => a.status === "cancelado") || [];
+    const fatAntigo = concluidosAntigos.reduce((acc, i) => acc + (parseFloat(i.valor) || 0), 0);
+    const atendAntigo = concluidosAntigos.length;
+    const ticketAntigo = atendAntigo > 0 ? fatAntigo / atendAntigo : 0;
+    const taxaCompAntigo = (atendAntigo + canceladosAntigos.length) > 0 ? (atendAntigo / (atendAntigo + canceladosAntigos.length)) * 100 : 0;
+
+    // 5. ATUALIZAÇÃO DA INTERFACE (Valores Principais)
     document.getElementById("rel-faturamento").innerText = `R$ ${fatAtual.toFixed(2).replace(".", ",")}`;
     document.getElementById("rel-atendimentos").innerText = atendAtual;
-    document.getElementById("rel-ticket").innerText = `R$ ${(atendAtual > 0 ? fatAtual / atendAtual : 0).toFixed(2).replace(".", ",")}`;
+    document.getElementById("rel-ticket").innerText = `R$ ${ticketAtual.toFixed(2).replace(".", ",")}`;
+    document.getElementById("rel-comparecimento").innerText = `${taxaCompAtual.toFixed(0)}%`;
+    document.getElementById("fill-comparecimento").style.width = `${taxaCompAtual}%`;
 
-    // --- 4. CHAMADA DAS FUNÇÕES DE INTELIGÊNCIA (O que estava faltando!) ---
+    // 6. CÁLCULO E ATUALIZAÇÃO DAS TENDÊNCIAS (TRENDS)
+    atualizarTrendUI("trend-faturamento", fatAtual, fatAntigo);
+    atualizarTrendUI("trend-atendimentos", atendAtual, atendAntigo);
+    atualizarTrendUI("trend-ticket", ticketAtual, ticketAntigo);
+    atualizarTrendUI("trend-comparecimento", taxaCompAtual, taxaCompAntigo);
+
+    // 7. DISPARA INSIGHTS
     renderizarGraficoEvolucao(concluidosAtuais);
-    processarInsightsHorarios(concluidosAtuais); // Agora o card de horários recebe os dados filtrados!
-    processarInsightsClientes(concluidosAtuais); // O card de fidelização também!
+    processarInsightsHorarios(concluidosAtuais);
+    processarInsightsClientes(concluidosAtuais);
+}
+
+/**
+ * Função Auxiliar Didática: Calcula a variação e aplica a cor/ícone correto
+ */
+function atualizarTrendUI(idElemento, atual, antigo) {
+    const el = document.getElementById(idElemento);
+    if (!el) return;
+
+    // Fórmula de variação percentual: ((Atual - Antigo) / Antigo) * 100
+    let porcentagem = 0;
+    if (antigo > 0) {
+        porcentagem = ((atual - antigo) / antigo) * 100;
+    } else {
+        porcentagem = atual > 0 ? 100 : 0; // Se era 0 e agora tem valor, subiu 100%
+    }
+
+    const ehPositivo = porcentagem >= 0;
+    const icone = ehPositivo ? '<i class="fas fa-arrow-up"></i>' : '<i class="fas fa-arrow-down"></i>';
+    const cor = ehPositivo ? "#2ecc71" : "#ff4757";
+
+    el.style.color = cor;
+    el.innerHTML = `${icone} ${Math.abs(porcentagem).toFixed(0)}% <span style="color:var(--cor-subtexto)">vs anterior</span>`;
 }
 
 /**
@@ -1027,121 +1079,444 @@ window.mudarPeriodoRelatorio = function (dias) {
 };
 
 /* ==========================================================================
-   FUNÇÃO: ANÁLISE DE HORÁRIOS DE PICO (INTELIGÊNCIA DE NEGÓCIOS)
+   FUNÇÃO: ANÁLISE DE HORÁRIOS DE PICO (INTEGRADA AO EXPEDIENTE)
+   ========================================================================== */
+/* ==========================================================================
+   FUNÇÃO: ANÁLISE POR TURNOS (MANHÃ VS TARDE) - ESTRATÉGICO
    ========================================================================== */
 async function processarInsightsHorarios(agendamentos) {
     const listaEl = document.getElementById("lista-horarios-pico");
     const dicaEl = document.getElementById("insight-horario-texto");
     if (!listaEl || !dicaEl) return;
 
-    // 1. BUSCA O EXPEDIENTE REAL (Sincronizado com o Supabase)
-    const { data: config } = await _supabase.from('configuracoes').select('hora_inicio, hora_fim').eq('id', 1).single();
+    // 1. BUSCA O EXPEDIENTE E PAUSA (Ex: 08h-12h e 13h-18h)
+    const { data: config } = await _supabase.from('configuracoes').select('*').eq('id', 1).single();
 
-    // Fallback caso não encontre no banco (padrão 09h às 19h)
-    const inicioExp = config ? parseInt(config.hora_inicio.substring(0, 2)) : 9;
-    const fimExp = config ? parseInt(config.hora_fim.substring(0, 2)) : 19;
+    const hInicio = config ? config.hora_inicio : "08:00";
+    const hAlmocoIni = config ? config.almoco_inicio : "12:00";
+    const hAlmocoFim = config ? config.almoco_fim : "13:00";
+    const hFim = config ? config.hora_fim : "18:00";
 
-    // 2. AGRUPAMENTO INTELIGENTE POR FAIXAS DE 2 HORAS
-    const faturamentoPorBloco = {};
-    let faturamentoTotalPeriodo = 0;
+    // 2. ACUMULADORES POR TURNO
+    let fatManha = 0;
+    let fatTarde = 0;
 
     agendamentos.forEach(ag => {
-        const horaAtendimento = parseInt(ag.horario.substring(0, 2));
+        if (!ag.horario) return;
+        const hora = ag.horario.substring(0, 5);
         const valor = parseFloat(ag.valor) || 0;
 
-        // Verifica se o agendamento está dentro do expediente [cite: 2026-04-03]
-        if (horaAtendimento >= inicioExp && horaAtendimento <= fimExp) {
-            const inicioBloco = Math.floor(horaAtendimento / 2) * 2;
-            const faixa = `${inicioBloco.toString().padStart(2, '0')}h - ${(inicioBloco + 2).toString().padStart(2, '0')}h`;
-
-            faturamentoPorBloco[faixa] = (faturamentoPorBloco[faixa] || 0) + valor;
-            faturamentoTotalPeriodo += valor;
+        // Lógica de ADS: Classifica o atendimento no turno correto [cite: 2026-04-24]
+        if (hora >= hInicio && hora < hAlmocoIni) {
+            fatManha += valor;
+        } else if (hora >= hAlmocoFim && hora <= hFim) {
+            fatTarde += valor;
         }
     });
 
-    const ordenados = Object.entries(faturamentoPorBloco)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 2);
+    const totalTurnos = fatManha + fatTarde;
+    const turnos = [
+        { nome: `Manhã (${hInicio} - ${hAlmocoIni})`, valor: fatManha },
+        { nome: `Tarde (${hAlmocoFim} - ${hFim})`, valor: fatTarde }
+    ].sort((a, b) => b.valor - a.valor); // Ordena pelo maior faturamento
 
-    if (ordenados.length === 0) {
-        listaEl.innerHTML = "<p class='loading-text'>Sem dados no período.</p>";
-        dicaEl.innerText = "Registre atendimentos concluídos para ver a análise.";
+    if (totalTurnos === 0) {
+        listaEl.innerHTML = "<p class='loading-text'>Sem faturamento registrado no período.</p>";
+        dicaEl.innerText = "Dica: Conclua atendimentos para gerar a análise de turnos.";
         return;
     }
 
-    // 3. RENDERIZAÇÃO VISUAL (Padrão Black & Gold)
-    listaEl.innerHTML = ordenados.map((item, index) => {
-        const porc = (item[1] / faturamentoTotalPeriodo) * 100;
+    // 3. RENDERIZAÇÃO (Padrão Black & Gold) [cite: 2026-04-24]
+    listaEl.innerHTML = turnos.map((t, index) => {
+        const porc = (t.valor / totalTurnos) * 100;
         const cor = index === 0 ? "var(--cor-primaria)" : "#aaa";
         return `
-            <div class="insight-row" style="margin-bottom: 15px;">
-                <div class="insight-info" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span style="color: ${cor}; font-weight: bold;">${index + 1}º ${item[0]}</span>
-                    <span style="color: var(--cor-subtexto); font-size: 0.85rem;"><strong>${porc.toFixed(0)}%</strong> do faturamento</span>
+            <div class="insight-row">
+                <div class="insight-info">
+                    <span class="posicao" style="color: ${cor}; font-weight: bold;">${index + 1}º ${t.nome}</span>
+                    <span class="porcentagem"><strong>${porc.toFixed(0)}%</strong></span>
                 </div>
-                <div class="barra-progresso-fina" style="background: #222; height: 6px; border-radius: 10px; overflow: hidden;">
-                    <div class="fill" style="width: ${porc}%; background: ${cor}; height: 100%; transition: 1s;"></div>
+                <div class="barra-progresso-fina">
+                    <div class="fill" style="width: ${porc}%; background: ${cor};"></div>
                 </div>
             </div>`;
     }).join("");
 
-    // 4. SISTEMA DE 10 DICAS ESTRATÉGICAS (5 POR TURNO) [cite: 2026-04-03]
-    const topFaixaInicio = parseInt(ordenados[0][0]);
-
-    // Pool de dicas para Manhã/Início de Tarde (até as 14h)
-    const dicasManha = [
-        "Manhãs produtivas! Tente combos para o período da tarde que costuma ser mais calmo.",
-        "O café da manhã está rendendo! Ofereça um serviço rápido de 'barba express' para quem vai ao trabalho.",
-        "Sua agenda matutina é disputada. Que tal um valor diferenciado para fidelizar o horário de almoço?",
-        "Grande movimento matinal. Garanta que o estoque de finalizadores esteja em dia para esse pico.",
-        "O início do dia é seu ponto forte. Use as redes sociais para mostrar os resultados desse turno."
+    // 4. SISTEMA DE 20 DICAS (10 POR TURNO) [cite: 2026-04-24]
+    const turnoVencedor = turnos[0].nome;
+    const dManha = [
+        "Manhãs fortes! Ofereça um café premium para fidelizar esses clientes matinais.",
+        "Público matinal detectado. Que tal um cartão fidelidade para serviços antes das 12h?",
+        "O início do dia é seu ponto forte. Use as redes sociais para mostrar os resultados desse turno.",
+        "Clientes da manhã costumam ser pontuais. Valorize isso com um brinde ou mimo.",
+        "Grande movimento matinal. Garanta que o estoque de finalizadores esteja em dia logo cedo.",
+        "A luz da manhã é ótima para fotos. Registre seus trabalhos e poste nos Stories.",
+        "Turno matinal batendo recordes! Mantenha a bancada organizada para o fluxo constante.",
+        "Manhãs cheias! Considere reforçar a equipe ou abrir 15 min antes para absorver a demanda.",
+        "Café e barba! Ofereça um expresso para quem começa o dia na sua cadeira.",
+        "Ocupação alta antes do almoço. Tente antecipar o pedido de suprimentos para evitar faltas."
     ];
 
-    // Pool de dicas para Tarde/Noite (após as 14h)
-    const dicasNoite = [
-        "Seu horário da noite está bombando! Que tal criar uma promoção para atrair clientes matinais?",
-        "Fim de expediente agitado! Ofereça uma bebida de cortesia para tornar a espera mais agradável.",
-        "As tardes são lucrativas. Foque em serviços premium (como pigmentação) para subir o ticket médio.",
-        "Pico de fim de dia detectado. Reforce a organização entre os cortes para evitar atrasos na fila.",
-        "Movimento intenso após às 17h. Aproveite o fluxo para vender pacotes mensais de manutenção."
+    const dTarde = [
+        "Tardes lucrativas! Noites agitadas sugerem clientes que buscam relaxar após o trabalho.",
+        "Pico de fim de dia detectado. Ofereça uma bebida gelada para tornar a espera agradável.",
+        "O movimento intenso após as 16h é ótimo para vender produtos de manutenção capilar.",
+        "Happy hour na barbearia! Uma playlist mais animada combina com esse pico vespertino.",
+        "Clientes noturnos valorizam a experiência. Ambiente impecável até o último corte.",
+        "Se o pico é à tarde/noite, certifique-se de que a iluminação da fachada está chamando atenção.",
+        "Fim de expediente agitado! Reforce a organização entre os cortes para evitar atrasos.",
+        "Aproveite a saída do trabalho para oferecer combos de 'Barba + Cabelo' no turno da noite.",
+        "Tardes são ideais para serviços premium (como pigmentação) para subir o ticket médio.",
+        "Foco no atendimento! Casa cheia no fim do dia exige agilidade sem perder a qualidade."
     ];
 
-    // Seleção aleatória dentro do grupo correto para variar o dashboard [cite: 2026-04-03]
-    const randomIdx = Math.floor(Math.random() * 5);
-    dicaEl.innerText = topFaixaInicio < 14 ? dicasManha[randomIdx] : dicasNoite[randomIdx];
+    const randomIdx = Math.floor(Math.random() * 10);
+    dicaEl.innerText = turnoVencedor.includes("Manhã") ? dManha[randomIdx] : dTarde[randomIdx];
 }
 
 // Função para calcular novos vs recorrentes [cite: 2026-04-03]
+//
+/* ==========================================================================
+   ANÁLISE DE FIDELIZAÇÃO (CÁLCULO DE NOVOS VS RECORRENTES) [cite: 2026-04-26]
+   ========================================================================== */
 async function processarInsightsClientes(agendamentosAtuais) {
-    const { data: todosAnteriores } = await _supabase.from("agendamentos").select("cliente_nome, data").eq("status", "concluido");
+    // 1. Busca histórica para comparação
+    const { data: todosAnteriores } = await _supabase.from("agendamentos")
+        .select("telefone, data")
+        .eq("status", "concluido");
 
-    const nomesAtuais = new Set(agendamentosAtuais.map(a => a.cliente_nome));
+    if (!agendamentosAtuais || agendamentosAtuais.length === 0) return;
+
+    // 2. Cria o conjunto de telefones únicos do período selecionado
+    const telefonesAtuais = new Set(agendamentosAtuais.map(a => a.telefone));
+    
+    // --- FIX: DECLARAÇÃO DE VARIÁVEIS DE ESCOPO [cite: 2026-04-26] ---
     let recorrentes = 0;
     let novos = 0;
 
-    nomesAtuais.forEach(nome => {
-        const histórico = todosAnteriores.filter(h => h.cliente_nome === nome);
-        histórico.length > 1 ? recorrentes++ : novos++;
+    telefonesAtuais.forEach(tel => {
+        if (!tel) return; 
+        const historico = todosAnteriores.filter(h => h.telefone === tel);
+        // Se já tem mais de 1 atendimento na história, é recorrente [cite: 2026-04-26]
+        historico.length > 1 ? recorrentes++ : novos++;
     });
 
     const taxa = (recorrentes / (novos + recorrentes)) * 100 || 0;
 
-    // --- TRAVA DE SEGURANÇA (Verifica se os elementos existem antes de mudar) ---
+    // 3. ATUALIZAÇÃO DA INTERFACE (IDs do seu Dashboard) [cite: 2026-04-26]
     const elNovos = document.getElementById("rel-novos-clientes");
     const elRecorrentes = document.getElementById("rel-recorrentes");
     const elTaxa = document.getElementById("rel-taxa-retencao");
     const elFill = document.getElementById("fill-retencao");
-    const elFeedback = document.getElementById("feedback-cliente-texto");
+    const elFeedback = document.getElementById("insight-horario-texto"); 
 
     if (elNovos) elNovos.innerText = novos;
     if (elRecorrentes) elRecorrentes.innerText = recorrentes;
     if (elTaxa) elTaxa.innerText = `${taxa.toFixed(0)}%`;
     if (elFill) elFill.style.width = `${taxa}%`;
 
-    // Atualiza o texto de dica apenas se o elemento existir [cite: 2026-04-03]
+    // 4. FEEDBACK ESTRATÉGICO PARA O BARBEIRO [cite: 2026-04-26]
     if (elFeedback) {
         elFeedback.innerText = taxa > 50
             ? "Boa fidelização! Seus clientes confiam no seu trabalho."
             : "Dica: Tente criar um cartão fidelidade para aumentar o retorno dos clientes.";
     }
 }
+
+/* ==========================================================================
+   12. GESTÃO DE DETALHES E FIDELIDADE (VIA TELEFONE) [cite: 2026-04-25]
+   ========================================================================== */
+
+// 1. Função para abrir o modal com o histórico
+window.abrirDetalhesCliente = async function (tel, nome) {
+    const modal = document.getElementById("modal-detalhes-cliente");
+    const containerEstrelas = document.getElementById("estrelas-fidelidade");
+    const elNome = document.getElementById("detalhe-nome-cliente");
+
+    if (!modal) return;
+
+    // Abre o modal e limpa os campos antes da busca
+    modal.style.display = "block";
+    if (elNome) elNome.innerText = nome;
+    if (containerEstrelas) containerEstrelas.innerHTML = "<p class='loading-text'>Buscando histórico...</p>";
+
+    // Busca agendamentos concluídos pelo Telefone (Chave Única) [cite: 2026-04-25]
+    const { data: historico, error } = await _supabase
+        .from('agendamentos')
+        .select('data, servico')
+        .eq('telefone', tel)
+        .eq('status', 'concluido')
+        .order('data', { ascending: false });
+
+    if (error || !historico || historico.length === 0) {
+        if (containerEstrelas) containerEstrelas.innerHTML = "<p style='font-size:0.8rem; color:#666;'>Sem histórico de fidelidade.</p>";
+        document.getElementById("detalhe-data-corte").innerText = "---";
+        document.getElementById("detalhe-servico").innerText = "---";
+        document.getElementById("total-servicos-texto").innerText = "0 serviços concluídos";
+        return;
+    }
+
+    // Preenche os dados do último corte
+    const ultimo = historico[0];
+    document.getElementById("detalhe-data-corte").innerText = ultimo.data.split("-").reverse().join("/");
+    document.getElementById("detalhe-servico").innerText = ultimo.servico;
+
+    // Gera as estrelas de fidelidade [cite: 2026-04-25]
+    containerEstrelas.innerHTML = "";
+    historico.forEach(() => {
+        containerEstrelas.innerHTML += '<i class="fas fa-star" style="margin-right:5px;"></i>';
+    });
+
+    document.getElementById("total-servicos-texto").innerText = `${historico.length} ${historico.length === 1 ? 'serviço concluído' : 'serviços concluídos'}`;
+};
+
+// 2. Função que resolve o erro "is not defined" [cite: 2026-04-25]
+window.fecharModalDetalhes = function () {
+    const modal = document.getElementById("modal-detalhes-cliente");
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
+// 3. Fecha o modal se o barbeiro clicar fora da caixa (Mobile First) [cite: 2026-04-25]
+window.addEventListener("click", (event) => {
+    const modal = document.getElementById("modal-detalhes-cliente");
+    if (event.target == modal) {
+        fecharModalDetalhes();
+    }
+});
+
+/* ==========================================================================
+   12. CONFIGURAÇÕES GERAIS - GESTÃO DE CONTEÚDO E MÍDIAS [cite: 2026-04-26]
+   ========================================================================== */
+
+// 1. Controle de Navegação e Carregamento de Dados
+window.abrirSubConfigGeral = async function (tipo) {
+    esconderTodasSessoes();
+    const paiConfig = document.getElementById("configuracoes-section");
+    if (paiConfig) paiConfig.style.display = "block";
+
+    document.querySelectorAll('.config-sub-section').forEach(s => s.style.display = 'none');
+
+    // Mapeamento das áreas [cite: 2026-04-26]
+    if (tipo === 'submenu1') document.getElementById("area-config-home").style.display = "block";
+    if (tipo === 'submenu2') document.getElementById("area-galeria-midia").style.display = "block";
+
+    // Busca dados na tabela independente [cite: 2026-04-26]
+    const { data: config } = await _supabase
+        .from('configuracoes1')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+    if (config) {
+        if (tipo === 'submenu1') {
+            // Preenchimento de Textos (Submenu 1)
+            document.getElementById("cfg-hero-titulo").value = config.hero_titulo || "";
+            document.getElementById("cfg-sobre-texto").value = config.sobre_texto || "";
+            document.getElementById("cfg-end-rua").value = config.end_rua || "";
+            document.getElementById("cfg-end-numero").value = config.end_numero || "";
+            document.getElementById("cfg-end-cidade").value = config.end_cidade || "";
+            document.getElementById("cfg-end-estado").value = config.end_estado || "";
+            document.getElementById("cfg-end-cep").value = config.end_cep || "";
+            document.getElementById("cfg-end-tel").value = config.end_tel || "";
+            document.getElementById("cfg-mapa-iframe").value = config.mapa_iframe || "";
+        } 
+        
+        if (tipo === 'submenu2') {
+            // Lógica de Mídias (Submenu 2) [cite: 2026-04-26]
+            verificarLembreteAtualizacao(config.ultima_atualizacao_midia);
+            
+            // Define o rádio do layout (Galeria ou Produtos) [cite: 2026-04-26]
+            const radioLayout = document.querySelector(`input[name="opt-exibicao"][value="${config.tipo_exibicao || 'galeria'}"]`);
+            if (radioLayout) {
+                radioLayout.checked = true;
+                alternarLayoutMidia(config.tipo_exibicao || 'galeria', config);
+            }
+        }
+    }
+};
+
+// 2. Lógica de Upload para o Supabase Storage [cite: 2026-04-26]
+window.uploadMidia = async function(tipo) {
+    const fileInput = document.getElementById(`up-${tipo}`);
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // Respeitando o limite de espaço (Max 2MB por imagem) [cite: 2026-04-26]
+    if (file.size > 2 * 1024 * 1024) {
+        alert("Ops! Essa imagem é muito pesada. Escolha uma de até 2MB para manter o site rápido.");
+        fileInput.value = "";
+        return;
+    }
+
+    const fileName = `${Date.now()}-${tipo}.webp`;
+    const { data, error } = await _supabase.storage
+        .from('midia-home')
+        .upload(fileName, file);
+
+    if (error) return alert("Erro no upload: " + error.message);
+
+    const { data: publicData } = _supabase.storage.from('midia-home').getPublicUrl(fileName);
+    
+    // Armazena a URL para o salvamento final [cite: 2026-04-26]
+    window[`url_link_${tipo}`] = publicData.publicUrl;
+    alert("Imagem processada! Não esqueça de clicar em 'Atualizar Vitrine' ao final.");
+};
+
+// 3. Alternância Dinâmica de Layout (Galeria vs Produtos) [cite: 2026-04-26]
+window.alternarLayoutMidia = function(tipo, dadosExistentes = null) {
+    const container = document.getElementById("container-inputs-dinamicos");
+    if (!container) return;
+
+    if (tipo === 'galeria') {
+        container.innerHTML = `
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Portfólio: Envie 4 fotos dos seus melhores cortes.</p>
+            <div class="config-grid-form">
+                ${[1,2,3,4].map(i => `
+                    <div class="input-group-modal">
+                        <label>Foto ${i}</label>
+                        <input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" />
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione um produto em destaque.</p>
+            <div class="config-grid-form">
+                <div class="input-group-modal"><label>Foto Produto</label><input type="file" id="up-prod-img" onchange="uploadMidia('prod-img')"/></div>
+                <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-prod-nome" placeholder="Ex: Pomada Efeito Matte"/></div>
+                <div class="input-group-modal"><label>Preço (R$)</label><input type="number" id="cfg-prod-preco" placeholder="0.00"/></div>
+            </div>
+        `;
+    }
+};
+
+// 4. Lembrete de 30 Dias (Pop-up) [cite: 2026-04-26]
+function verificarLembreteAtualizacao(ultimaData) {
+    if (!ultimaData) return;
+    
+    const hoje = new Date();
+    const ultima = new Date(ultimaData);
+    const diferencaDias = Math.floor((hoje - ultima) / (1000 * 60 * 60 * 24));
+
+    if (diferencaDias >= 30) {
+        alert("⚡ Lembrete ClientFlow: Já faz mais de 30 dias que você não atualiza suas fotos ou produtos. Que tal renovar o visual do seu site hoje?");
+    }
+}
+
+// 2. Função ÚNICA para salvar (Substitua as repetidas por esta)
+window.salvarConteudoHome = async function () {
+    const btn = document.querySelector("button[onclick='salvarConteudoHome()']");
+    if (!btn) return;
+
+    btn.innerText = "Publicando...";
+    btn.disabled = true;
+
+    const dadosHome = {
+        id: 1,
+        hero_titulo: document.getElementById("cfg-hero-titulo").value,
+        sobre_texto: document.getElementById("cfg-sobre-texto").value,
+        end_rua: document.getElementById("cfg-end-rua").value,
+        end_numero: document.getElementById("cfg-end-numero").value,
+        end_cidade: document.getElementById("cfg-end-cidade").value,
+        end_estado: document.getElementById("cfg-end-estado").value,
+        end_cep: document.getElementById("cfg-end-cep").value,
+        end_tel: document.getElementById("cfg-end-tel").value,
+        mapa_iframe: document.getElementById("cfg-mapa-iframe").value
+    };
+
+    const { error } = await _supabase.from('configuracoes1').upsert(dadosHome);
+
+    if (error) {
+        alert("Erro ao salvar: " + error.message);
+    } else {
+        alert("Site atualizado com sucesso! 🚀");
+    }
+
+    btn.innerHTML = '<i class="fas fa-save"></i> Atualizar Site';
+    btn.disabled = false;
+};
+
+
+/* ==========================================================================
+   12. VITRINE E MÍDIAS - SALVAMENTO INTELIGENTE [cite: 2026-04-26]
+   ========================================================================== */
+window.salvarVitrineMídias = async function() {
+    const btn = document.querySelector("button[onclick='salvarVitrineMídias()']");
+    if (btn) btn.innerText = "Sincronizando Vitrine...";
+
+    // 1. BUSCA DADOS ATUAIS: Fundamental para não sobrescrever com vazio [cite: 2026-04-26]
+    const { data: configAtual } = await _supabase
+        .from('vitrine_midias')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+    const tipoAtivo = document.querySelector('input[name="opt-exibicao"]:checked').value;
+
+    // 2. PREPARA O OBJETO DE UPDATE [cite: 2026-04-26]
+    const dadosUpdate = {
+        id: 1,
+        tipo_exibicao: tipoAtivo,
+        ultima_atualizacao_midia: new Date().toISOString(),
+        // Usa o novo upload da sessão OU mantém o que já estava no banco [cite: 2026-04-26]
+        url_hero: window.url_link_hero || (configAtual ? configAtual.url_hero : null),
+        url_sobre: window.url_link_sobre || (configAtual ? configAtual.url_sobre : null)
+    };
+
+    // 3. LÓGICA DE GALERIA (Array de 4 URLs) [cite: 2026-04-26]
+    if (tipoAtivo === 'galeria') {
+        const galeriaFinal = [];
+        for (let i = 1; i <= 4; i++) {
+            const linkNovo = window[`url_link_galeria-${i}`];
+            const linkExistente = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i - 1] : null;
+            
+            // Prioriza o novo upload; se não houver, mantém o antigo [cite: 2026-04-26]
+            if (linkNovo || linkExistente) {
+                galeriaFinal.push(linkNovo || linkExistente);
+            }
+        }
+        dadosUpdate.dados_galeria = galeriaFinal;
+        dadosUpdate.dados_produtos = configAtual ? configAtual.dados_produtos : []; // Mantém produtos em background
+    } 
+    
+    // 4. LÓGICA DE PRODUTOS (Array de Objetos: Nome, Preço, Foto) [cite: 2026-04-26]
+    else {
+        const produtosFinal = [];
+        for (let i = 1; i <= 2; i++) {
+            const nomeInput = document.getElementById(`p-nome-${i}`).value;
+            const precoInput = document.getElementById(`p-preco-${i}`).value;
+            const linkNovo = window[`url_link_prod-${i}`];
+            const linkExistente = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i - 1] 
+                                  ? configAtual.dados_produtos[i - 1].url : null;
+
+            if (nomeInput || linkNovo || linkExistente) {
+                produtosFinal.push({
+                    nome: nomeInput || (configAtual && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].nome : ""),
+                    preco: precoInput || (configAtual && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].preco : 0),
+                    url: linkNovo || linkExistente || ""
+                });
+            }
+        }
+        dadosUpdate.dados_produtos = produtosFinal;
+        dadosUpdate.dados_galeria = configAtual ? configAtual.dados_galeria : []; // Mantém galeria em background
+    }
+
+    // 5. ENVIO FINAL PARA O SUPABASE [cite: 2026-04-26]
+    const { error } = await _supabase.from('vitrine_midias').upsert(dadosUpdate);
+
+    if (error) {
+        alert("Erro ao salvar vitrine: " + error.message);
+    } else {
+        alert("Vitrine atualizada com sucesso! Verifique seu site. 📸");
+        
+        // LIMPEZA: Reseta as variáveis da sessão após o sucesso [cite: 2026-04-26]
+        window.url_link_hero = null; window.url_link_sobre = null;
+        for (let i = 1; i <= 4; i++) window[`url_link_galeria-${i}`] = null;
+        for (let i = 1; i <= 2; i++) window[`url_link_prod-${i}`] = null;
+    }
+    
+    if (btn) btn.innerHTML = '<i class="fas fa-sync"></i> Atualizar Vitrine do Site';
+};

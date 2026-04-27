@@ -500,3 +500,38 @@ footer {
     width: 100%;
   }
 }
+
+/* Estilo dos Cards de Produtos [cite: 2026-04-26] */
+.card-produto {
+  background-color: var(--cor-card);
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.card-produto:hover {
+  transform: translateY(-5px);
+  border-color: var(--cor-primaria);
+}
+
+.card-produto img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.card-produto h4 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.card-produto .preco-tag {
+  color: var(--cor-primaria);
+  font-size: 1.3rem;
+  font-weight: bold;
+}
