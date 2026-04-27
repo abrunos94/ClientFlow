@@ -241,52 +241,125 @@ if (formulario) {
     });
 }
 
-document.addEventListener("DOMContentLoaded", renderizarServicosNaHome);
 
 /* ==========================================================================
-   6. CARREGAMENTO DE CONTEÚDO PERSONALIZADO [cite: 2026-04-26]
+   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE) [cite: 2026-04-26]
+   ========================================================================== */
+/* ==========================================================================
+   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
    ========================================================================== */
 async function carregarConteudoPersonalizado() {
-    // Trocamos .single() por .maybeSingle() para evitar o erro 406 [cite: 2026-04-26]
-    const { data: config, error } = await _supabase
-        .from('configuracoes1')
-        .select('*')
-        .eq('id', 1)
-        .maybeSingle();
+    // 1. Busca os textos e endereço na configuracoes1 [cite: 2026-04-26]
+    const { data: textos } = await _supabase.from('configuracoes1').select('*').eq('id', 1).maybeSingle();
 
-    if (error) {
-        console.warn("Aviso: Falha ao buscar configurações personalizadas.");
-        return;
-    }
+    // 2. Busca as fotos e layout na vitrine_midias [cite: 2026-04-26]
+    const { data: midias } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
 
-    // Se não houver dados (config é null), o site mantém o que já está no HTML [cite: 2026-04-26]
-    if (config) {
-        if (config.hero_titulo) {
-            const h1 = document.querySelector(".hero-content h1");
-            if (h1) h1.innerText = config.hero_titulo;
-        }
-
-        if (config.sobre_texto) {
-            const pSobre = document.querySelector(".texto-sobre p");
-            if (pSobre) pSobre.innerText = config.sobre_texto;
-        }
+    // --- PARTE A: TEXTOS E ENDEREÇO (configuracoes1) ---
+    if (textos) {
+        if (textos.hero_titulo) document.querySelector(".hero-content h1").innerText = textos.hero_titulo;
+        if (textos.sobre_texto) document.querySelector(".texto-sobre p").innerText = textos.sobre_texto;
 
         const footerInfo = document.querySelector(".info-contato");
-        if (footerInfo && config.end_rua) {
+        if (footerInfo && textos.end_rua) {
             const ps = footerInfo.querySelectorAll("p");
             if (ps.length >= 3) {
-                ps[0].innerText = `${config.end_rua}, ${config.end_numero} - ${config.end_cidade}, ${config.end_estado}`;
-                ps[1].innerText = `CEP: ${config.end_cep}`;
-                ps[2].innerText = `Telefone: ${config.end_tel}`;
+                ps[0].innerText = `${textos.end_rua}, ${textos.end_numero} - ${textos.end_cidade}, ${textos.end_estado}`;
+                ps[1].innerText = `CEP: ${textos.end_cep}`;
+                ps[2].innerText = `Telefone: ${textos.end_tel}`;
             }
         }
 
-        if (config.mapa_iframe) {
-            const mapaContainer = document.querySelector(".mapa-container");
-            if (mapaContainer) mapaContainer.innerHTML = config.mapa_iframe;
+        if (textos.mapa_iframe) {
+            const containerMapa = document.querySelector(".mapa-container");
+            if (containerMapa) containerMapa.innerHTML = textos.mapa_iframe;
+        }
+    }
+
+    // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) [cite: 2026-04-26] ---
+    if (midias) {
+        // Atualização do Hero [cite: 2026-04-26]
+        if (midias.url_hero) {
+            const pictureHero = document.querySelector(".imagem-hero picture");
+            if (pictureHero) {
+                pictureHero.querySelectorAll("source").forEach(s => s.remove());
+                const img = pictureHero.querySelector("img");
+                if (img) img.src = midias.url_hero;
+            }
+        }
+
+        // Atualização do Sobre [cite: 2026-04-26]
+        if (midias.url_sobre) {
+            const pictureSobre = document.querySelector(".texto-sobre").nextElementSibling;
+            if (pictureSobre && pictureSobre.tagName === "PICTURE") {
+                pictureSobre.querySelectorAll("source").forEach(s => s.remove());
+                const img = pictureSobre.querySelector("img");
+                if (img) img.src = midias.url_sobre;
+            }
+        }
+
+        // --- LÓGICA DINÂMICA: GALERIA, PRODUTOS OU AMBOS [cite: 2026-04-26] ---
+        const contGaleria = document.getElementById("container-galeria-fotos");
+        const contProdutos = document.getElementById("container-produtos");
+        const tituloVitrine = document.getElementById("titulo-vitrine");
+
+        if (midias.tipo_exibicao) {
+            // Reset de visibilidade [cite: 2026-04-26]
+            if (contGaleria) contGaleria.style.display = "none";
+            if (contProdutos) contProdutos.style.display = "none";
+
+            if (midias.tipo_exibicao === 'galeria') {
+                if (tituloVitrine) tituloVitrine.innerText = "Galeria";
+                if (contGaleria) {
+                    contGaleria.style.display = "grid";
+                    renderizarGaleria(contGaleria, midias.dados_galeria);
+                }
+            }
+            else if (midias.tipo_exibicao === 'produtos') {
+                if (tituloVitrine) tituloVitrine.innerText = "Nossos Produtos";
+                if (contProdutos) {
+                    contProdutos.style.display = "grid";
+                    renderizarProdutos(contProdutos, midias.dados_produtos);
+                }
+            }
+            else if (midias.tipo_exibicao === 'ambos') {
+                if (tituloVitrine) tituloVitrine.innerText = "Vitrine e Produtos";
+                if (contGaleria) {
+                    contGaleria.style.display = "grid";
+                    renderizarGaleria(contGaleria, midias.dados_galeria);
+                }
+                if (contProdutos) {
+                    contProdutos.style.display = "grid";
+                    // Mantemos uma margem entre os dois se ambos estiverem ativos [cite: 2026-04-26]
+                    contProdutos.style.marginTop = "40px";
+                    renderizarProdutos(contProdutos, midias.dados_produtos);
+                }
+            }
         }
     }
 }
 
-// Garante que o conteúdo carregue assim que o site abrir [cite: 2026-04-26]
-document.addEventListener("DOMContentLoaded", carregarConteudoPersonalizado);
+// Funções Auxiliares para renderizar o layout proposto
+function renderizarGaleria(container, fotos) {
+    if (!fotos || fotos.length === 0) return;
+    container.innerHTML = fotos.map(url =>
+        `<img src="${url}" alt="Trabalho do Barbeiro" style="width:100%; height:200px; object-fit:cover; border-radius:4px;">`
+    ).join("");
+}
+
+function renderizarProdutos(container, produtos) {
+    if (!produtos || produtos.length === 0) return;
+    container.innerHTML = produtos.map(p => `
+        <div class="card-produto-vitrine" style="background:var(--cor-card); padding:15px; border-radius:4px; text-align:center;">
+            <img src="${p.url}" style="width:100%; height:150px; object-fit:cover; border-radius:4px; margin-bottom:10px;">
+            <h4 style="font-size:0.9rem; color:#fff;">${p.nome}</h4>
+            <p style="color:var(--cor-primaria); font-weight:bold;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
+        </div>
+    `).join("");
+}
+
+// Inicialização Geral [cite: 2026-04-26]
+document.addEventListener("DOMContentLoaded", () => {
+    renderizarServicosNaHome();
+    carregarConteudoPersonalizado(); // Agora sendo chamada corretamente!
+});

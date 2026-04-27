@@ -1287,10 +1287,10 @@ window.addEventListener("click", (event) => {
 });
 
 /* ==========================================================================
-   12. CONFIGURAÇÕES GERAIS - AUTONOMIA DA HOME [cite: 2026-04-26]
+   12. CONFIGURAÇÕES GERAIS - GESTÃO DE CONTEÚDO E MÍDIAS [cite: 2026-04-26]
    ========================================================================== */
 
-// 1. Função para abrir a aba e buscar dados existentes
+// 1. Controle de Navegação e Carregamento de Dados
 window.abrirSubConfigGeral = async function (tipo) {
     esconderTodasSessoes();
     const paiConfig = document.getElementById("configuracoes-section");
@@ -1298,18 +1298,20 @@ window.abrirSubConfigGeral = async function (tipo) {
 
     document.querySelectorAll('.config-sub-section').forEach(s => s.style.display = 'none');
 
-    if (tipo === 'submenu1') {
-        const areaHome = document.getElementById("area-config-home");
-        if (areaHome) areaHome.style.display = "block";
+    // Mapeamento das áreas [cite: 2026-04-26]
+    if (tipo === 'submenu1') document.getElementById("area-config-home").style.display = "block";
+    if (tipo === 'submenu2') document.getElementById("area-galeria-midia").style.display = "block";
 
-        // .maybeSingle() evita o erro 406 se a tabela estiver vazia [cite: 2026-04-26]
-        const { data: config } = await _supabase
-            .from('configuracoes1')
-            .select('*')
-            .eq('id', 1)
-            .maybeSingle();
+    // Busca dados na tabela independente [cite: 2026-04-26]
+    const { data: config } = await _supabase
+        .from('configuracoes1')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
 
-        if (config) {
+    if (config) {
+        if (tipo === 'submenu1') {
+            // Preenchimento de Textos (Submenu 1)
             document.getElementById("cfg-hero-titulo").value = config.hero_titulo || "";
             document.getElementById("cfg-sobre-texto").value = config.sobre_texto || "";
             document.getElementById("cfg-end-rua").value = config.end_rua || "";
@@ -1319,9 +1321,90 @@ window.abrirSubConfigGeral = async function (tipo) {
             document.getElementById("cfg-end-cep").value = config.end_cep || "";
             document.getElementById("cfg-end-tel").value = config.end_tel || "";
             document.getElementById("cfg-mapa-iframe").value = config.mapa_iframe || "";
+        } 
+        
+        if (tipo === 'submenu2') {
+            // Lógica de Mídias (Submenu 2) [cite: 2026-04-26]
+            verificarLembreteAtualizacao(config.ultima_atualizacao_midia);
+            
+            // Define o rádio do layout (Galeria ou Produtos) [cite: 2026-04-26]
+            const radioLayout = document.querySelector(`input[name="opt-exibicao"][value="${config.tipo_exibicao || 'galeria'}"]`);
+            if (radioLayout) {
+                radioLayout.checked = true;
+                alternarLayoutMidia(config.tipo_exibicao || 'galeria', config);
+            }
         }
     }
 };
+
+// 2. Lógica de Upload para o Supabase Storage [cite: 2026-04-26]
+window.uploadMidia = async function(tipo) {
+    const fileInput = document.getElementById(`up-${tipo}`);
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // Respeitando o limite de espaço (Max 2MB por imagem) [cite: 2026-04-26]
+    if (file.size > 2 * 1024 * 1024) {
+        alert("Ops! Essa imagem é muito pesada. Escolha uma de até 2MB para manter o site rápido.");
+        fileInput.value = "";
+        return;
+    }
+
+    const fileName = `${Date.now()}-${tipo}.webp`;
+    const { data, error } = await _supabase.storage
+        .from('midia-home')
+        .upload(fileName, file);
+
+    if (error) return alert("Erro no upload: " + error.message);
+
+    const { data: publicData } = _supabase.storage.from('midia-home').getPublicUrl(fileName);
+    
+    // Armazena a URL para o salvamento final [cite: 2026-04-26]
+    window[`url_link_${tipo}`] = publicData.publicUrl;
+    alert("Imagem processada! Não esqueça de clicar em 'Atualizar Vitrine' ao final.");
+};
+
+// 3. Alternância Dinâmica de Layout (Galeria vs Produtos) [cite: 2026-04-26]
+window.alternarLayoutMidia = function(tipo, dadosExistentes = null) {
+    const container = document.getElementById("container-inputs-dinamicos");
+    if (!container) return;
+
+    if (tipo === 'galeria') {
+        container.innerHTML = `
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Portfólio: Envie 4 fotos dos seus melhores cortes.</p>
+            <div class="config-grid-form">
+                ${[1,2,3,4].map(i => `
+                    <div class="input-group-modal">
+                        <label>Foto ${i}</label>
+                        <input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" />
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione um produto em destaque.</p>
+            <div class="config-grid-form">
+                <div class="input-group-modal"><label>Foto Produto</label><input type="file" id="up-prod-img" onchange="uploadMidia('prod-img')"/></div>
+                <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-prod-nome" placeholder="Ex: Pomada Efeito Matte"/></div>
+                <div class="input-group-modal"><label>Preço (R$)</label><input type="number" id="cfg-prod-preco" placeholder="0.00"/></div>
+            </div>
+        `;
+    }
+};
+
+// 4. Lembrete de 30 Dias (Pop-up) [cite: 2026-04-26]
+function verificarLembreteAtualizacao(ultimaData) {
+    if (!ultimaData) return;
+    
+    const hoje = new Date();
+    const ultima = new Date(ultimaData);
+    const diferencaDias = Math.floor((hoje - ultima) / (1000 * 60 * 60 * 24));
+
+    if (diferencaDias >= 30) {
+        alert("⚡ Lembrete ClientFlow: Já faz mais de 30 dias que você não atualiza suas fotos ou produtos. Que tal renovar o visual do seu site hoje?");
+    }
+}
 
 // 2. Função ÚNICA para salvar (Substitua as repetidas por esta)
 window.salvarConteudoHome = async function () {
@@ -1354,4 +1437,86 @@ window.salvarConteudoHome = async function () {
 
     btn.innerHTML = '<i class="fas fa-save"></i> Atualizar Site';
     btn.disabled = false;
+};
+
+
+/* ==========================================================================
+   12. VITRINE E MÍDIAS - SALVAMENTO INTELIGENTE [cite: 2026-04-26]
+   ========================================================================== */
+window.salvarVitrineMídias = async function() {
+    const btn = document.querySelector("button[onclick='salvarVitrineMídias()']");
+    if (btn) btn.innerText = "Sincronizando Vitrine...";
+
+    // 1. BUSCA DADOS ATUAIS: Fundamental para não sobrescrever com vazio [cite: 2026-04-26]
+    const { data: configAtual } = await _supabase
+        .from('vitrine_midias')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+    const tipoAtivo = document.querySelector('input[name="opt-exibicao"]:checked').value;
+
+    // 2. PREPARA O OBJETO DE UPDATE [cite: 2026-04-26]
+    const dadosUpdate = {
+        id: 1,
+        tipo_exibicao: tipoAtivo,
+        ultima_atualizacao_midia: new Date().toISOString(),
+        // Usa o novo upload da sessão OU mantém o que já estava no banco [cite: 2026-04-26]
+        url_hero: window.url_link_hero || (configAtual ? configAtual.url_hero : null),
+        url_sobre: window.url_link_sobre || (configAtual ? configAtual.url_sobre : null)
+    };
+
+    // 3. LÓGICA DE GALERIA (Array de 4 URLs) [cite: 2026-04-26]
+    if (tipoAtivo === 'galeria') {
+        const galeriaFinal = [];
+        for (let i = 1; i <= 4; i++) {
+            const linkNovo = window[`url_link_galeria-${i}`];
+            const linkExistente = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i - 1] : null;
+            
+            // Prioriza o novo upload; se não houver, mantém o antigo [cite: 2026-04-26]
+            if (linkNovo || linkExistente) {
+                galeriaFinal.push(linkNovo || linkExistente);
+            }
+        }
+        dadosUpdate.dados_galeria = galeriaFinal;
+        dadosUpdate.dados_produtos = configAtual ? configAtual.dados_produtos : []; // Mantém produtos em background
+    } 
+    
+    // 4. LÓGICA DE PRODUTOS (Array de Objetos: Nome, Preço, Foto) [cite: 2026-04-26]
+    else {
+        const produtosFinal = [];
+        for (let i = 1; i <= 2; i++) {
+            const nomeInput = document.getElementById(`p-nome-${i}`).value;
+            const precoInput = document.getElementById(`p-preco-${i}`).value;
+            const linkNovo = window[`url_link_prod-${i}`];
+            const linkExistente = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i - 1] 
+                                  ? configAtual.dados_produtos[i - 1].url : null;
+
+            if (nomeInput || linkNovo || linkExistente) {
+                produtosFinal.push({
+                    nome: nomeInput || (configAtual && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].nome : ""),
+                    preco: precoInput || (configAtual && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].preco : 0),
+                    url: linkNovo || linkExistente || ""
+                });
+            }
+        }
+        dadosUpdate.dados_produtos = produtosFinal;
+        dadosUpdate.dados_galeria = configAtual ? configAtual.dados_galeria : []; // Mantém galeria em background
+    }
+
+    // 5. ENVIO FINAL PARA O SUPABASE [cite: 2026-04-26]
+    const { error } = await _supabase.from('vitrine_midias').upsert(dadosUpdate);
+
+    if (error) {
+        alert("Erro ao salvar vitrine: " + error.message);
+    } else {
+        alert("Vitrine atualizada com sucesso! Verifique seu site. 📸");
+        
+        // LIMPEZA: Reseta as variáveis da sessão após o sucesso [cite: 2026-04-26]
+        window.url_link_hero = null; window.url_link_sobre = null;
+        for (let i = 1; i <= 4; i++) window[`url_link_galeria-${i}`] = null;
+        for (let i = 1; i <= 2; i++) window[`url_link_prod-${i}`] = null;
+    }
+    
+    if (btn) btn.innerHTML = '<i class="fas fa-sync"></i> Atualizar Vitrine do Site';
 };

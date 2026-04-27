@@ -58,7 +58,7 @@
           </a>
           <div class="submenu" id="submenu-config-geral">
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu1')">Conteúdo da Home</a>
-            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu2')">Submenu 2</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu2')">Vitrine e Mídias</a>
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu3')">Submenu 3</a>
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu4')">Submenu 4</a>
           </div>
@@ -273,41 +273,79 @@
           </div>
         </div>
         <div id="area-config-home" class="config-sub-section" style="display: none">
-  <h3><i class="fas fa-edit"></i> Editar Conteúdo da Home</h3>
-  <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-    
-    <div class="input-group-modal">
-      <label>Título Principal (Hero)</label>
-      <input type="text" id="cfg-hero-titulo" placeholder="Ex: Cortes Modernos e Barba de Respeito" />
-    </div>
+          <h3><i class="fas fa-edit"></i> Editar Conteúdo da Home</h3>
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
 
-    <div class="input-group-modal">
-      <label>Texto 'Sobre Nós'</label>
-      <textarea id="cfg-sobre-texto" rows="4" style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
-    </div>
+            <div class="input-group-modal">
+              <label>Título Principal (Hero)</label>
+              <input type="text" id="cfg-hero-titulo" placeholder="Ex: Cortes Modernos e Barba de Respeito" />
+            </div>
 
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-    <p style="color: var(--cor-primaria); font-weight: bold; margin-bottom: 10px;">Endereço e Contato</p>
-    
-    <div class="config-grid-form">
-      <div class="input-group-modal"><label>Rua</label><input type="text" id="cfg-end-rua" /></div>
-      <div class="input-group-modal"><label>Número</label><input type="text" id="cfg-end-numero" /></div>
-      <div class="input-group-modal"><label>Cidade</label><input type="text" id="cfg-end-cidade" /></div>
-      <div class="input-group-modal"><label>Estado</label><input type="text" id="cfg-end-estado" /></div>
-      <div class="input-group-modal"><label>CEP</label><input type="text" id="cfg-end-cep" /></div>
-      <div class="input-group-modal"><label>Telefone Comercial</label><input type="text" id="cfg-end-tel" /></div>
-    </div>
+            <div class="input-group-modal">
+              <label>Texto 'Sobre Nós'</label>
+              <textarea id="cfg-sobre-texto" rows="4"
+                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+            </div>
 
-    <div class="input-group-modal" style="margin-top: 20px;">
-      <label>Link do Google Maps (Iframe)</label>
-      <textarea id="cfg-mapa-iframe" placeholder="Cole aqui o <iframe> do Google Maps" rows="3" style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
-    </div>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+            <p style="color: var(--cor-primaria); font-weight: bold; margin-bottom: 10px;">Endereço e Contato</p>
 
-    <button onclick="salvarConteudoHome()" class="btn-principal" style="margin-top: 20px; width: 100%">
-      <i class="fas fa-save"></i> Atualizar Site
-    </button>
-  </div>
-</div>
+            <div class="config-grid-form">
+              <div class="input-group-modal"><label>Rua</label><input type="text" id="cfg-end-rua" /></div>
+              <div class="input-group-modal"><label>Número</label><input type="text" id="cfg-end-numero" /></div>
+              <div class="input-group-modal"><label>Cidade</label><input type="text" id="cfg-end-cidade" /></div>
+              <div class="input-group-modal"><label>Estado</label><input type="text" id="cfg-end-estado" /></div>
+              <div class="input-group-modal"><label>CEP</label><input type="text" id="cfg-end-cep" /></div>
+              <div class="input-group-modal"><label>Telefone Comercial</label><input type="text" id="cfg-end-tel" />
+              </div>
+            </div>
+
+            <div class="input-group-modal" style="margin-top: 20px;">
+              <label>Link do Google Maps (Iframe)</label>
+              <textarea id="cfg-mapa-iframe" placeholder="Cole aqui o <iframe> do Google Maps" rows="3"
+                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+            </div>
+
+            <button onclick="salvarConteudoHome()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              <i class="fas fa-save"></i> Atualizar Site
+            </button>
+          </div>
+        </div>
+        <div id="area-galeria-midia" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-camera"></i> Vitrine e Mídias</h3>
+
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-bottom: 20px;">
+            <p style="font-weight: bold; margin-bottom: 15px;">Imagens Principais (Hero e Sobre)</p>
+            <div class="config-grid-form">
+              <div class="input-group-modal">
+                <label>Imagem Hero (Fundo Entrada)</label>
+                <input type="file" id="up-hero" accept="image/*" onchange="uploadMidia('hero')" />
+              </div>
+              <div class="input-group-modal">
+                <label>Imagem 'Sobre Nós'</label>
+                <input type="file" id="up-sobre" accept="image/*" onchange="uploadMidia('sobre')" />
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card" style="border-left: 4px solid #3498db; margin-bottom: 20px;">
+            <div class="checkbox-group" style="background: #111; padding: 20px; border-radius: 8px;">
+              <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">Escolha o que mostrar no site:</p>
+              <label><input type="radio" name="opt-exibicao" value="galeria" checked
+                  onclick="alternarLayoutMidia('galeria')"> Apenas Galeria</label>
+              <label><input type="radio" name="opt-exibicao" value="produtos" onclick="alternarLayoutMidia('produtos')">
+                Apenas Produtos</label>
+              <label><input type="radio" name="opt-exibicao" value="ambos" onclick="alternarLayoutMidia('ambos')">
+                Galeria + Produtos</label>
+            </div>
+
+            <div id="container-inputs-dinamicos" style="margin-top: 20px;"></div>
+
+            <button onclick="salvarVitrineMídias()" class="btn-principal" style="margin-top: 20px; width: 100%">
+              <i class="fas fa-sync"></i> Atualizar Vitrine do Site
+            </button>
+          </div>
+        </div>
       </section>
 
       <section id="secao-relatorios" class="aba-content" style="display: none;">
