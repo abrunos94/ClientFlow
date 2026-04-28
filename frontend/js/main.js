@@ -242,9 +242,7 @@ if (formulario) {
 }
 
 
-/* ==========================================================================
-   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE) [cite: 2026-04-26]
-   ========================================================================== */
+
 /* ==========================================================================
    6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
    ========================================================================== */
@@ -277,14 +275,15 @@ async function carregarConteudoPersonalizado() {
     }
 
     // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) [cite: 2026-04-26] ---
-    if (midias) {
-        // Atualização do Hero [cite: 2026-04-26]
-        if (midias.url_hero) {
-            const pictureHero = document.querySelector(".imagem-hero picture");
-            if (pictureHero) {
-                pictureHero.querySelectorAll("source").forEach(s => s.remove());
-                const img = pictureHero.querySelector("img");
-                if (img) img.src = midias.url_hero;
+    if (midias.url_sobre) {
+        const containerSobre = document.querySelector(".imagem-sobre");
+        if (containerSobre) {
+            const picture = containerSobre.querySelector("picture");
+            if (picture) {
+                // Remove as fontes fixas do HTML para usar o <img> dinâmico [cite: 2026-04-27]
+                picture.querySelectorAll("source").forEach(s => s.remove());
+                const img = picture.querySelector("img");
+                if (img) img.src = midias.url_sobre;
             }
         }
 
