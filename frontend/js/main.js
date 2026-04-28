@@ -246,11 +246,14 @@ if (formulario) {
 /* ==========================================================================
    6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
    ========================================================================== */
+/* ==========================================================================
+   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
+   ========================================================================== */
 async function carregarConteudoPersonalizado() {
     // 1. Busca os textos e endereço na configuracoes1 [cite: 2026-04-26]
     const { data: textos } = await _supabase.from('configuracoes1').select('*').eq('id', 1).maybeSingle();
 
-    // 2. Busca as fotos e layout na vitrine_midias [cite: 2026-04-26]
+    // 2. Busca as fotos e layout na vitrine_midias [cite: 2026-04-26, 2026-04-27]
     const { data: midias } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
 
     // --- PARTE A: TEXTOS E ENDEREÇO (configuracoes1) ---
@@ -274,38 +277,43 @@ async function carregarConteudoPersonalizado() {
         }
     }
 
-    // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) [cite: 2026-04-26] ---
-    if (midias.url_sobre) {
-        const containerSobre = document.querySelector(".imagem-sobre");
-        if (containerSobre) {
-            const picture = containerSobre.querySelector("picture");
-            if (picture) {
-                // Remove as fontes fixas do HTML para usar o <img> dinâmico [cite: 2026-04-27]
-                picture.querySelectorAll("source").forEach(s => s.remove());
-                const img = picture.querySelector("img");
-                if (img) img.src = midias.url_sobre;
+    // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) [cite: 2026-04-26, 2026-04-27] ---
+    if (midias) {
+        // Atualização da Imagem Hero (Banner) [cite: 2026-04-26]
+        if (midias.url_hero) {
+            const pictureHero = document.querySelector(".imagem-hero picture");
+            if (pictureHero) {
+                pictureHero.querySelectorAll("source").forEach(s => s.remove());
+                const img = pictureHero.querySelector("img");
+                if (img) img.src = midias.url_hero;
             }
         }
 
-        // Atualização do Sobre [cite: 2026-04-26]
+        // Atualização da Imagem Sobre (Ajuste de Seletor) [cite: 2026-04-27]
         if (midias.url_sobre) {
-            const pictureSobre = document.querySelector(".texto-sobre").nextElementSibling;
-            if (pictureSobre && pictureSobre.tagName === "PICTURE") {
-                pictureSobre.querySelectorAll("source").forEach(s => s.remove());
-                const img = pictureSobre.querySelector("img");
-                if (img) img.src = midias.url_sobre;
+            const containerSobre = document.querySelector(".imagem-sobre");
+            if (containerSobre) {
+                const picture = containerSobre.querySelector("picture");
+                if (picture) {
+                    picture.querySelectorAll("source").forEach(s => s.remove());
+                    const img = picture.querySelector("img");
+                    if (img) img.src = midias.url_sobre;
+                }
             }
         }
 
-        // --- LÓGICA DINÂMICA: GALERIA, PRODUTOS OU AMBOS [cite: 2026-04-26] ---
+        // --- LÓGICA DINÂMICA: GALERIA, PRODUTOS OU AMBOS [cite: 2026-04-27] ---
         const contGaleria = document.getElementById("container-galeria-fotos");
         const contProdutos = document.getElementById("container-produtos");
         const tituloVitrine = document.getElementById("titulo-vitrine");
 
         if (midias.tipo_exibicao) {
-            // Reset de visibilidade [cite: 2026-04-26]
+            // Reset de visibilidade e espaçamentos [cite: 2026-04-27]
             if (contGaleria) contGaleria.style.display = "none";
-            if (contProdutos) contProdutos.style.display = "none";
+            if (contProdutos) {
+                contProdutos.style.display = "none";
+                contProdutos.style.marginBottom = "0";
+            }
 
             if (midias.tipo_exibicao === 'galeria') {
                 if (tituloVitrine) tituloVitrine.innerText = "Galeria";
@@ -323,22 +331,22 @@ async function carregarConteudoPersonalizado() {
             }
             else if (midias.tipo_exibicao === 'ambos') {
                 if (tituloVitrine) tituloVitrine.innerText = "Vitrine e Produtos";
+                // No modo "Ambos", Produtos aparece PRIMEIRO (acima) [cite: 2026-04-27]
+                if (contProdutos) {
+                    contProdutos.style.display = "grid";
+                    contProdutos.style.marginBottom = "40px"; // Espaço entre as seções
+                    renderizarProdutos(contProdutos, midias.dados_produtos);
+                }
                 if (contGaleria) {
                     contGaleria.style.display = "grid";
                     renderizarGaleria(contGaleria, midias.dados_galeria);
-                }
-                if (contProdutos) {
-                    contProdutos.style.display = "grid";
-                    // Mantemos uma margem entre os dois se ambos estiverem ativos [cite: 2026-04-26]
-                    contProdutos.style.marginTop = "40px";
-                    renderizarProdutos(contProdutos, midias.dados_produtos);
                 }
             }
         }
     }
 }
 
-// Funções Auxiliares para renderizar o layout proposto
+// Renderiza a Galeria Padrão (4 fotos) [cite: 2026-04-26]
 function renderizarGaleria(container, fotos) {
     if (!fotos || fotos.length === 0) return;
     container.innerHTML = fotos.map(url =>
@@ -346,13 +354,38 @@ function renderizarGaleria(container, fotos) {
     ).join("");
 }
 
+// Renderiza os Produtos no formato da Galeria com Detalhes [cite: 2026-04-27]
 function renderizarProdutos(container, produtos) {
     if (!produtos || produtos.length === 0) return;
-    container.innerHTML = produtos.map(p => `
-        <div class="card-produto-vitrine" style="background:var(--cor-card); padding:15px; border-radius:4px; text-align:center;">
-            <img src="${p.url}" style="width:100%; height:150px; object-fit:cover; border-radius:4px; margin-bottom:10px;">
-            <h4 style="font-size:0.9rem; color:#fff;">${p.nome}</h4>
-            <p style="color:var(--cor-primaria); font-weight:bold;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
+
+    // Limitamos aos 4 primeiros para manter o grid simétrico [cite: 2026-04-27]
+    const produtosExibicao = produtos.slice(0, 4);
+
+    container.innerHTML = produtosExibicao.map(p => `
+        <div class="card-produto-vitrine" style="position: relative; overflow: hidden; border-radius: 4px;">
+            <img src="${p.url}" alt="${p.nome}" style="width:100%; height:200px; object-fit:cover; border-radius:4px;">
+            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 8px; text-align: center;">
+                <h4 style="font-size: 0.8rem; color: #fff; margin-bottom: 2px;">${p.nome}</h4>
+                <p style="color: var(--cor-primaria); font-weight: bold; font-size: 0.9rem;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
+            </div>
+        </div>
+    `).join("");
+}
+
+// Função para renderizar os 4 produtos no formato da galeria [cite: 2026-04-27]
+function renderizarProdutos(container, produtos) {
+    if (!produtos || produtos.length === 0) return;
+
+    // O limite de 4 produtos garante que a grid não quebre no desktop [cite: 2026-04-27]
+    const produtosExibicao = produtos.slice(0, 4);
+
+    container.innerHTML = produtosExibicao.map(p => `
+        <div class="card-produto-vitrine" style="position: relative; overflow: hidden; border-radius: 4px;">
+            <img src="${p.url}" alt="${p.nome}" style="width:100%; height:200px; object-fit:cover; display: block; border-radius:4px; transition: transform 0.3s;">
+            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 8px; text-align: center;">
+                <h4 style="font-size: 0.8rem; color: #fff; margin-bottom: 2px;">${p.nome}</h4>
+                <p style="color: var(--cor-primaria); font-weight: bold; font-size: 0.9rem;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
+            </div>
         </div>
     `).join("");
 }

@@ -1178,8 +1178,7 @@ async function processarInsightsHorarios(agendamentos) {
     dicaEl.innerText = turnoVencedor.includes("Manhã") ? dManha[randomIdx] : dTarde[randomIdx];
 }
 
-// Função para calcular novos vs recorrentes [cite: 2026-04-03]
-//
+
 /* ==========================================================================
    ANÁLISE DE FIDELIZAÇÃO (CÁLCULO DE NOVOS VS RECORRENTES) [cite: 2026-04-26]
    ========================================================================== */
@@ -1227,7 +1226,7 @@ async function processarInsightsClientes(agendamentosAtuais) {
     }
 }
 
-/* ==========================================================================
+/* ====/* ==========================================================================
    12. GESTÃO DE DETALHES E FIDELIDADE (VIA TELEFONE) [cite: 2026-04-25]
    ========================================================================== */
 
@@ -1239,12 +1238,10 @@ window.abrirDetalhesCliente = async function (tel, nome) {
 
     if (!modal) return;
 
-    // Abre o modal e limpa os campos antes da busca
     modal.style.display = "block";
     if (elNome) elNome.innerText = nome;
     if (containerEstrelas) containerEstrelas.innerHTML = "<p class='loading-text'>Buscando histórico...</p>";
 
-    // Busca agendamentos concluídos pelo Telefone (Chave Única) [cite: 2026-04-25]
     const { data: historico, error } = await _supabase
         .from('agendamentos')
         .select('data, servico')
@@ -1260,12 +1257,10 @@ window.abrirDetalhesCliente = async function (tel, nome) {
         return;
     }
 
-    // Preenche os dados do último corte
     const ultimo = historico[0];
     document.getElementById("detalhe-data-corte").innerText = ultimo.data.split("-").reverse().join("/");
     document.getElementById("detalhe-servico").innerText = ultimo.servico;
 
-    // Gera as estrelas de fidelidade [cite: 2026-04-25]
     containerEstrelas.innerHTML = "";
     historico.forEach(() => {
         containerEstrelas.innerHTML += '<i class="fas fa-star" style="margin-right:5px;"></i>';
@@ -1274,27 +1269,21 @@ window.abrirDetalhesCliente = async function (tel, nome) {
     document.getElementById("total-servicos-texto").innerText = `${historico.length} ${historico.length === 1 ? 'serviço concluído' : 'serviços concluídos'}`;
 };
 
-// 2. Função que resolve o erro "is not defined" [cite: 2026-04-25]
 window.fecharModalDetalhes = function () {
     const modal = document.getElementById("modal-detalhes-cliente");
-    if (modal) {
-        modal.style.display = "none";
-    }
+    if (modal) modal.style.display = "none";
 };
 
-// 3. Fecha o modal se o barbeiro clicar fora da caixa (Mobile First) [cite: 2026-04-25]
 window.addEventListener("click", (event) => {
     const modal = document.getElementById("modal-detalhes-cliente");
-    if (event.target == modal) {
-        fecharModalDetalhes();
-    }
+    if (event.target == modal) fecharModalDetalhes();
 });
 
 /* ==========================================================================
-   12. CONFIGURAÇÕES GERAIS - GESTÃO DE CONTEÚDO E MÍDIAS [cite: 2026-04-26]
+   13. CONFIGURAÇÕES GERAIS - CONTEÚDO DA HOME E MÍDIAS [cite: 2026-04-26]
    ========================================================================== */
 
-// 1. Controle de Navegação e Carregamento de Dados
+// 1. Navegação Inteligente (Separação de Tabelas) [cite: 2026-04-26]
 window.abrirSubConfigGeral = async function (tipo) {
     esconderTodasSessoes();
     const paiConfig = document.getElementById("configuracoes-section");
@@ -1302,20 +1291,11 @@ window.abrirSubConfigGeral = async function (tipo) {
 
     document.querySelectorAll('.config-sub-section').forEach(s => s.style.display = 'none');
 
-    // Mapeamento das áreas [cite: 2026-04-26]
-    if (tipo === 'submenu1') document.getElementById("area-config-home").style.display = "block";
-    if (tipo === 'submenu2') document.getElementById("area-galeria-midia").style.display = "block";
-
-    // Busca dados na tabela independente [cite: 2026-04-26]
-    const { data: config } = await _supabase
-        .from('configuracoes1')
-        .select('*')
-        .eq('id', 1)
-        .maybeSingle();
-
-    if (config) {
-        if (tipo === 'submenu1') {
-            // Preenchimento de Textos (Submenu 1)
+    // SUBMENU 1: TEXTOS (Busca na configuracoes1)
+    if (tipo === 'submenu1') {
+        document.getElementById("area-config-home").style.display = "block";
+        const { data: config } = await _supabase.from('configuracoes1').select('*').eq('id', 1).maybeSingle();
+        if (config) {
             document.getElementById("cfg-hero-titulo").value = config.hero_titulo || "";
             document.getElementById("cfg-sobre-texto").value = config.sobre_texto || "";
             document.getElementById("cfg-end-rua").value = config.end_rua || "";
@@ -1326,99 +1306,96 @@ window.abrirSubConfigGeral = async function (tipo) {
             document.getElementById("cfg-end-tel").value = config.end_tel || "";
             document.getElementById("cfg-mapa-iframe").value = config.mapa_iframe || "";
         }
+    }
 
-        if (tipo === 'submenu2') {
-            // Lógica de Mídias (Submenu 2) [cite: 2026-04-26]
-            verificarLembreteAtualizacao(config.ultima_atualizacao_midia);
-
-            // Define o rádio do layout (Galeria ou Produtos) [cite: 2026-04-26]
-            const radioLayout = document.querySelector(`input[name="opt-exibicao"][value="${config.tipo_exibicao || 'galeria'}"]`);
+    // SUBMENU 2: VITRINE (Busca na vitrine_midias) [cite: 2026-04-26]
+    if (tipo === 'submenu2') {
+        document.getElementById("area-galeria-midia").style.display = "block";
+        const { data: midia } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
+        if (midia) {
+            verificarLembreteAtualizacao(midia.ultima_atualizacao_midia);
+            const radioLayout = document.querySelector(`input[name="opt-exibicao"][value="${midia.tipo_exibicao || 'galeria'}"]`);
             if (radioLayout) {
                 radioLayout.checked = true;
-                alternarLayoutMidia(config.tipo_exibicao || 'galeria', config);
+                alternarLayoutMidia(midia.tipo_exibicao || 'galeria', midia);
             }
+        } else {
+            alternarLayoutMidia('galeria');
         }
     }
 };
 
-// 2. Lógica de Upload para o Supabase Storage [cite: 2026-04-26]
+// 2. Upload para Storage (Máx 2MB) [cite: 2026-04-26]
 window.uploadMidia = async function (tipo) {
     const fileInput = document.getElementById(`up-${tipo}`);
-    const file = fileInput.files[0];
+    const file = fileInput ? fileInput.files[0] : null;
     if (!file) return;
 
-    // Respeitando o limite de espaço (Max 2MB por imagem) [cite: 2026-04-26]
     if (file.size > 2 * 1024 * 1024) {
-        alert("Ops! Essa imagem é muito pesada. Escolha uma de até 2MB para manter o site rápido.");
+        alert("Ops! Essa imagem é muito pesada (Máx 2MB).");
         fileInput.value = "";
         return;
     }
 
     const fileName = `${Date.now()}-${tipo}.webp`;
-    const { data, error } = await _supabase.storage
-        .from('midia-home')
-        .upload(fileName, file);
-
+    const { data, error } = await _supabase.storage.from('midia-home').upload(fileName, file);
     if (error) return alert("Erro no upload: " + error.message);
 
     const { data: publicData } = _supabase.storage.from('midia-home').getPublicUrl(fileName);
-
-    // Armazena a URL para o salvamento final [cite: 2026-04-26]
     window[`url_link_${tipo}`] = publicData.publicUrl;
-    alert("Imagem processada! Não esqueça de clicar em 'Atualizar Vitrine' ao final.");
+    alert("Imagem processada! Atualize a vitrine ao final.");
 };
 
-// 3. Alternância Dinâmica de Layout (Galeria vs Produtos) [cite: 2026-04-26]
+// 3. Alternância Dinâmica de Layout (4 Produtos / Galeria / Ambos) [cite: 2026-04-26, 2026-04-27]
 window.alternarLayoutMidia = function (tipo, dadosExistentes = null) {
     const container = document.getElementById("container-inputs-dinamicos");
     if (!container) return;
 
-    if (tipo === 'galeria') {
-        container.innerHTML = `
+    let html = "";
+
+    // Lógica para Galeria ou Ambos
+    if (tipo === 'galeria' || tipo === 'ambos') {
+        html += `
             <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Portfólio: Envie 4 fotos dos seus melhores cortes.</p>
-            <div class="config-grid-form">
-                ${[1, 2, 3, 4].map(i => `
-                    <div class="input-group-modal">
-                        <label>Foto ${i}</label>
-                        <input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" />
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    } else {
-        container.innerHTML = `
-            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione um produto em destaque.</p>
-            <div class="config-grid-form">
-                <div class="input-group-modal"><label>Foto Produto</label><input type="file" id="up-prod-img" onchange="uploadMidia('prod-img')"/></div>
-                <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-prod-nome" placeholder="Ex: Pomada Efeito Matte"/></div>
-                <div class="input-group-modal"><label>Preço (R$)</label><input type="number" id="cfg-prod-preco" placeholder="0.00"/></div>
-            </div>
-        `;
+            <div class="config-grid-form" style="margin-bottom: 20px;">
+                ${[1, 2, 3, 4].map(i => `<div class="input-group-modal"><label>Foto Galeria ${i}</label><input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" /></div>`).join('')}
+            </div>`;
     }
+
+    // Lógica para Produtos ou Ambos (Catálogo de 4 itens) [cite: 2026-04-27]
+    if (tipo === 'produtos' || tipo === 'ambos') {
+        html += `
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione até 4 produtos em destaque.</p>
+            <div class="config-grid-form" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                ${[1, 2, 3, 4].map(i => {
+                    const p = (dadosExistentes && dadosExistentes.dados_produtos) ? dadosExistentes.dados_produtos[i-1] : null;
+                    return `
+                    <div class="prod-item-edit" style="background:#111; padding:15px; border-radius:8px; border: 1px solid #333;">
+                        <label style="color:var(--cor-primaria); font-weight:bold;">Produto ${i}</label>
+                        <input type="file" id="up-prod-${i}" onchange="uploadMidia('prod-${i}')" accept="image/*" style="margin: 10px 0; font-size: 0.8rem;"/>
+                        <input type="text" id="p-nome-${i}" value="${p ? p.nome : ''}" placeholder="Nome do Produto" style="margin-bottom:8px;"/>
+                        <input type="number" id="p-preco-${i}" value="${p ? p.preco : ''}" placeholder="Preço R$"/>
+                    </div>`;
+                }).join('')}
+            </div>`;
+    }
+
+    container.innerHTML = html;
 };
 
-// 4. Lembrete de 30 Dias (Pop-up) [cite: 2026-04-26]
 function verificarLembreteAtualizacao(ultimaData) {
     if (!ultimaData) return;
-
-    const hoje = new Date();
-    const ultima = new Date(ultimaData);
-    const diferencaDias = Math.floor((hoje - ultima) / (1000 * 60 * 60 * 24));
-
-    if (diferencaDias >= 30) {
-        alert("⚡ Lembrete ClientFlow: Já faz mais de 30 dias que você não atualiza suas fotos ou produtos. Que tal renovar o visual do seu site hoje?");
-    }
+    const diferencaDias = Math.floor((new Date() - new Date(ultimaData)) / (1000 * 60 * 60 * 24));
+    if (diferencaDias >= 30) alert("⚡ Lembrete: Já faz mais de 30 dias que você não atualiza suas mídias!");
 }
 
-// 2. Função ÚNICA para salvar (Substitua as repetidas por esta)
 window.salvarConteudoHome = async function () {
     const btn = document.querySelector("button[onclick='salvarConteudoHome()']");
     if (!btn) return;
-
     btn.innerText = "Publicando...";
     btn.disabled = true;
 
-    const dadosHome = {
+    const { error } = await _supabase.from('configuracoes1').upsert({
         id: 1,
         hero_titulo: document.getElementById("cfg-hero-titulo").value,
         sobre_texto: document.getElementById("cfg-sobre-texto").value,
@@ -1429,98 +1406,71 @@ window.salvarConteudoHome = async function () {
         end_cep: document.getElementById("cfg-end-cep").value,
         end_tel: document.getElementById("cfg-end-tel").value,
         mapa_iframe: document.getElementById("cfg-mapa-iframe").value
-    };
+    });
 
-    const { error } = await _supabase.from('configuracoes1').upsert(dadosHome);
-
-    if (error) {
-        alert("Erro ao salvar: " + error.message);
-    } else {
-        alert("Site atualizado com sucesso! 🚀");
-    }
-
+    if (error) alert("Erro: " + error.message);
+    else alert("Site atualizado com sucesso! 🚀");
     btn.innerHTML = '<i class="fas fa-save"></i> Atualizar Site';
     btn.disabled = false;
 };
 
-
 /* ==========================================================================
-   12. VITRINE E MÍDIAS - SALVAMENTO INTELIGENTE [cite: 2026-04-26]
+   14. VITRINE E MÍDIAS - SALVAMENTO INTELIGENTE (4 PRODUTOS) [cite: 2026-04-26, 2026-04-27]
    ========================================================================== */
 window.salvarVitrineMídias = async function () {
     const btn = document.querySelector("button[onclick='salvarVitrineMídias()']");
     if (btn) btn.innerText = "Sincronizando Vitrine...";
 
-    // 1. BUSCA DADOS ATUAIS: Fundamental para não sobrescrever com vazio [cite: 2026-04-26]
-    const { data: configAtual } = await _supabase
-        .from('vitrine_midias')
-        .select('*')
-        .eq('id', 1)
-        .maybeSingle();
-
+    const { data: configAtual } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
     const tipoAtivo = document.querySelector('input[name="opt-exibicao"]:checked').value;
 
-    // 2. PREPARA O OBJETO DE UPDATE [cite: 2026-04-26]
     const dadosUpdate = {
         id: 1,
         tipo_exibicao: tipoAtivo,
         ultima_atualizacao_midia: new Date().toISOString(),
-        // Usa o novo upload da sessão OU mantém o que já estava no banco [cite: 2026-04-26]
         url_hero: window.url_link_hero || (configAtual ? configAtual.url_hero : null),
         url_sobre: window.url_link_sobre || (configAtual ? configAtual.url_sobre : null)
     };
 
-    // 3. LÓGICA DE GALERIA (Array de 4 URLs) [cite: 2026-04-26]
-    if (tipoAtivo === 'galeria') {
+    // PROCESSAMENTO GALERIA [cite: 2026-04-27]
+    if (tipoAtivo === 'galeria' || tipoAtivo === 'ambos') {
         const galeriaFinal = [];
         for (let i = 1; i <= 4; i++) {
             const linkNovo = window[`url_link_galeria-${i}`];
-            const linkExistente = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i - 1] : null;
-
-            // Prioriza o novo upload; se não houver, mantém o antigo [cite: 2026-04-26]
-            if (linkNovo || linkExistente) {
-                galeriaFinal.push(linkNovo || linkExistente);
-            }
+            const linkAntigo = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i-1] : null;
+            if (linkNovo || linkAntigo) galeriaFinal.push(linkNovo || linkAntigo);
         }
         dadosUpdate.dados_galeria = galeriaFinal;
-        dadosUpdate.dados_produtos = configAtual ? configAtual.dados_produtos : []; // Mantém produtos em background
+    } else {
+        dadosUpdate.dados_galeria = configAtual ? configAtual.dados_galeria : [];
     }
 
-    // 4. LÓGICA DE PRODUTOS (Array de Objetos: Nome, Preço, Foto) [cite: 2026-04-26]
-    else {
+    // PROCESSAMENTO PRODUTOS (Loop de 4 itens) [cite: 2026-04-27]
+    if (tipoAtivo === 'produtos' || tipoAtivo === 'ambos') {
         const produtosFinal = [];
-        for (let i = 1; i <= 2; i++) {
-            const nomeInput = document.getElementById(`p-nome-${i}`).value;
-            const precoInput = document.getElementById(`p-preco-${i}`).value;
-            const linkNovo = window[`url_link_prod-${i}`];
-            const linkExistente = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i - 1]
-                ? configAtual.dados_produtos[i - 1].url : null;
-
-            if (nomeInput || linkNovo || linkExistente) {
-                produtosFinal.push({
-                    nome: nomeInput || (configAtual && configAtual.dados_produtos[i - 1] ? configAtual.dados_produtos[i - 1].nome : ""),
-                    preco: precoInput || (configAtual && configAtual.dados_produtos[i - 1] ? configAtual.dados_produtos[i - 1].preco : 0),
-                    url: linkNovo || linkExistente || ""
-                });
+        for (let i = 1; i <= 4; i++) {
+            const elNome = document.getElementById(`p-nome-${i}`);
+            const elPreco = document.getElementById(`p-preco-${i}`);
+            if (elNome) {
+                const linkNovo = window[`url_link_prod-${i}`];
+                const linkAntigo = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].url : "";
+                if (elNome.value || linkNovo || linkAntigo) {
+                    produtosFinal.push({
+                        nome: elNome.value,
+                        preco: elPreco ? elPreco.value : 0,
+                        url: linkNovo || linkAntigo
+                    });
+                }
             }
         }
         dadosUpdate.dados_produtos = produtosFinal;
-        dadosUpdate.dados_galeria = configAtual ? configAtual.dados_galeria : []; // Mantém galeria em background
-    }
-
-    // 5. ENVIO FINAL PARA O SUPABASE [cite: 2026-04-26]
-    const { error } = await _supabase.from('vitrine_midias').upsert(dadosUpdate);
-
-    if (error) {
-        alert("Erro ao salvar vitrine: " + error.message);
     } else {
-        alert("Vitrine atualizada com sucesso! Verifique seu site. 📸");
-
-        // LIMPEZA: Reseta as variáveis da sessão após o sucesso [cite: 2026-04-26]
-        window.url_link_hero = null; window.url_link_sobre = null;
-        for (let i = 1; i <= 4; i++) window[`url_link_galeria-${i}`] = null;
-        for (let i = 1; i <= 2; i++) window[`url_link_prod-${i}`] = null;
+        dadosUpdate.dados_produtos = configAtual ? configAtual.dados_produtos : [];
     }
+
+    const { error } = await _supabase.from('vitrine_midias').upsert(dadosUpdate);
+    if (error) alert("Erro ao salvar: " + error.message);
+    else alert("Vitrine atualizada com sucesso! 📸");
 
     if (btn) btn.innerHTML = '<i class="fas fa-sync"></i> Atualizar Vitrine do Site';
 };
