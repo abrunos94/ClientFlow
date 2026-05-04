@@ -59,8 +59,8 @@
           <div class="submenu" id="submenu-config-geral">
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu1')">Conteúdo da Home</a>
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu2')">Vitrine e Mídias</a>
-            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu3')">Submenu 3</a>
-            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu4')">Submenu 4</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('marketing')">Marketing & Vendas</a>
+            <a href="javascript:void(0)" onclick="abrirSubConfigGeral('perfil')">Perfil Profissional</a>
           </div>
         </div>
       </nav>
@@ -71,10 +71,13 @@
     </aside>
 
     <main class="main-content">
-      <header class="dash-header" id="header-principal">
+      <header class="dash-header" id="header-principal" style="align-items: flex-start;">
         <h1>Olá, Alex!</h1>
-        <button id="btn-novo-agendamento" class="btn-principal">+ Novo Agendamento</button>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+          <button id="btn-novo-agendamento" class="btn-principal">+ Novo Agendamento</button>
+        </div>
       </header>
+
 
       <section class="conquista-container" id="painel-conquista">
         <div class="header-conquista">
@@ -190,90 +193,67 @@
       </section>
 
 
+      <!-- -->
       <section id="configuracoes-section" class="agenda-section" style="display: none">
+
+        <!-- 1. EXPEDIENTE -->
         <div id="area-expediente" class="config-sub-section">
           <h3><i class="fas fa-clock"></i> Configurar Expediente</h3>
-          <div class="stat-card" style="
-                border-left: 4px solid var(--cor-primaria);
-                margin-top: 20px;
-              ">
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
             <div class="config-grid-form">
-              <div class="input-group-modal">
-                <label>Hora de Início</label><input type="time" id="cfg-hora-inicio" value="09:00" />
+              <div class="input-group-modal"><label>Início</label><input type="time" id="cfg-hora-inicio" /></div>
+              <div class="input-group-modal"><label>Fim</label><input type="time" id="cfg-hora-fim" /></div>
+              <div class="input-group-modal"><label>Intervalo (min)</label><input type="number" id="cfg-intervalo" />
               </div>
-              <div class="input-group-modal">
-                <label>Hora de Término</label><input type="time" id="cfg-hora-fim" value="19:00" />
+              <div class="input-group-modal"><label>Almoço Início</label><input type="time" id="cfg-almoco-inicio" />
               </div>
-              <div class="input-group-modal">
-                <label>Duração (min)</label><input type="number" id="cfg-intervalo" value="30" />
-              </div>
-              <div class="input-group-modal">
-                <label>Início do Almoço</label><input type="time" id="cfg-almoco-inicio" value="12:00" />
-              </div>
-              <div class="input-group-modal">
-                <label>Fim do Almoço</label><input type="time" id="cfg-almoco-fim" value="13:00" />
-              </div>
+              <div class="input-group-modal"><label>Almoço Fim</label><input type="time" id="cfg-almoco-fim" /></div>
             </div>
             <div class="dias-expediente" style="margin-top: 20px">
               <p>Dias de Funcionamento:</p>
               <div class="checkbox-group">
-                <label><input type="checkbox" class="cfg-dia" value="1" checked />
-                  Seg</label>
-                <label><input type="checkbox" class="cfg-dia" value="2" checked />
-                  Ter</label>
-                <label><input type="checkbox" class="cfg-dia" value="3" checked />
-                  Qua</label>
-                <label><input type="checkbox" class="cfg-dia" value="4" checked />
-                  Qui</label>
-                <label><input type="checkbox" class="cfg-dia" value="5" checked />
-                  Sex</label>
-                <label><input type="checkbox" class="cfg-dia" value="6" checked />
-                  Sáb</label>
-                <label><input type="checkbox" class="cfg-dia" value="0" />
-                  Dom</label>
+                <label><input type="checkbox" class="cfg-dia" value="1" /> Seg</label>
+                <label><input type="checkbox" class="cfg-dia" value="2" /> Ter</label>
+                <label><input type="checkbox" class="cfg-dia" value="3" /> Qua</label>
+                <label><input type="checkbox" class="cfg-dia" value="4" /> Qui</label>
+                <label><input type="checkbox" class="cfg-dia" value="5" /> Sex</label>
+                <label><input type="checkbox" class="cfg-dia" value="6" /> Sáb</label>
+                <label><input type="checkbox" class="cfg-dia" value="0" /> Dom</label>
               </div>
             </div>
-            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%">
-              <i class="fas fa-save"></i> Salvar Expediente
-            </button>
+            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
+                class="fas fa-save"></i> Salvar Expediente</button>
           </div>
         </div>
 
+        <!-- 2. META DIÁRIA -->
         <div id="area-meta" class="config-sub-section" style="display: none">
           <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
           <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px">
-            <div class="input-group-modal">
-              <label>Valor da Meta (R$)</label>
-              <input type="number" id="cfg-meta-valor" value="400" />
+            <div class="input-group-modal"><label>Valor da Meta (R$)</label><input type="number" id="cfg-meta-valor" />
             </div>
-            <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">
-              Atualizar Meta
-            </button>
+            <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">Atualizar
+              Meta</button>
           </div>
         </div>
 
+        <!-- 3. SERVIÇOS -->
         <div id="area-servicos" class="config-sub-section" style="display: none">
           <h3><i class="fas fa-cut"></i> Gerenciar Serviços</h3>
           <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
             <div class="config-grid-form">
-              <div class="input-group-modal">
-                <label>Nome</label>
-                <input type="text" id="cfg-servico-nome" />
-              </div>
-              <div class="input-group-modal">
-                <label>Preço</label>
-                <input type="number" id="cfg-servico-preco" />
-              </div>
+              <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-servico-nome" /></div>
+              <div class="input-group-modal"><label>Preço</label><input type="number" id="cfg-servico-preco" /></div>
             </div>
-            <button id="btn-add-servico-banco" class="btn-principal" style="margin-top: 20px; width: 100%">
-              Adicionar Serviço
-            </button>
-
+            <button id="btn-add-servico-banco" class="btn-principal" style="margin-top: 20px; width: 100%">Adicionar
+              Serviço</button>
             <div id="lista-servicos-config" style="margin-top: 20px"></div>
           </div>
         </div>
+
+        <!-- 4. CONTEÚDO HOME (SUBMENU 1) -->
         <div id="area-config-home" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-edit"></i> Editar Conteúdo da Home</h3>
+          <h3><i class="fas fa-edit"></i> Conteúdo da Home</h3>
           <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
 
             <div class="input-group-modal">
@@ -311,42 +291,107 @@
             </button>
           </div>
         </div>
+
+        <!-- 5. VITRINE E MÍDIAS -->
         <div id="area-galeria-midia" class="config-sub-section" style="display: none">
           <h3><i class="fas fa-camera"></i> Vitrine e Mídias</h3>
+          <div class="stat-card" style="border-left: 4px solid #3498db; margin-top: 20px;">
+            <p style="margin-bottom: 10px; font-weight: bold;">O que os clientes verão no site?</p>
 
-          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-bottom: 20px;">
-            <p style="font-weight: bold; margin-bottom: 15px;">Imagens Principais (Hero e Sobre)</p>
-            <div class="config-grid-form">
-              <div class="input-group-modal">
-                <label>Imagem Hero (Fundo Entrada)</label>
-                <input type="file" id="up-hero" accept="image/*" onchange="uploadMidia('hero')" />
-              </div>
-              <div class="input-group-modal">
-                <label>Imagem 'Sobre Nós'</label>
-                <input type="file" id="up-sobre" accept="image/*" onchange="uploadMidia('sobre')" />
-              </div>
-            </div>
-          </div>
+            <!-- Nosso novo botão moderno entra aqui -->
+            <div class="seletor-moderno">
+              <input type="radio" id="opt-galeria" name="opt-exibicao" value="galeria" checked
+                onchange="alternarLayoutMidia('galeria')">
+              <label for="opt-galeria"><i class="fas fa-images"></i> Galeria</label>
 
-          <div class="stat-card" style="border-left: 4px solid #3498db; margin-bottom: 20px;">
-            <div class="checkbox-group" style="background: #111; padding: 20px; border-radius: 8px;">
-              <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">Escolha o que mostrar no site:</p>
-              <label><input type="radio" name="opt-exibicao" value="galeria" checked
-                  onclick="alternarLayoutMidia('galeria')"> Apenas Galeria</label>
-              <label><input type="radio" name="opt-exibicao" value="produtos" onclick="alternarLayoutMidia('produtos')">
-                Apenas Produtos</label>
-              <label><input type="radio" name="opt-exibicao" value="ambos" onclick="alternarLayoutMidia('ambos')">
-                Galeria + Produtos</label>
+              <input type="radio" id="opt-produtos" name="opt-exibicao" value="produtos"
+                onchange="alternarLayoutMidia('produtos')">
+              <label for="opt-produtos"><i class="fas fa-box-open"></i> Produtos</label>
+
+              <input type="radio" id="opt-ambos" name="opt-exibicao" value="ambos"
+                onchange="alternarLayoutMidia('ambos')">
+              <label for="opt-ambos"><i class="fas fa-star"></i> Ambos</label>
             </div>
 
-            <div id="container-inputs-dinamicos" style="margin-top: 20px;"></div>
-
-            <button onclick="salvarVitrineMídias()" class="btn-principal" style="margin-top: 20px; width: 100%">
-              <i class="fas fa-sync"></i> Atualizar Vitrine do Site
-            </button>
+            <div id="container-inputs-dinamicos"></div>
+            <button onclick="salvarVitrineMidias()" class="btn-principal"
+              style="margin-top: 20px; width: 100%">Sincronizar Vitrine</button>
           </div>
         </div>
-      </section>
+
+        <!-- 6. MARKETING (SUBMENU 3) -->
+        <div id="area-marketing" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-bullhorn"></i> Marketing & Vendas</h3>
+
+          <!-- Card 1: Vagas Inteligentes -->
+          <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px;">
+            <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">
+              <i class="fab fa-whatsapp"></i> Divulgar Horários (Status)
+            </p>
+            <p style="font-size: 0.8rem; color: var(--cor-subtexto); margin-bottom: 15px;">
+              Copia até 5 horários livres (respeitando o limite do WhatsApp).
+            </p>
+            <div class="config-grid-form" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+              <button onclick="copiarVagasInteligente('hoje')" class="btn-principal"
+                style="background: rgba(37, 211, 102, 0.1); color: #25d366; border: 1px solid #25d366; padding: 15px;">
+                <i class="fas fa-calendar-day"></i> Vagas Hoje
+              </button>
+              <button onclick="copiarVagasInteligente('amanha')" class="btn-principal"
+                style="background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid #3498db; padding: 15px;">
+                <i class="fas fa-calendar-plus"></i> Vagas Amanhã
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Gatilhos Mentais -->
+          <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px;">
+            <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">
+              <i class="fas fa-brain"></i> Gatilhos Comerciais
+            </p>
+            <p style="font-size: 0.8rem; color: var(--cor-subtexto); margin-bottom: 15px;">
+              Gera textos persuasivos aleatórios baseados no seu banco de dados.
+            </p>
+            <div class="config-grid-form" style="grid-template-columns: 1fr; gap: 10px;">
+              <button onclick="gerarTextoMarketing('escassez')" class="btn-principal"
+                style="background: #111; border: 1px solid #e67e22; color: #e67e22; padding: 12px; justify-content: flex-start;">
+                <i class="fas fa-hourglass-half" style="width: 25px;"></i> Gatilho: Escassez
+              </button>
+              <button onclick="gerarTextoMarketing('urgencia')" class="btn-principal"
+                style="background: #111; border: 1px solid #e74c3c; color: #e74c3c; padding: 12px; justify-content: flex-start;">
+                <i class="fas fa-fire" style="width: 25px;"></i> Gatilho: Urgência
+              </button>
+              <button onclick="gerarTextoMarketing('autoridade')" class="btn-principal"
+                style="background: #111; border: 1px solid #9b59b6; color: #9b59b6; padding: 12px; justify-content: flex-start;">
+                <i class="fas fa-crown" style="width: 25px;"></i> Gatilho: Autoridade
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. PERFIL PROFISSIONAL (SUBMENU 4) -->
+        <div id="area-perfil-barbeiro" class="config-sub-section" style="display: none">
+          <h3><i class="fas fa-user-circle"></i> Perfil Profissional</h3>
+          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
+            <div class="config-grid-form">
+              <div class="input-group-modal"><label>Proprietário</label><input type="text" id="prof-nome-dono" /></div>
+              <div class="input-group-modal"><label>Empresa</label><input type="text" id="prof-empresa" /></div>
+              <div class="input-group-modal"><label>CPF / CNPJ</label><input type="text" id="prof-documento" /></div>
+              <div class="input-group-modal"><label>WhatsApp</label><input type="text" id="prof-whats" /></div>
+              <div class="input-group-modal"><label>Link Site</label><input type="text" id="prof-link-site" /></div>
+              <div class="input-group-modal"><label>Instagram</label><input type="text" id="prof-insta" /></div>
+              <div class="input-group-modal"><label>Facebook</label><input type="text" id="prof-facebook" /></div>
+            </div>
+            <div class="input-group-modal" style="margin-top: 20px;">
+              <label>Logo da Barbearia</label>
+              <input type="file" id="up-logo-barbearia" onchange="uploadMidia('logo-barbearia')" accept="image/*" />
+              <div id="preview-logo" style="margin-top: 10px;"></div>
+            </div>
+            <button onclick="salvarPerfilBarbearia()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
+                class="fas fa-save"></i> Salvar Dados do Perfil</button>
+          </div>
+        </div>
+
+      </section> <!-- FECHAMENTO ÚNICO E CORRETO DA SEÇÃO PRINCIPAL -->
 
       <section id="secao-relatorios" class="aba-content" style="display: none;">
 

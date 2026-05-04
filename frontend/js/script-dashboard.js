@@ -173,9 +173,11 @@ if (btnAbrirMenu && sidebar && overlay) {
 document.querySelectorAll(".menu > a, .menu .btn-dropdown").forEach((link) => {
     link.addEventListener("click", (e) => {
         // Ignora botões que são apenas para abrir submenus ou sair
+        //
         const ehApenasGaveta = link.id === "btn-logout" ||
             link.id === "btn-config-master" ||
-            link.id === "btn-relatorio-master";
+            link.id === "btn-relatorio-master" ||
+            link.id === "btn-config-geral-master";
 
         if (ehApenasGaveta) return;
 
@@ -1226,7 +1228,7 @@ async function processarInsightsClientes(agendamentosAtuais) {
     }
 }
 
-/* ====/* ==========================================================================
+/* ==============================================================================
    12. GESTÃO DE DETALHES E FIDELIDADE (VIA TELEFONE) [cite: 2026-04-25]
    ========================================================================== */
 
@@ -1287,45 +1289,142 @@ window.addEventListener("click", (event) => {
 window.abrirSubConfigGeral = async function (tipo) {
     esconderTodasSessoes();
     const paiConfig = document.getElementById("configuracoes-section");
-    if (paiConfig) paiConfig.style.display = "block";
+    const headerPrincipal = document.getElementById("header-principal");
 
+    // 1. Garante a visibilidade do container e do cabeçalho "Olá, Alex"
+    if (paiConfig) paiConfig.style.display = "block";
+    if (headerPrincipal) headerPrincipal.style.display = "flex";
+
+    // 2. Esconde todas as sub-seções internas antes de mostrar a selecionada
     document.querySelectorAll('.config-sub-section').forEach(s => s.style.display = 'none');
 
-    // SUBMENU 1: TEXTOS (Busca na configuracoes1)
+    // --- SUBMENU 1: CONTEÚDO DA HOME (COM MEMÓRIA) ---
     if (tipo === 'submenu1') {
         document.getElementById("area-config-home").style.display = "block";
         const { data: config } = await _supabase.from('configuracoes1').select('*').eq('id', 1).maybeSingle();
+
         if (config) {
-            document.getElementById("cfg-hero-titulo").value = config.hero_titulo || "";
-            document.getElementById("cfg-sobre-texto").value = config.sobre_texto || "";
-            document.getElementById("cfg-end-rua").value = config.end_rua || "";
-            document.getElementById("cfg-end-numero").value = config.end_numero || "";
-            document.getElementById("cfg-end-cidade").value = config.end_cidade || "";
-            document.getElementById("cfg-end-estado").value = config.end_estado || "";
-            document.getElementById("cfg-end-cep").value = config.end_cep || "";
-            document.getElementById("cfg-end-tel").value = config.end_tel || "";
-            document.getElementById("cfg-mapa-iframe").value = config.mapa_iframe || "";
+            // 1. Mapeamos os IDs do HTML com as chaves do Banco de Dados
+            const camposHome = {
+                "cfg-hero-titulo": config.hero_titulo,
+                "cfg-sobre-texto": config.sobre_texto,
+                "cfg-end-rua": config.end_rua,
+                "cfg-end-numero": config.end_numero,
+                "cfg-end-cidade": config.end_cidade,
+                "cfg-end-estado": config.end_estado,
+                "cfg-end-cep": config.end_cep,
+                "cfg-end-tel": config.end_tel,
+                "cfg-mapa-iframe": config.mapa_iframe
+            };
+
+            // 2. O JS só preenche se o elemento realmente existir na tela
+            Object.keys(camposHome).forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) elemento.value = camposHome[id] || "";
+            });
         }
     }
 
-    // SUBMENU 2: VITRINE (Busca na vitrine_midias) [cite: 2026-04-26]
+    // --- SUBMENU 2: VITRINE E MÍDIAS (RENDERIZA TUDO E ESCONDE O QUE NÃO USAR) ---
     if (tipo === 'submenu2') {
         document.getElementById("area-galeria-midia").style.display = "block";
         const { data: midia } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
-        if (midia) {
-            verificarLembreteAtualizacao(midia.ultima_atualizacao_midia);
-            const radioLayout = document.querySelector(`input[name="opt-exibicao"][value="${midia.tipo_exibicao || 'galeria'}"]`);
-            if (radioLayout) {
-                radioLayout.checked = true;
-                alternarLayoutMidia(midia.tipo_exibicao || 'galeria', midia);
+
+        // 1. Gera o HTML de AMBAS as seções de uma vez com os previews
+        let htmlGaleria = `<div id="bloco-galeria" style="display:none;">
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Portfólio: Envie 4 fotos dos seus melhores cortes.</p>
+            <div class="config-grid-form" style="margin-bottom: 20px;">
+                ${[1, 2, 3, 4].map(i => {
+            const urlSalva = midia?.dados_galeria ? midia.dados_galeria[i - 1] : null;
+            const nomeArq = urlSalva ? urlSalva.split('/').pop() : 'Nenhuma imagem';
+            const preview = urlSalva ? `<img src="${urlSalva}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333;" id="preview-galeria-${i}">` : `<div style="width: 50px; height: 50px; background: #222; border-radius: 6px; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;" id="preview-galeria-${i}">Vazio</div>`;
+            return `
+                    <div class="input-group-modal">
+                        <label>Foto Galeria ${i}</label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                            ${preview}
+                            <div style="flex: 1; overflow: hidden;">
+                                <input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" style="width: 100%; font-size: 0.8rem;" />
+                                <small style="color: var(--cor-primaria); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="nome-galeria-${i}">${nomeArq}</small>
+                            </div>
+                        </div>
+                    </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+
+        let htmlProdutos = `<div id="bloco-produtos" style="display:none;">
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione até 4 produtos em destaque.</p>
+            <div class="config-grid-form" style="grid-template-columns: 1fr; gap: 15px;">
+                ${[1, 2, 3, 4].map(i => {
+            const p = midia?.dados_produtos ? midia.dados_produtos[i - 1] : null;
+            const urlSalva = p?.url ? p.url : null;
+            const nomeArq = urlSalva ? urlSalva.split('/').pop() : 'Nenhuma imagem';
+            const preview = urlSalva ? `<img src="${urlSalva}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333;" id="preview-prod-${i}">` : `<div style="width: 50px; height: 50px; background: #222; border-radius: 6px; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;" id="preview-prod-${i}">Vazio</div>`;
+            return `
+                    <div class="prod-item-edit" style="background:#111; padding:15px; border-radius:8px; border: 1px solid #333;">
+                        <label style="color:var(--cor-primaria); font-weight:bold;">Produto ${i}</label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                            ${preview}
+                            <div style="flex: 1; overflow: hidden;">
+                                <input type="file" id="up-prod-${i}" onchange="uploadMidia('prod-${i}')" accept="image/*" style="width: 100%; font-size: 0.8rem;"/>
+                                <small style="color: var(--cor-primaria); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="nome-prod-${i}">${nomeArq}</small>
+                            </div>
+                        </div>
+                        <input type="text" id="p-nome-${i}" value="${p?.nome || ''}" placeholder="Nome do Produto" style="margin-bottom:8px; width: 100%;"/>
+                        <input type="number" id="p-preco-${i}" value="${p?.preco || ''}" placeholder="Preço R$" style="width: 100%;"/>
+                    </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+
+        document.getElementById("container-inputs-dinamicos").innerHTML = htmlGaleria + htmlProdutos;
+
+        // 2. Marca o botão moderno correto com base no banco
+        const tipoSalvo = midia?.tipo_exibicao || 'galeria';
+        const radio = document.querySelector(`input[name="opt-exibicao"][value="${tipoSalvo}"]`);
+        if (radio) radio.checked = true;
+
+        // 3. Aplica a visibilidade
+        alternarLayoutMidia(tipoSalvo);
+    }
+    // --- SUBMENU 3: MARKETING E VENDAS ---
+    if (tipo === 'marketing') {
+        document.getElementById("area-marketing").style.display = "block";
+    }
+
+    // --- SUBMENU 4: PERFIL PROFISSIONAL (BLINDADO) ---
+    if (tipo === 'perfil') {
+        document.getElementById("area-perfil-barbeiro").style.display = "block";
+        const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+
+        if (p) {
+            const camposPerfil = {
+                "prof-nome-dono": p.nome_proprietario,
+                "prof-empresa": p.nome_empresa,
+                "prof-documento": p.documento,
+                "prof-whats": p.whatsapp,
+                "prof-insta": p.instagram,
+                "prof-facebook": p.facebook,
+                "prof-link-site": p.link_site
+            };
+
+            Object.keys(camposPerfil).forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) elemento.value = camposPerfil[id] || "";
+            });
+
+            // Blindagem específica para a imagem da Logo
+            const previewLogo = document.getElementById("preview-logo");
+            if (p.url_logo && previewLogo) {
+                previewLogo.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
             }
-        } else {
-            alternarLayoutMidia('galeria');
         }
     }
 };
 
 // 2. Upload para Storage (Máx 2MB) [cite: 2026-04-26]
+// 2. Upload para Storage (Máx 2MB)[cite: 8]
 window.uploadMidia = async function (tipo) {
     const fileInput = document.getElementById(`up-${tipo}`);
     const file = fileInput ? fileInput.files[0] : null;
@@ -1337,50 +1436,119 @@ window.uploadMidia = async function (tipo) {
         return;
     }
 
+    // Muda o texto temporariamente para dar feedback de carregamento
+    const nomeTexto = document.getElementById(`nome-${tipo}`);
+    if (nomeTexto) {
+        nomeTexto.innerText = "Carregando...";
+        nomeTexto.style.color = "#f1c40f"; // Amarelo
+    }
+
     const fileName = `${Date.now()}-${tipo}.webp`;
     const { data, error } = await _supabase.storage.from('midia-home').upload(fileName, file);
-    if (error) return alert("Erro no upload: " + error.message);
+
+    if (error) {
+        if (nomeTexto) nomeTexto.innerText = "Erro no upload";
+        return alert("Erro no upload: " + error.message);
+    }
 
     const { data: publicData } = _supabase.storage.from('midia-home').getPublicUrl(fileName);
-    window[`url_link_${tipo}`] = publicData.publicUrl;
-    alert("Imagem processada! Atualize a vitrine ao final.");
+    window[`url_link_${tipo}`] = publicData.publicUrl; // Salva na memória temporária
+
+    // --- MAGIA DO UX: Atualiza o quadradinho e o nome na hora! ---
+    const previewImg = document.getElementById(`preview-${tipo}`);
+    if (previewImg) {
+        // Substitui a div 'Vazio' por uma tag <img> real, ou apenas atualiza a imagem existente
+        previewImg.outerHTML = `<img src="${publicData.publicUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333;" id="preview-${tipo}">`;
+    }
+    if (nomeTexto) {
+        nomeTexto.innerText = fileName; // Mostra o novo nome gerado
+        nomeTexto.style.color = "#2ecc71"; // Fica verde indicando sucesso
+    }
+
+    alert("Imagem processada! Clique em Sincronizar Vitrine ao final.");
 };
 
 // 3. Alternância Dinâmica de Layout (4 Produtos / Galeria / Ambos) [cite: 2026-04-26, 2026-04-27]
+// 3. Alternância Dinâmica de Layout (Com Thumbnails)[cite: 8]
+// Alternância Dinâmica Inteligente (Não perde os dados ao trocar de aba)
 window.alternarLayoutMidia = function (tipo, dadosExistentes = null) {
     const container = document.getElementById("container-inputs-dinamicos");
     if (!container) return;
 
-    let html = "";
+    // 1. Verifica se os blocos já existem no HTML
+    let blocoGaleria = document.getElementById("bloco-galeria");
+    let blocoProdutos = document.getElementById("bloco-produtos");
 
-    // Lógica para Galeria ou Ambos
-    if (tipo === 'galeria' || tipo === 'ambos') {
-        html += `
+    // 2. Se NÃO existem, criamos o HTML completo de UMA VEZ SÓ
+    if (!blocoGaleria || !blocoProdutos) {
+        let htmlCompleto = "";
+
+        // --- GERA HTML DA GALERIA ---
+        htmlCompleto += `<div id="bloco-galeria" style="display: none;">
             <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Portfólio: Envie 4 fotos dos seus melhores cortes.</p>
             <div class="config-grid-form" style="margin-bottom: 20px;">
-                ${[1, 2, 3, 4].map(i => `<div class="input-group-modal"><label>Foto Galeria ${i}</label><input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" /></div>`).join('')}
-            </div>`;
-    }
-
-    // Lógica para Produtos ou Ambos (Catálogo de 4 itens) [cite: 2026-04-27]
-    if (tipo === 'produtos' || tipo === 'ambos') {
-        html += `
-            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione até 4 produtos em destaque.</p>
-            <div class="config-grid-form" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 ${[1, 2, 3, 4].map(i => {
-                    const p = (dadosExistentes && dadosExistentes.dados_produtos) ? dadosExistentes.dados_produtos[i-1] : null;
-                    return `
+            const urlSalva = dadosExistentes?.dados_galeria ? dadosExistentes.dados_galeria[i - 1] : null;
+            const nomeArq = urlSalva ? urlSalva.split('/').pop() : 'Nenhuma imagem';
+            const preview = urlSalva ? `<img src="${urlSalva}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333;" id="preview-galeria-${i}">` : `<div style="width: 50px; height: 50px; background: #222; border-radius: 6px; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;" id="preview-galeria-${i}">Vazio</div>`;
+
+            return `
+                    <div class="input-group-modal">
+                        <label>Foto Galeria ${i}</label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                            ${preview}
+                            <div style="flex: 1; overflow: hidden;">
+                                <input type="file" id="up-galeria-${i}" onchange="uploadMidia('galeria-${i}')" accept="image/*" style="width: 100%; font-size: 0.8rem;" />
+                                <small style="color: var(--cor-primaria); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="nome-galeria-${i}">${nomeArq}</small>
+                            </div>
+                        </div>
+                    </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+
+        // --- GERA HTML DOS PRODUTOS ---
+        htmlCompleto += `<div id="bloco-produtos" style="display: none;">
+            <p style="font-size:0.85rem; color:var(--cor-subtexto); margin-bottom:10px;">Catálogo: Adicione até 4 produtos em destaque.</p>
+            <div class="config-grid-form" style="grid-template-columns: 1fr; gap: 15px;">
+                ${[1, 2, 3, 4].map(i => {
+            const p = dadosExistentes?.dados_produtos ? dadosExistentes.dados_produtos[i - 1] : null;
+            const urlSalva = p?.url ? p.url : null;
+            const nomeArq = urlSalva ? urlSalva.split('/').pop() : 'Nenhuma imagem';
+            const preview = urlSalva ? `<img src="${urlSalva}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333;" id="preview-prod-${i}">` : `<div style="width: 50px; height: 50px; background: #222; border-radius: 6px; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;" id="preview-prod-${i}">Vazio</div>`;
+
+            return `
                     <div class="prod-item-edit" style="background:#111; padding:15px; border-radius:8px; border: 1px solid #333;">
                         <label style="color:var(--cor-primaria); font-weight:bold;">Produto ${i}</label>
-                        <input type="file" id="up-prod-${i}" onchange="uploadMidia('prod-${i}')" accept="image/*" style="margin: 10px 0; font-size: 0.8rem;"/>
-                        <input type="text" id="p-nome-${i}" value="${p ? p.nome : ''}" placeholder="Nome do Produto" style="margin-bottom:8px;"/>
-                        <input type="number" id="p-preco-${i}" value="${p ? p.preco : ''}" placeholder="Preço R$"/>
+                        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                            ${preview}
+                            <div style="flex: 1; overflow: hidden;">
+                                <input type="file" id="up-prod-${i}" onchange="uploadMidia('prod-${i}')" accept="image/*" style="width: 100%; font-size: 0.8rem;"/>
+                                <small style="color: var(--cor-primaria); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="nome-prod-${i}">${nomeArq}</small>
+                            </div>
+                        </div>
+                        <input type="text" id="p-nome-${i}" value="${p?.nome || ''}" placeholder="Nome do Produto" style="margin-bottom:8px; width: 100%;"/>
+                        <input type="number" id="p-preco-${i}" value="${p?.preco || ''}" placeholder="Preço R$" style="width: 100%;"/>
                     </div>`;
-                }).join('')}
-            </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+
+        // Injeta tudo no container (apenas na primeira vez)
+        container.innerHTML = htmlCompleto;
+
+        // Atualiza as variáveis agora que os elementos existem na tela
+        blocoGaleria = document.getElementById("bloco-galeria");
+        blocoProdutos = document.getElementById("bloco-produtos");
     }
 
-    container.innerHTML = html;
+    // 3. O SEGREDO: Apenas esconde ou mostra usando CSS, mantendo os dados intactos!
+    if (blocoGaleria) {
+        blocoGaleria.style.display = (tipo === 'galeria' || tipo === 'ambos') ? 'block' : 'none';
+    }
+    if (blocoProdutos) {
+        blocoProdutos.style.display = (tipo === 'produtos' || tipo === 'ambos') ? 'block' : 'none';
+    }
 };
 
 function verificarLembreteAtualizacao(ultimaData) {
@@ -1415,13 +1583,52 @@ window.salvarConteudoHome = async function () {
 };
 
 /* ==========================================================================
-   14. VITRINE E MÍDIAS - SALVAMENTO INTELIGENTE (4 PRODUTOS) [cite: 2026-04-26, 2026-04-27]
+   14. NAVEGAÇÃO E PERFIL - VERSÃO CORRIGIDA [cite: 2026-04-29]
    ========================================================================== */
-window.salvarVitrineMídias = async function () {
-    const btn = document.querySelector("button[onclick='salvarVitrineMídias()']");
+
+
+
+window.salvarPerfilBarbearia = async function () {
+    const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']");
+    btn.innerText = "Salvando...";
+
+    const dados = {
+        id: 1,
+        nome_proprietario: document.getElementById("prof-nome-dono").value,
+        nome_empresa: document.getElementById("prof-empresa").value,
+        documento: document.getElementById("prof-documento").value,
+        whatsapp: document.getElementById("prof-whats").value,
+        instagram: document.getElementById("prof-insta").value,
+        facebook: document.getElementById("prof-facebook").value,
+        link_site: document.getElementById("prof-link-site").value
+    };
+
+    const { error } = await _supabase.from('dados_barbearia').upsert(dados);
+    if (!error) {
+        alert("Perfil atualizado!");
+        const primeiroNome = dados.nome_proprietario.trim().split(' ')[0];
+        document.querySelector(".dash-header h1").innerText = `Olá, ${primeiroNome}!`;
+    }
+    btn.innerText = "Salvar Perfil";
+};
+
+// Mover a função utilitária para o escopo global [cite: 2026-04-28]
+function somarMinutos(hora, minutos) {
+    let [h, m] = hora.split(":").map(Number);
+    m += parseInt(minutos);
+    if (m >= 60) { h += Math.floor(m / 60); m = m % 60; }
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+/* ==========================================================================
+   15. VITRINE E MÍDIAS - SALVAMENTO NO SUPABASE
+   ========================================================================== */
+window.salvarVitrineMidias = async function () {
+    const btn = document.querySelector("button[onclick='salvarVitrineMidias()']");
     if (btn) btn.innerText = "Sincronizando Vitrine...";
 
     const { data: configAtual } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
+
+    // Pega qual layout o barbeiro escolheu (galeria, produtos ou ambos)
     const tipoAtivo = document.querySelector('input[name="opt-exibicao"]:checked').value;
 
     const dadosUpdate = {
@@ -1432,12 +1639,12 @@ window.salvarVitrineMídias = async function () {
         url_sobre: window.url_link_sobre || (configAtual ? configAtual.url_sobre : null)
     };
 
-    // PROCESSAMENTO GALERIA [cite: 2026-04-27]
+    // Processa as 4 imagens da Galeria
     if (tipoAtivo === 'galeria' || tipoAtivo === 'ambos') {
         const galeriaFinal = [];
         for (let i = 1; i <= 4; i++) {
             const linkNovo = window[`url_link_galeria-${i}`];
-            const linkAntigo = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i-1] : null;
+            const linkAntigo = configAtual && configAtual.dados_galeria ? configAtual.dados_galeria[i - 1] : null;
             if (linkNovo || linkAntigo) galeriaFinal.push(linkNovo || linkAntigo);
         }
         dadosUpdate.dados_galeria = galeriaFinal;
@@ -1445,7 +1652,7 @@ window.salvarVitrineMídias = async function () {
         dadosUpdate.dados_galeria = configAtual ? configAtual.dados_galeria : [];
     }
 
-    // PROCESSAMENTO PRODUTOS (Loop de 4 itens) [cite: 2026-04-27]
+    // Processa os 4 Produtos
     if (tipoAtivo === 'produtos' || tipoAtivo === 'ambos') {
         const produtosFinal = [];
         for (let i = 1; i <= 4; i++) {
@@ -1453,7 +1660,7 @@ window.salvarVitrineMídias = async function () {
             const elPreco = document.getElementById(`p-preco-${i}`);
             if (elNome) {
                 const linkNovo = window[`url_link_prod-${i}`];
-                const linkAntigo = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i-1] ? configAtual.dados_produtos[i-1].url : "";
+                const linkAntigo = configAtual && configAtual.dados_produtos && configAtual.dados_produtos[i - 1] ? configAtual.dados_produtos[i - 1].url : "";
                 if (elNome.value || linkNovo || linkAntigo) {
                     produtosFinal.push({
                         nome: elNome.value,
@@ -1472,5 +1679,98 @@ window.salvarVitrineMídias = async function () {
     if (error) alert("Erro ao salvar: " + error.message);
     else alert("Vitrine atualizada com sucesso! 📸");
 
-    if (btn) btn.innerHTML = '<i class="fas fa-sync"></i> Atualizar Vitrine do Site';
+    if (btn) btn.innerHTML = "Sincronizar Vitrine";
+};
+
+/* ==========================================================================
+   16. MARKETING HUB - VAGAS E STATUS (LIMITADO A 10 LINHAS)
+   ========================================================================== */
+window.copiarVagasInteligente = async function (periodo) {
+    const dataAlvo = periodo === 'hoje'
+        ? new Date().toLocaleDateString("en-CA")
+        : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
+
+    const { data: ocupados } = await _supabase.from("agendamentos").select("horario").eq("data", dataAlvo).neq("status", "cancelado");
+    const { data: config } = await _supabase.from('configuracoes').select('*').eq('id', 1).single();
+    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+
+    let vagasDisponiveis = [];
+    let hLoop = config.hora_inicio;
+
+    // Calcula todos os horários livres
+    while (hLoop < config.hora_fim) {
+        const noAlmoco = (hLoop >= config.almoco_inicio && hLoop < config.almoco_fim);
+        const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
+        if (!noAlmoco && !ocupado) vagasDisponiveis.push(`✅ ${hLoop}`);
+        hLoop = somarMinutos(hLoop, config.intervalo);
+    }
+
+    const link = p?.link_site || window.location.origin;
+    let texto = `✂️ *VAGAS DE ${periodo.toUpperCase()}*\n\n`;
+
+    if (vagasDisponiveis.length === 0) {
+        texto += "🚫 Agenda lotada! Nenhuma vaga disponível.";
+    } else {
+        // REGRA DE OURO (WHATSAPP LIMIT): Pega no máximo 4 horários para não estourar linhas
+        const vagasExibidas = vagasDisponiveis.slice(0, 4);
+        texto += vagasExibidas.join("\n");
+
+        if (vagasDisponiveis.length > 4) {
+            texto += `\n➕ E mais horários livres...`;
+        }
+    }
+
+    texto += `\n\n📍 Reserve agora:\n${link}`;
+
+    // Corta a string para garantir que nunca passe de 700 caracteres de forma alguma
+    if (texto.length > 700) texto = texto.substring(0, 695) + "...";
+
+    navigator.clipboard.writeText(texto).then(() => alert(`Vagas de ${periodo} copiadas com sucesso! (Formatado para Status)`));
+};
+
+/* ==========================================================================
+   17. GATILHOS MENTAIS (BUSCA DINÂMICA NO SUPABASE)
+   ========================================================================== */
+window.gerarTextoMarketing = async function (gatilho) {
+    const btnTexto = document.activeElement; // Pega o botão clicado
+    const textoOriginal = btnTexto.innerHTML;
+    btnTexto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+
+    // 1. Busca os dados do barbeiro para trocar as tags
+    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+    const nomeBarbeiro = p?.nome_proprietario ? p.nome_proprietario.split(' ')[0] : 'Barbeiro';
+    const linkSite = p?.link_site || window.location.origin;
+
+    // 2. Busca TODOS os modelos desse gatilho específico no Supabase
+    const { data: templates, error } = await _supabase
+        .from('templates_marketing')
+        .select('texto_base')
+        .eq('gatilho', gatilho);
+
+    let textoFinal = "";
+
+    // 3. Fallback de Segurança (Se o banco estiver vazio ou der erro)
+    if (error || !templates || templates.length === 0) {
+        console.warn("Banco vazio, usando modelo padrão.");
+        if (gatilho === 'escassez') textoFinal = `🚨 *Últimos horários!* O ${nomeBarbeiro} avisou que a agenda está quase lotada. Garanta a sua vaga: ${linkSite}`;
+        else if (gatilho === 'urgencia') textoFinal = `🔥 *Precisa de um corte pra hoje?* Corre que ainda dá tempo. Veja os horários: ${linkSite}`;
+        else textoFinal = `⚔️ *Corte de respeito!* Agende com o ${nomeBarbeiro} e garanta o melhor visual. Link: ${linkSite}`;
+    } else {
+        // 4. Sorteia 1 mensagem aleatória dentre as 30 cadastradas
+        const sorteado = templates[Math.floor(Math.random() * templates.length)];
+
+        // 5. Troca as Tags pelas informações reais
+        textoFinal = sorteado.texto_base
+            .replace(/\[NOME\]/g, nomeBarbeiro)
+            .replace(/\[LINK\]/g, linkSite);
+    }
+
+    // Trava de segurança para Status (Max 700 chars)
+    if (textoFinal.length > 700) textoFinal = textoFinal.substring(0, 695) + "...";
+
+    // Copia para a área de transferência
+    navigator.clipboard.writeText(textoFinal).then(() => {
+        btnTexto.innerHTML = textoOriginal;
+        alert(`Gatilho de ${gatilho} copiado e pronto para o WhatsApp! 🚀`);
+    });
 };

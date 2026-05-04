@@ -395,3 +395,21 @@ document.addEventListener("DOMContentLoaded", () => {
     renderizarServicosNaHome();
     carregarConteudoPersonalizado(); // Agora sendo chamada corretamente!
 });
+
+//
+// --- PARTE C: REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
+const { data: infoB } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+
+if (infoB) {
+    const redes = document.querySelector(".redes-sociais");
+    if (redes) {
+        const links = redes.querySelectorAll("a");
+        // Ordem no HTML: 0=Instagram, 1=Facebook, 2=WhatsApp
+        if (infoB.instagram) links[0].href = infoB.instagram;
+        if (infoB.facebook) links[1].href = infoB.facebook;
+        if (infoB.whatsapp) {
+            const cleanNum = infoB.whatsapp.replace(/\D/g, "");
+            links[2].href = `https://wa.me/55${cleanNum}`;
+        }
+    }
+}
