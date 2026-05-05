@@ -167,13 +167,12 @@ if (btnAbrirMenu && sidebar && overlay) {
 }
 
 /* ==========================================================================
-    2.2 NAVEGAÇÃO ENTRE ABAS PRINCIPAIS (DASHBOARD, AGENDA, CLIENTES)
+   2.2 NAVEGAÇÃO ENTRE ABAS PRINCIPAIS (DASHBOARD, AGENDA, CLIENTES)
    ========================================================================== */
 
 document.querySelectorAll(".menu > a, .menu .btn-dropdown").forEach((link) => {
     link.addEventListener("click", (e) => {
         // Ignora botões que são apenas para abrir submenus ou sair
-        //
         const ehApenasGaveta = link.id === "btn-logout" ||
             link.id === "btn-config-master" ||
             link.id === "btn-relatorio-master" ||
@@ -191,14 +190,14 @@ document.querySelectorAll(".menu > a, .menu .btn-dropdown").forEach((link) => {
 
         // --- LÓGICA DE EXIBIÇÃO POR TELA ---
         if (texto.includes("Dashboard")) {
-            // MODO COMPLETO: Mostra cabeçalho e progresso da meta
+            // SIM: Mostra cabeçalho e progresso da meta
             if (headerPrincipal) headerPrincipal.style.display = "flex";
             if (painelConquista) painelConquista.style.display = "block";
             secoes.home.style.display = "block";
             carregarAgendamentosDoDia();
         }
         else if (link.id === "link-relatorios" || link.closest('#submenu-relatorios')) {
-            // FOCUS MODE: Esconde o topo para focar nos gráficos e relatórios [cite: 2026-04-03]
+            // NÃO: Esconde o topo para focar nos gráficos e relatórios
             if (headerPrincipal) headerPrincipal.style.display = "none";
             if (painelConquista) painelConquista.style.display = "none";
             secoes.relatorios.style.display = "block";
@@ -206,14 +205,16 @@ document.querySelectorAll(".menu > a, .menu .btn-dropdown").forEach((link) => {
             if (typeof inicializarRelatorios === "function") inicializarRelatorios();
         }
         else {
-            // TELAS SECUNDÁRIAS: Mostra apenas o header
-            if (headerPrincipal) headerPrincipal.style.display = "flex";
-            if (painelConquista) painelConquista.style.display = "none";
-
             if (texto.includes("Agenda")) {
+                // SIM: Na Agenda também mostra cabeçalho e progresso
+                if (headerPrincipal) headerPrincipal.style.display = "flex";
+                if (painelConquista) painelConquista.style.display = "block";
                 secoes.agenda.style.display = "block";
                 inicializarAgenda();
             } else if (texto.includes("Clientes")) {
+                // NÃO: Aba de Clientes fica limpa
+                if (headerPrincipal) headerPrincipal.style.display = "none";
+                if (painelConquista) painelConquista.style.display = "none";
                 secoes.clientes.style.display = "block";
                 renderizarListaClientes();
             }
@@ -667,6 +668,12 @@ window.abrirSubConfig = function (tipo) {
 
     // 1. Esconde TUDO (Dashboard, Agenda, Clientes, etc)
     esconderTodasSessoes();
+
+    // REGRA DE NAVEGAÇÃO: NÃO mostrar topo nas configurações
+    const headerPrincipal = document.getElementById("header-principal");
+    const painelConquista = document.getElementById("painel-conquista");
+    if (headerPrincipal) headerPrincipal.style.display = "none";
+    if (painelConquista) painelConquista.style.display = "none";
 
     // 2. Garante que a seção MÃE das configurações apareça
     const paiConfig = document.getElementById("configuracoes-section");
@@ -1282,18 +1289,19 @@ window.addEventListener("click", (event) => {
 });
 
 /* ==========================================================================
-   13. CONFIGURAÇÕES GERAIS - CONTEÚDO DA HOME E MÍDIAS [cite: 2026-04-26]
+   13. CONFIGURAÇÕES GERAIS - CONTEÚDO DA HOME E MÍDIAS
    ========================================================================== */
 
-// 1. Navegação Inteligente (Separação de Tabelas) [cite: 2026-04-26]
 window.abrirSubConfigGeral = async function (tipo) {
     esconderTodasSessoes();
     const paiConfig = document.getElementById("configuracoes-section");
     const headerPrincipal = document.getElementById("header-principal");
+    const painelConquista = document.getElementById("painel-conquista");
 
-    // 1. Garante a visibilidade do container e do cabeçalho "Olá, Alex"
+    // REGRA DE NAVEGAÇÃO: Garante a visibilidade do container principal, mas OCULTA o topo e a meta
     if (paiConfig) paiConfig.style.display = "block";
-    if (headerPrincipal) headerPrincipal.style.display = "flex";
+    if (headerPrincipal) headerPrincipal.style.display = "none";
+    if (painelConquista) painelConquista.style.display = "none";
 
     // 2. Esconde todas as sub-seções internas antes de mostrar a selecionada
     document.querySelectorAll('.config-sub-section').forEach(s => s.style.display = 'none');
@@ -1388,6 +1396,7 @@ window.abrirSubConfigGeral = async function (tipo) {
         // 3. Aplica a visibilidade
         alternarLayoutMidia(tipoSalvo);
     }
+
     // --- SUBMENU 3: MARKETING E VENDAS ---
     if (tipo === 'marketing') {
         document.getElementById("area-marketing").style.display = "block";
