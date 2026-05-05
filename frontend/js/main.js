@@ -184,6 +184,10 @@ function somarMinutos(hora, minutos) {
    5. ENVIO PARA O SUPABASE
    ========================================================================== */
 
+/* ==========================================================================
+   5. ENVIO PARA O SUPABASE E REDIRECIONAMENTO WHATSAPP
+   ========================================================================== */
+
 if (formulario) {
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -205,8 +209,10 @@ if (formulario) {
         const servicoSelecionado = servicos.find(s => s.nome === selectServico.value);
         const precoReal = servicoSelecionado ? servicoSelecionado.preco : 0;
 
+        const nomeCliente = document.getElementById("nome").value;
+
         const novoAgendamento = {
-            cliente_nome: document.getElementById("nome").value,
+            cliente_nome: nomeCliente,
             telefone: campoTelefone.value,
             servico: selectServico.value,
             data: dataS,    // String "YYYY-MM-DD"
@@ -216,12 +222,32 @@ if (formulario) {
         };
 
         try {
+            // 1. Salva no banco de dados
             const { error } = await _supabase.from('agendamentos').insert([novoAgendamento]);
             if (error) throw error;
 
             botaoSubmit.innerHTML = '<i class="fas fa-check"></i> Concluído!';
             botaoSubmit.classList.add("sucesso");
 
+            // 2. Busca o número do barbeiro no banco para saber para onde mandar a mensagem
+            const { data: infoB } = await _supabase.from('dados_barbearia').select('whatsapp').eq('id', 1).maybeSingle();
+
+            if (infoB && infoB.whatsapp) {
+                const numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); // Limpa formatação
+                const dataFormatada = dataS.split('-').reverse().join('/'); // Transforma YYYY-MM-DD em DD/MM/YYYY
+
+                // 3. Monta a mensagem pré-programada que o cliente vai enviar
+                const textoWhatsApp = `Olá! Acabei de fazer um agendamento pelo site. ✂️\n\n👤 *Nome:* ${nomeCliente}\n💈 *Serviço:* ${novoAgendamento.servico}\n📅 *Data:* ${dataFormatada}\n⏰ *Horário:* ${horaS}h\n\nAguardo as instruções para confirmar meu horário!`;
+
+                const linkWhatsApp = `https://wa.me/55${numeroBarbeiro}?text=${encodeURIComponent(textoWhatsApp)}`;
+
+                // 4. Redireciona o cliente para o WhatsApp após 1,5 segundos (para dar tempo de ler "Concluído!")
+                setTimeout(() => {
+                    window.open(linkWhatsApp, '_blank'); // Abre em nova aba/app do WhatsApp
+                }, 1500);
+            }
+
+            // 5. Limpa o formulário e a tela
             setTimeout(() => {
                 formulario.reset();
                 containerHorarios.style.display = "none";
@@ -229,7 +255,6 @@ if (formulario) {
                 botaoSubmit.innerText = textoOriginal;
                 botaoSubmit.disabled = false;
                 inputHorarioFinal.value = "";
-                // Recarrega os serviços para garantir preços novos se houver
                 renderizarServicosNaHome();
             }, 3000);
 
@@ -243,18 +268,19 @@ if (formulario) {
 
 
 
+
 /* ==========================================================================
-   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
-   ========================================================================== */
-/* ==========================================================================
-   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA) [cite: 2026-04-26]
+   6. CARREGAMENTO PERSONALIZADO (TEXTOS + VITRINE DINÂMICA)
    ========================================================================== */
 async function carregarConteudoPersonalizado() {
-    // 1. Busca os textos e endereço na configuracoes1 [cite: 2026-04-26]
+    // 1. Busca os textos e endereço na configuracoes1
     const { data: textos } = await _supabase.from('configuracoes1').select('*').eq('id', 1).maybeSingle();
 
-    // 2. Busca as fotos e layout na vitrine_midias [cite: 2026-04-26, 2026-04-27]
+    // 2. Busca as fotos e layout na vitrine_midias
     const { data: midias } = await _supabase.from('vitrine_midias').select('*').eq('id', 1).maybeSingle();
+
+    // 3. Busca as redes sociais na dados_barbearia
+    const { data: infoB } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
 
     // --- PARTE A: TEXTOS E ENDEREÇO (configuracoes1) ---
     if (textos) {
@@ -277,9 +303,9 @@ async function carregarConteudoPersonalizado() {
         }
     }
 
-    // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) [cite: 2026-04-26, 2026-04-27] ---
+    // --- PARTE B: IMAGENS E VITRINE (vitrine_midias) ---
     if (midias) {
-        // Atualização da Imagem Hero (Banner) [cite: 2026-04-26]
+        // Atualização da Imagem Hero (Banner)
         if (midias.url_hero) {
             const pictureHero = document.querySelector(".imagem-hero picture");
             if (pictureHero) {
@@ -289,7 +315,7 @@ async function carregarConteudoPersonalizado() {
             }
         }
 
-        // Atualização da Imagem Sobre (Ajuste de Seletor) [cite: 2026-04-27]
+        // Atualização da Imagem Sobre
         if (midias.url_sobre) {
             const containerSobre = document.querySelector(".imagem-sobre");
             if (containerSobre) {
@@ -302,13 +328,13 @@ async function carregarConteudoPersonalizado() {
             }
         }
 
-        // --- LÓGICA DINÂMICA: GALERIA, PRODUTOS OU AMBOS [cite: 2026-04-27] ---
+        // --- LÓGICA DINÂMICA: GALERIA, PRODUTOS OU AMBOS ---
         const contGaleria = document.getElementById("container-galeria-fotos");
         const contProdutos = document.getElementById("container-produtos");
         const tituloVitrine = document.getElementById("titulo-vitrine");
 
         if (midias.tipo_exibicao) {
-            // Reset de visibilidade e espaçamentos [cite: 2026-04-27]
+            // Reset de visibilidade e espaçamentos
             if (contGaleria) contGaleria.style.display = "none";
             if (contProdutos) {
                 contProdutos.style.display = "none";
@@ -331,7 +357,7 @@ async function carregarConteudoPersonalizado() {
             }
             else if (midias.tipo_exibicao === 'ambos') {
                 if (tituloVitrine) tituloVitrine.innerText = "Vitrine e Produtos";
-                // No modo "Ambos", Produtos aparece PRIMEIRO (acima) [cite: 2026-04-27]
+                // No modo "Ambos", Produtos aparece PRIMEIRO (acima)
                 if (contProdutos) {
                     contProdutos.style.display = "grid";
                     contProdutos.style.marginBottom = "40px"; // Espaço entre as seções
@@ -344,9 +370,26 @@ async function carregarConteudoPersonalizado() {
             }
         }
     }
+
+    // --- PARTE C: REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
+    if (infoB) {
+        const redes = document.querySelector(".redes-sociais");
+        if (redes) {
+            const links = redes.querySelectorAll("a");
+            if (links.length >= 3) {
+                // Ordem no HTML: 0=Instagram, 1=Facebook, 2=WhatsApp
+                if (infoB.instagram) links[0].href = infoB.instagram;
+                if (infoB.facebook) links[1].href = infoB.facebook;
+                if (infoB.whatsapp) {
+                    const cleanNum = infoB.whatsapp.replace(/\D/g, "");
+                    links[2].href = `https://wa.me/55${cleanNum}`;
+                }
+            }
+        }
+    }
 }
 
-// Renderiza a Galeria Padrão (4 fotos) [cite: 2026-04-26]
+// Renderiza a Galeria Padrão (4 fotos)
 function renderizarGaleria(container, fotos) {
     if (!fotos || fotos.length === 0) return;
     container.innerHTML = fotos.map(url =>
@@ -354,29 +397,11 @@ function renderizarGaleria(container, fotos) {
     ).join("");
 }
 
-// Renderiza os Produtos no formato da Galeria com Detalhes [cite: 2026-04-27]
+// Função para renderizar os 4 produtos no formato da galeria
 function renderizarProdutos(container, produtos) {
     if (!produtos || produtos.length === 0) return;
 
-    // Limitamos aos 4 primeiros para manter o grid simétrico [cite: 2026-04-27]
-    const produtosExibicao = produtos.slice(0, 4);
-
-    container.innerHTML = produtosExibicao.map(p => `
-        <div class="card-produto-vitrine" style="position: relative; overflow: hidden; border-radius: 4px;">
-            <img src="${p.url}" alt="${p.nome}" style="width:100%; height:200px; object-fit:cover; border-radius:4px;">
-            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 8px; text-align: center;">
-                <h4 style="font-size: 0.8rem; color: #fff; margin-bottom: 2px;">${p.nome}</h4>
-                <p style="color: var(--cor-primaria); font-weight: bold; font-size: 0.9rem;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
-            </div>
-        </div>
-    `).join("");
-}
-
-// Função para renderizar os 4 produtos no formato da galeria [cite: 2026-04-27]
-function renderizarProdutos(container, produtos) {
-    if (!produtos || produtos.length === 0) return;
-
-    // O limite de 4 produtos garante que a grid não quebre no desktop [cite: 2026-04-27]
+    // O limite de 4 produtos garante que a grid não quebre no desktop
     const produtosExibicao = produtos.slice(0, 4);
 
     container.innerHTML = produtosExibicao.map(p => `
@@ -390,26 +415,8 @@ function renderizarProdutos(container, produtos) {
     `).join("");
 }
 
-// Inicialização Geral [cite: 2026-04-26]
+// Inicialização Geral
 document.addEventListener("DOMContentLoaded", () => {
     renderizarServicosNaHome();
-    carregarConteudoPersonalizado(); // Agora sendo chamada corretamente!
+    carregarConteudoPersonalizado();
 });
-
-//
-// --- PARTE C: REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
-const { data: infoB } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
-
-if (infoB) {
-    const redes = document.querySelector(".redes-sociais");
-    if (redes) {
-        const links = redes.querySelectorAll("a");
-        // Ordem no HTML: 0=Instagram, 1=Facebook, 2=WhatsApp
-        if (infoB.instagram) links[0].href = infoB.instagram;
-        if (infoB.facebook) links[1].href = infoB.facebook;
-        if (infoB.whatsapp) {
-            const cleanNum = infoB.whatsapp.replace(/\D/g, "");
-            links[2].href = `https://wa.me/55${cleanNum}`;
-        }
-    }
-}
