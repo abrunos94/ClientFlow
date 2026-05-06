@@ -74,10 +74,11 @@ body {
    ========================================= */
 #hero {
   position: relative;
-  height: 80vh;
-  min-height: 480px;
+  height: 100vh; /* Ocupa 100% da tela do celular */
+  min-height: 600px;
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Força TODO o conteúdo flex para a parte de BAIXO */
+  padding: 0 10% 60px 10%; /* 60px de respiro no fundo para não colar na borda */
   overflow: hidden;
   background-color: #000;
 }
@@ -95,9 +96,10 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center right;
+  object-position: center; /* Centralizado para mostrar bem a barbearia no mobile */
 }
 
+/* Gradiente: Escuro no topo (logo) e super escuro na base (textos) */
 .imagem-hero::after {
   content: "";
   position: absolute;
@@ -105,23 +107,48 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(0, 0, 0, 0.7) 40%,
-      transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5) 0%,     /* Escurece um pouco o topo para a logo aparecer */
+    transparent 40%,           /* Meio claro */
+    rgba(0, 0, 0, 0.95) 100%   /* Base bem escura para leitura perfeita do texto */
+  );
+}
+
+/* Logotipo fixado no topo de forma independente */
+.logo-container-home {
+  position: absolute;
+  top: 40px; /* Distância do topo */
+  left: 10%; /* Alinhado com o texto no desktop */
+  z-index: 3;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--cor-primaria);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  background-color: #111;
+}
+
+.logo-container-home img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  padding-left: 10%;
+  width: 100%;
   max-width: 700px;
+  /* Removi o padding-left daqui pois agora o #hero controla o espaçamento */
 }
 
 .hero-content h1 {
   font-size: 2.8rem;
   margin-bottom: 10px;
   line-height: 1.2;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
 }
 
 .hero-content p {
@@ -129,7 +156,33 @@ body {
   color: var(--cor-subtexto);
   margin-bottom: 25px;
 }
+/* =========================================
+   AJUSTES MOBILE (HERO)
+   ========================================= */
+@media (max-width: 768px) {
+  #hero {
+    padding: 0 5% 40px 5%; /* Menos respiro lateral no celular */
+  }
 
+  .logo-container-home {
+    /* Centraliza a logo no mobile */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 90px;
+    top: 30px;
+  }
+
+  .hero-content {
+    text-align: center; /* Centraliza textos e botões */
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 2rem; /* Evita que o título quebre muito no celular */
+  }
+}
 /* =========================================
    3. SEÇÃO SOBRE NÓS
    ========================================= */
