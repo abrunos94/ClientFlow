@@ -1592,15 +1592,16 @@ window.salvarConteudoHome = async function () {
 };
 
 /* ==========================================================================
-   14. NAVEGAÇÃO E PERFIL - VERSÃO CORRIGIDA [cite: 2026-04-29]
+   14. NAVEGAÇÃO E PERFIL - VERSÃO CORRIGIDA (AGORA SALVA A LOGO)
    ========================================================================== */
-
-
-
 window.salvarPerfilBarbearia = async function () {
     const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']");
     btn.innerText = "Salvando...";
 
+    // 1. Busca os dados atuais para não apagar a logo caso você esteja apenas mudando o nome
+    const { data: perfilAtual } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+
+    // 2. Monta o objeto com todos os textos e adiciona a URL da logo
     const dados = {
         id: 1,
         nome_proprietario: document.getElementById("prof-nome-dono").value,
@@ -1609,16 +1610,24 @@ window.salvarPerfilBarbearia = async function () {
         whatsapp: document.getElementById("prof-whats").value,
         instagram: document.getElementById("prof-insta").value,
         facebook: document.getElementById("prof-facebook").value,
-        link_site: document.getElementById("prof-link-site").value
+        link_site: document.getElementById("prof-link-site").value,
+
+        // A MÁGICA AQUI: Pega a nova URL do upload OU mantém a antiga se existir
+        url_logo: window["url_link_logo-barbearia"] || (perfilAtual ? perfilAtual.url_logo : null)
     };
 
+    // 3. Envia tudo para o Supabase
     const { error } = await _supabase.from('dados_barbearia').upsert(dados);
+
     if (!error) {
-        alert("Perfil atualizado!");
+        alert("Perfil atualizado com sucesso!");
         const primeiroNome = dados.nome_proprietario.trim().split(' ')[0];
         document.querySelector(".dash-header h1").innerText = `Olá, ${primeiroNome}!`;
+    } else {
+        alert("Erro ao salvar: " + error.message);
     }
-    btn.innerText = "Salvar Perfil";
+
+    btn.innerHTML = '<i class="fas fa-save"></i> Salvar Dados do Perfil';
 };
 
 // Mover a função utilitária para o escopo global [cite: 2026-04-28]

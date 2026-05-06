@@ -228,7 +228,7 @@ if (formulario) {
             const { data: infoB } = await _supabase.from('dados_barbearia').select('whatsapp').eq('id', 1).maybeSingle();
 
             if (infoB && infoB.whatsapp) {
-                let numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); 
+                let numeroBarbeiro = infoB.whatsapp.replace(/\D/g, "");
                 if (numeroBarbeiro.startsWith("55") && numeroBarbeiro.length > 11) {
                     numeroBarbeiro = numeroBarbeiro.substring(2);
                 }
@@ -254,7 +254,7 @@ if (formulario) {
                         </a>
                     </div>
                 `;
-                
+
                 containerHorarios.style.display = "none";
             }
 
@@ -370,8 +370,20 @@ async function carregarConteudoPersonalizado() {
         }
     }
 
-    // --- PARTE C: REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
+    // --- PARTE C: LOGOTIPO E REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
+    // --- PARTE C: LOGOTIPO E REDES SOCIAIS DINÂMICAS (dados_barbearia) ---
     if (infoB) {
+        // 1. Lógica para exibir o Logotipo no topo
+        if (infoB.url_logo) {
+            const imgLogo = document.getElementById('logo-barbearia-home');
+            const containerLogo = document.getElementById('container-logo-home');
+            if (imgLogo && containerLogo) {
+                imgLogo.src = infoB.url_logo;
+                containerLogo.style.display = 'block'; // Mostra a logo se ela existir no banco
+            }
+        }
+
+        // 2. Atualizar links de redes sociais
         const redes = document.querySelector(".redes-sociais");
         if (redes) {
             const links = redes.querySelectorAll("a");
