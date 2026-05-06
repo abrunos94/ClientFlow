@@ -180,13 +180,11 @@ function somarMinutos(hora, minutos) {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-/* ==========================================================================
-   5. ENVIO PARA O SUPABASE
-   ========================================================================== */
 
-/* ==========================================================================
-   5. ENVIO PARA O SUPABASE E REDIRECIONAMENTO WHATSAPP
-   ========================================================================== */
+
+* ==========================================================================
+    5. ENVIO PARA O SUPABASE E REDIRECIONAMENTO WHATSAPP
+        ========================================================================== */
 
 if (formulario) {
     formulario.addEventListener("submit", async (e) => {
@@ -233,7 +231,13 @@ if (formulario) {
             const { data: infoB } = await _supabase.from('dados_barbearia').select('whatsapp').eq('id', 1).maybeSingle();
 
             if (infoB && infoB.whatsapp) {
-                const numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); // Limpa formatação
+                let numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); // Limpa formatação
+
+                // Tratamento de segurança: Se o número no banco já tiver o 55, remove para não duplicar na URL
+                if (numeroBarbeiro.startsWith("55") && numeroBarbeiro.length > 11) {
+                    numeroBarbeiro = numeroBarbeiro.substring(2);
+                }
+
                 const dataFormatada = dataS.split('-').reverse().join('/'); // Transforma YYYY-MM-DD em DD/MM/YYYY
 
                 // 3. Monta a mensagem pré-programada que o cliente vai enviar
@@ -241,10 +245,18 @@ if (formulario) {
 
                 const linkWhatsApp = `https://wa.me/55${numeroBarbeiro}?text=${encodeURIComponent(textoWhatsApp)}`;
 
-                // 4. Redireciona o cliente para o WhatsApp após 1,5 segundos (para dar tempo de ler "Concluído!")
-                setTimeout(() => {
-                    window.open(linkWhatsApp, '_blank'); // Abre em nova aba/app do WhatsApp
-                }, 1500);
+                // 4. Lógica Híbrida de Redirecionamento (Resolve o bloqueio em Celulares)
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // No mobile: Redireciona na mesma aba imediatamente
+                    window.location.href = linkWhatsApp;
+                } else {
+                    // No PC: Mantém o delay de 1.5s para UX e abre em nova aba
+                    setTimeout(() => {
+                        window.open(linkWhatsApp, '_blank');
+                    }, 1500);
+                }
             }
 
             // 5. Limpa o formulário e a tela
