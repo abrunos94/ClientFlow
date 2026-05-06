@@ -183,8 +183,8 @@ function somarMinutos(hora, minutos) {
 
 
 /* ==========================================================================
-    5. ENVIO PARA O SUPABASE E REDIRECIONAMENTO WHATSAPP
-        ========================================================================== */
+   5. ENVIO PARA O SUPABASE E TRANSIÇÃO SUAVE PARA WHATSAPP
+   ========================================================================== */
 
 if (formulario) {
     formulario.addEventListener("submit", async (e) => {
@@ -198,7 +198,7 @@ if (formulario) {
         const botaoSubmit = formulario.querySelector('button[type="submit"]');
         const textoOriginal = botaoSubmit.innerText;
         botaoSubmit.disabled = true;
-        botaoSubmit.innerText = "Agendando...";
+        botaoSubmit.innerText = "Salvando...";
 
         const [dataS, horaS] = inputHorarioFinal.value.split("|");
 
@@ -224,60 +224,47 @@ if (formulario) {
             const { error } = await _supabase.from('agendamentos').insert([novoAgendamento]);
             if (error) throw error;
 
-            botaoSubmit.innerHTML = '<i class="fas fa-check"></i> Concluído!';
-            botaoSubmit.classList.add("sucesso");
-
-            // 2. Busca o número do barbeiro no banco para saber para onde mandar a mensagem
+            // 2. Busca o número do barbeiro no banco
             const { data: infoB } = await _supabase.from('dados_barbearia').select('whatsapp').eq('id', 1).maybeSingle();
 
             if (infoB && infoB.whatsapp) {
-                let numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); // Limpa formatação
-
-                // Tratamento de segurança: Se o número no banco já tiver o 55, remove para não duplicar na URL
+                let numeroBarbeiro = infoB.whatsapp.replace(/\D/g, ""); 
                 if (numeroBarbeiro.startsWith("55") && numeroBarbeiro.length > 11) {
                     numeroBarbeiro = numeroBarbeiro.substring(2);
                 }
 
-                const dataFormatada = dataS.split('-').reverse().join('/'); // Transforma YYYY-MM-DD em DD/MM/YYYY
-
-                // 3. Monta a mensagem pré-programada que o cliente vai enviar
+                const dataFormatada = dataS.split('-').reverse().join('/');
                 const textoWhatsApp = `Olá! Acabei de fazer um agendamento pelo site. ✂️\n\n👤 *Nome:* ${nomeCliente}\n💈 *Serviço:* ${novoAgendamento.servico}\n📅 *Data:* ${dataFormatada}\n⏰ *Horário:* ${horaS}h\n\nAguardo as instruções para confirmar meu horário!`;
 
+                // Link oficial que o celular reconhece para abrir o app
                 const linkWhatsApp = `https://wa.me/55${numeroBarbeiro}?text=${encodeURIComponent(textoWhatsApp)}`;
 
-                // 4. Lógica Híbrida de Redirecionamento (Resolve o bloqueio em Celulares)
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                if (isMobile) {
-                    // No mobile: Redireciona na mesma aba imediatamente
-                    window.location.href = linkWhatsApp;
-                } else {
-                    // No PC: Mantém o delay de 1.5s para UX e abre em nova aba
-                    setTimeout(() => {
-                        window.open(linkWhatsApp, '_blank');
-                    }, 1500);
-                }
+                // 3. TRANSIÇÃO SUAVE (UX)
+                // Esconde os campos e mostra a tela de confirmação com o botão do WhatsApp
+                formulario.innerHTML = `
+                    <div style="text-align: center; padding: 20px; animation: fadeIn 0.5s ease-in-out;">
+                        <i class="fas fa-check-circle" style="font-size: 4rem; color: #25D366; margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--cor-texto); margin-bottom: 10px;">Quase lá, ${nomeCliente}!</h3>
+                        <p style="color: var(--cor-subtexto); margin-bottom: 25px; font-size: 1.1rem;">
+                            Seu horário já está reservado no sistema.<br>
+                            Para concluir, clique no botão abaixo e envie sua mensagem para o barbeiro.
+                        </p>
+                        <a href="${linkWhatsApp}" target="_blank" style="background-color: #25D366; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);">
+                            <i class="fab fa-whatsapp" style="font-size: 1.3rem;"></i> Finalizar no WhatsApp
+                        </a>
+                    </div>
+                `;
+                
+                containerHorarios.style.display = "none";
             }
 
-            // 5. Limpa o formulário e a tela
-            setTimeout(() => {
-                formulario.reset();
-                containerHorarios.style.display = "none";
-                botaoSubmit.classList.remove("sucesso");
-                botaoSubmit.innerText = textoOriginal;
-                botaoSubmit.disabled = false;
-                inputHorarioFinal.value = "";
-                renderizarServicosNaHome();
-            }, 3000);
-
         } catch (erro) {
-            alert("Erro: " + erro.message);
+            alert("Erro ao salvar: " + erro.message);
             botaoSubmit.disabled = false;
             botaoSubmit.innerText = textoOriginal;
         }
     });
 }
-
 
 
 
