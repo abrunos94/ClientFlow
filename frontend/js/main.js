@@ -292,7 +292,26 @@ async function carregarConteudoPersonalizado() {
             if (ps.length >= 3) {
                 ps[0].innerText = `${textos.end_rua}, ${textos.end_numero} - ${textos.end_cidade}, ${textos.end_estado}`;
                 ps[1].innerText = `CEP: ${textos.end_cep}`;
-                ps[2].innerText = `Telefone: ${textos.end_tel}`;
+
+                // MÁGICA AQUI: Puxa o WhatsApp do Perfil Profissional e formata bonitinho!
+                let telefoneExibicao = textos.end_tel || "Não informado";
+                if (infoB && infoB.whatsapp) {
+                    let v = infoB.whatsapp.replace(/\D/g, ""); // Limpa tudo que não é número
+                    // Se o barbeiro salvou com 55 na frente, a gente tira para a exibição ficar limpa
+                    if (v.startsWith("55") && v.length > 11) {
+                        v = v.substring(2);
+                    }
+                    // Aplica a máscara (XX) XXXXX-XXXX
+                    if (v.length === 11) {
+                        telefoneExibicao = `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7)}`;
+                    } else if (v.length === 10) {
+                        telefoneExibicao = `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
+                    } else {
+                        telefoneExibicao = infoB.whatsapp; // Fallback se for um número de outro formato
+                    }
+                }
+
+                ps[2].innerText = `Telefone: ${telefoneExibicao}`;
             }
         }
 

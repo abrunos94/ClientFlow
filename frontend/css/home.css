@@ -8,6 +8,7 @@
   --cor-texto: #ffffff;
   --cor-subtexto: #a1a1a1;
   --fonte-principal: "Montserrat", sans-serif;
+  --fonte-secundaria: "Playfair Display", serif; /* Nova fonte para textos elegantes */
 }
 
 * {
@@ -70,15 +71,18 @@ body {
 }
 
 /* =========================================
-   2. HERO SECTION
+   2. HERO SECTION (Versão Responsiva e Simétrica)
    ========================================= */
 #hero {
   position: relative;
-  height: 100vh; /* Ocupa 100% da tela do celular */
+  height: 100vh;
   min-height: 600px;
   display: flex;
-  align-items: flex-end; /* Força TODO o conteúdo flex para a parte de BAIXO */
-  padding: 0 10% 60px 10%; /* 60px de respiro no fundo para não colar na borda */
+  flex-direction: column;
+  /* DESKTOP: Centraliza o texto e botão perfeitamente no meio do ecrã */
+  justify-content: center;
+  align-items: center;
+  padding: 0 5%;
   overflow: hidden;
   background-color: #000;
 }
@@ -96,10 +100,10 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center; /* Centralizado para mostrar bem a barbearia no mobile */
+  object-position: center;
 }
 
-/* Gradiente: Escuro no topo (logo) e super escuro na base (textos) */
+/* Gradiente: Escurece suavemente toda a imagem para garantir que a logo e o texto branco se destaquem sempre */
 .imagem-hero::after {
   content: "";
   position: absolute;
@@ -107,22 +111,23 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.5) 0%,     /* Escurece um pouco o topo para a logo aparecer */
-    transparent 40%,           /* Meio claro */
-    rgba(0, 0, 0, 0.95) 100%   /* Base bem escura para leitura perfeita do texto */
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.8) 100%);
 }
 
-/* Logotipo fixado no topo de forma independente */
+/* Logotipo fixado no topo e SEMPRE centralizado */
 .logo-container-home {
   position: absolute;
-  top: 40px; /* Distância do topo */
-  left: 10%; /* Alinhado com o texto no desktop */
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Garante que fica exatamente no centro */
   z-index: 3;
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  /* Tamanho elegante para PC */
+  height: 130px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--cor-primaria);
@@ -140,49 +145,56 @@ body {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 700px;
-  /* Removi o padding-left daqui pois agora o #hero controla o espaçamento */
+  max-width: 800px;
+  text-align: center;
+  /* Centraliza o texto e o botão */
+  margin-top: 60px;
+  /* Evita que o texto encoste na logo em ecrãs mais curtos */
 }
 
 .hero-content h1 {
-  font-size: 2.8rem;
-  margin-bottom: 10px;
+  font-size: 3rem;
+  /* Título um pouco maior no PC para preencher melhor */
+  margin-bottom: 15px;
   line-height: 1.2;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.9);
+  /* Sombra forte para leitura perfeita */
 }
 
 .hero-content p {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--cor-subtexto);
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
+
 /* =========================================
    AJUSTES MOBILE (HERO)
    ========================================= */
 @media (max-width: 768px) {
   #hero {
-    padding: 0 5% 40px 5%; /* Menos respiro lateral no celular */
+    /* TELEMÓVEL: Empurra o texto e o botão de volta para o fundo (Thumb Zone) */
+    justify-content: flex-end;
+    padding-bottom: 60px;
   }
 
   .logo-container-home {
-    /* Centraliza a logo no mobile */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90px;
-    height: 90px;
+    /* Aumentado de 90px para 120px Logotipo! */
+    width: 120px;
+    height: 120px;
     top: 30px;
+   
   }
 
   .hero-content {
-    text-align: center; /* Centraliza textos e botões */
+    margin-top: 0;
+  }
+
+  .hero-content h1 {
+    font-size: 2.2rem;
+    /* Reduz ligeiramente para não quebrar no telemóvel */
   }
 }
 
-@media (max-width: 480px) {
-  .hero-content h1 {
-    font-size: 2rem; /* Evita que o título quebre muito no celular */
-  }
-}
 /* =========================================
    3. SEÇÃO SOBRE NÓS
    ========================================= */
@@ -210,6 +222,14 @@ body {
   display: block;
   /* Remove espaços vazios na base da imagem */
 }
+
+.texto-sobre p {
+  font-family: var(--fonte-secundaria);
+  font-size: 1.3rem; /* Um pouco maior para dar destaque */
+  line-height: 1.8; /* Espaçamento entre as linhas para leitura confortável */
+  color: var(--cor-texto);
+}
+
 
 /* =========================================
    4. SERVIÇOS E CARDS
