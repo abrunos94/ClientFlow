@@ -33,7 +33,11 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print"
+    onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  </noscript>
 </head>
 
 <body>
@@ -59,70 +63,72 @@
       <a href="#agendamento" class="btn-principal">Agendar Horário</a>
     </div>
   </section>
+  <main>
 
-  <section id="sobre" class="container">
-    <div class="texto-sobre">
-      <h2 class="titulo-decorado">Sobre Nós</h2>
-      <p>Mais de 10 anos cuidando do seu visual.
-        Profissionais especializados em cortes e barba.</p>
-    </div>
-
-    <div class="imagem-sobre">
-      <picture>
-        <source srcset="assets/images/imgsobre.webp" type="image/webp" />
-        <img src="assets/images/imgsobre.webp" alt="Interior da barbearia profissional" loading="lazy" />
-      </picture>
-    </div>
-  </section>
-
-  <section id="servicos" class="container">
-    <h3 class="titulo-centralizado">Serviços</h3>
-    <div class="cards-grid" id="container-servicos-cliente">
-    </div>
-  </section>
-
-  <section id="galeria" class="container">
-    <h2 class="titulo-centralizado" id="titulo-vitrine">Nossa Vitrine</h2>
-
-    <div id="container-produtos" class="galeria-grid" style="display: none; margin-bottom: 40px;">
-    </div>
-
-    <div id="container-galeria-fotos" class="galeria-grid" style="display: none;">
-    </div>
-  </section>
-
-  <section id="agendamento" class="container">
-    <h2 class="titulo-centralizado">Agende seu Horário</h2>
-
-    <form class="form-agendamento" id="form-agendamento">
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" placeholder="Seu nome completo" required />
-
-      <label for="telefone">Telefone:</label>
-      <input type="tel" id="telefone" name="telefone" placeholder="(27) 99999-9999" required />
-
-      <label for="servico">Serviço</label>
-      <select id="servico" name="servico" required>
-        <option value="">Selecione um serviço</option>
-      </select>
-
-      <div class="input-group-moderno">
-        <label for="data">1. Escolha o dia:</label>
-        <input id="data" type="date" required />
+    <section id="sobre" class="container">
+      <div class="texto-sobre">
+        <h2 class="titulo-decorado">Sobre Nós</h2>
+        <p>Mais de 10 anos cuidando do seu visual.
+          Profissionais especializados em cortes e barba.</p>
       </div>
 
-      <div id="container-horarios" class="container-slots" style="display: none; margin-top: 20px;">
-        <label>2. Escolha o horário disponível:</label>
-        <div id="grid-horarios" class="grid-slots"></div>
+      <div class="imagem-sobre">
+        <picture>
+          <source srcset="assets/images/imgsobre.webp" type="image/webp" />
+          <img src="assets/images/imgsobre.webp" alt="Interior da barbearia profissional" loading="lazy" />
+        </picture>
+      </div>
+    </section>
+
+    <section id="servicos" class="container">
+      <h3 class="titulo-centralizado">Serviços</h3>
+      <div class="cards-grid" id="container-servicos-cliente">
+      </div>
+    </section>
+
+    <section id="galeria" class="container">
+      <h2 class="titulo-centralizado" id="titulo-vitrine">Nossa Vitrine</h2>
+
+      <div id="container-produtos" class="galeria-grid" style="display: none; margin-bottom: 40px;">
       </div>
 
-      <input type="hidden" id="horario-final" name="horario_final" required>
+      <div id="container-galeria-fotos" class="galeria-grid" style="display: none;">
+      </div>
+    </section>
 
-      <button type="submit" class="btn-confirmar">
-        Confirmar Agendamento
-      </button>
-    </form>
-  </section>
+    <section id="agendamento" class="container">
+      <h2 class="titulo-centralizado">Agende seu Horário</h2>
+
+      <form class="form-agendamento" id="form-agendamento">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" placeholder="Seu nome completo" required />
+
+        <label for="telefone">Telefone:</label>
+        <input type="tel" id="telefone" name="telefone" placeholder="(27) 99999-9999" required />
+
+        <label for="servico">Serviço</label>
+        <select id="servico" name="servico" required>
+          <option value="">Selecione um serviço</option>
+        </select>
+
+        <div class="input-group-moderno">
+          <label for="data">1. Escolha o dia:</label>
+          <input id="data" type="date" required />
+        </div>
+
+        <div id="container-horarios" class="container-slots" style="display: none; margin-top: 20px;">
+          <label>2. Escolha o horário disponível:</label>
+          <div id="grid-horarios" class="grid-slots"></div>
+        </div>
+
+        <input type="hidden" id="horario-final" name="horario_final" required>
+
+        <button type="submit" class="btn-confirmar">
+          Confirmar Agendamento
+        </button>
+      </form>
+    </section>
+  </main>
 
   <footer>
     <div class="footer-content">
@@ -147,9 +153,11 @@
 
 
       <div class="mapa-container">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.973725035438!2d-40.31953729999998!3d-20.3427041!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd10f68ed%3A0xdadf2d68057ca51f!2sR.%20Mal.%20Deodoro%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029119-045!5e0!3m2!1spt-BR!2sbr!4v1773170165844!5m2!1spt-BR!2sbr"
-          style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <iframe title="Mapa de Localização da Barbearia" src="<iframe src="
+          https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3740.9709435635646!2d-40.319286!3d-20.342819!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb83defd6df81f3%3A0x49f157067009e743!2sR.%20Mal.%20Deodoro%2C%20119%20-%20Aribiri%2C%20Vila%20Velha%20-%20ES%2C%2029120-280!5e0!3m2!1spt-BR!2sbr!4v1778532794608!5m2!1spt-BR!2sbr"
+          width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>" style="border: 0" allowfullscreen="" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </div>
 
