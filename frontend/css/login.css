@@ -39,7 +39,7 @@
 }
 
 .login-box p {
-    color: var(--cor-subtexto);
+    color: #cccccc; /* <-- CLAREADO PARA ACESSIBILIDADE */
     font-size: 0.9rem;
     margin-bottom: 25px;
 }
@@ -119,7 +119,7 @@
 #btn-recuperar-senha {
     display: inline-block;
     margin-top: 25px;
-    color: var(--cor-subtexto);
+    color: #cccccc; /* <-- CLAREADO PARA ACESSIBILIDADE */
     font-size: 0.8rem;
     text-decoration: underline;
     transition: 0.3s;
