@@ -5,9 +5,8 @@
  */
 
 // 1. CONFIGURAÇÕES INICIAIS E CONEXÃO
-const SUPABASE_URL = "https://cvvixgkiqljpamvnjzzj.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2dml4Z2tpcWxqcGFtdm5qenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTEsImV4cCI6MjA5MDAxNTA5MX0.TfvzM_f-RxbOPIui2EHLYi2i3_dvFjWuE6XzoqQr2WM";
-
+const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co/rest/v1/";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. SELEÇÃO DE ELEMENTOS (Organizar tudo no topo facilita a manutenção)
