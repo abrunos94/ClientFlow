@@ -1,13 +1,31 @@
-/* Conteúdo extraído das seções 1 e 8 (parcial) */
+/* =========================================
+   1. VARIÁVEIS GLOBAIS (Design System)
+   ========================================= */
 :root {
+  /* Cores Base */
   --cor-fundo: #0d0d0d;
   --cor-card: #1a1a1a;
+  --cor-borda: #333333;
+  
+  /* Cores de Marca e Texto */
   --cor-primaria: #b8864b;
   --cor-texto: #ffffff;
   --cor-subtexto: #a1a1a1;
+
+  /* Cores de Feedback (Status) */
+  --cor-sucesso: #2ecc71;
+  --cor-alerta: #f1c40f;
+  --cor-erro: #ff4757;
+  --cor-info: #3498db;
+
+  /* Tipografia */
   --fonte-principal: "Montserrat", sans-serif;
+  --fonte-secundaria: "Playfair Display", serif;
 }
 
+/* =========================================
+   2. RESET GERAL E SCROLLBAR PREMIUM
+   ========================================= */
 * {
   margin: 0;
   padding: 0;
@@ -21,16 +39,43 @@ body {
   line-height: 1.6;
 }
 
-/* Utilitários globais usadas em várias páginas */
+/* Scrollbar Personalizada (Estilo SaaS) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cor-fundo);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cor-borda);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cor-primaria);
+}
+
+/* =========================================
+   3. COMPONENTES GLOBAIS
+   ========================================= */
 .btn-principal {
   background-color: var(--cor-primaria);
-  color: white;
+  color: #000; /* Preto contrasta melhor com o Dourado */
   padding: 12px 25px;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: bold;
-  transition: 0.3s;
-  display: inline-block;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-decoration: none;
+}
+
+.btn-principal:hover {
+  background-color: #966d3b;
+  transform: translateY(-2px);
+  color: #fff;
 }
