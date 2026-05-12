@@ -7,7 +7,7 @@
    1. SEGURANÇA, CONEXÃO E CACHE DO DOM
    ========================================================================== */
 // REMOVA o "/rest/v1/" do final da URL
-const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co"; 
+const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co";
 
 // A KEY permanece a mesma
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
@@ -1019,18 +1019,17 @@ window.abrirSubConfigGeral = async function (tipo) {
             .maybeSingle();
         if (p) {
             // 1. Preenchimento dos campos do Perfil
-            ["nome_proprietario", "nome_empresa", "documento", "whatsapp", "instagram", "facebook", "link_site"].forEach((k) => {
+            ["nome_proprietario", "nome_empresa", "documento", "whatsapp", "instagram", "facebook", "link_site", "chave_pix"].forEach((k) => {
                 let idFinal;
                 if (k === "whatsapp") idFinal = "prof-whats";
                 else if (k === "instagram") idFinal = "prof-insta";
                 else if (k === "nome_empresa") idFinal = "prof-empresa";
                 else if (k === "nome_proprietario") idFinal = "prof-nome-dono";
+                else if (k === "chave_pix") idFinal = "prof-pix"; // <-- NOVA LINHA
                 else idFinal = "prof-" + k.replace("_", "-");
 
                 const el = document.getElementById(idFinal);
-                if (el) {
-                    el.value = p[k] || "";
-                }
+                if (el) el.value = p[k] || "";
             });
 
             // 2. Atualização da Logo
@@ -1327,17 +1326,40 @@ function somarMinutos(hora, min) {
 
 window.enviarLembrete = (tel, nome, dISO, hora) => {
     if (!tel) return alert("Sem telefone!");
+
+    // 1. Limpeza do número
     const num = tel.replace(/\D/g, "");
     const ddi = num.startsWith("55") ? "" : "55";
-    const txt =
-        dISO && hora
-            ? `Olá, ${nome}!\nAgendamento confirmado.\nData: ${dISO.split("-").reverse().join("/")}\nHorário: ${hora.substring(0, 5)}h\nObrigado!`
-            : "";
+
+    // 2. Recupera a Chave PIX que está salva no campo do Perfil (HTML)
+    const chavePix = document.getElementById("prof-pix")?.value || "[Chave não informada]";
+
+    // 3. Formatação da Data (Brasil: DD/MM/YYYY)
+    const dataBr = dISO ? dISO.split("-").reverse().join("/") : "";
+    const horaBr = hora ? hora.substring(0, 5) : "";
+
+    // 4. Mensagem Cordial com Gatilho de Pagamento
+    const txt = `✅ *AGENDAMENTO CONFIRMADO*
+
+Olá, ${nome}! Tudo bem? 
+Seu horário foi reservado com sucesso! ✂️
+
+📅 *Data:* ${dataBr}
+⏰ *Horário:* ${horaBr}h
+
+📌 *Para finalizar a confirmação:*
+Poderia realizar o pagamento via PIX para garantir sua vaga na agenda?
+
+🔑 *Chave PIX:* ${chavePix}
+
+Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
+
+    // 5. Abertura do link do WhatsApp
     window.open(
-        `https://wa.me/${ddi}${num}${txt ? "?text=" + encodeURIComponent(txt) : ""}`,
-        "_blank",
+        `https://wa.me/${ddi}${num}?text=${encodeURIComponent(txt)}`,
+        "_blank"
     );
-};
+};;
 
 // MOTOR DE ARRANQUE
 window.addEventListener("load", async () => {
