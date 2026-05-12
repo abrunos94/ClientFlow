@@ -4,9 +4,13 @@
  * Estudante: Alex - Systems Analysis and Development
  */
 
-// 1. CONFIGURAÇÕES INICIAIS E CONEXÃO
-const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co/rest/v1/";
+// REMOVA o "/rest/v1/" do final da URL
+const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co";
+
+// A KEY permanece a mesma
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
+
+// O cliente agora montará a URL corretamente
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. SELEÇÃO DE ELEMENTOS (Organizar tudo no topo facilita a manutenção)
@@ -20,12 +24,12 @@ const btnOlho = document.getElementById('toggle-password');
    3. LÓGICA DE LOGIN (ENTRADA NO SISTEMA)
    ========================================================================== */
 
-   // Olho
+// Olho
 btnOlho.addEventListener('click', () => {
     // Se o tipo for password, muda para text. Se for text, volta para password.
     const tipo = inputSenha.getAttribute('type') === 'password' ? 'text' : 'password';
     inputSenha.setAttribute('type', tipo);
-    
+
     // Troca o ícone (olho aberto / olho fechado)
     btnOlho.classList.toggle('fa-eye');
     btnOlho.classList.toggle('fa-eye-slash');
@@ -79,7 +83,7 @@ formLogin.addEventListener('submit', async (event) => {
    ========================================================================== */
 btnRecuperar.addEventListener('click', async (e) => {
     e.preventDefault();
-    
+
     const email = prompt("Digite seu e-mail para receber o link de recuperação:");
     if (!email) return;
 
@@ -101,7 +105,7 @@ btnRecuperar.addEventListener('click', async (e) => {
 _supabase.auth.onAuthStateChange(async (event) => {
     if (event === "PASSWORD_RECOVERY") {
         const novaSenha = prompt("CRIE UMA NOVA SENHA:");
-        
+
         if (novaSenha) {
             const { error } = await _supabase.auth.updateUser({ password: novaSenha });
 
