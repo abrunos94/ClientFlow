@@ -1178,24 +1178,22 @@ window.salvarVitrineMidias = async function () {
 };
 
 window.salvarPerfilBarbearia = async function () {
-    const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']");
+    const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']"); 
     if (btn) btn.innerText = "Salvando...";
 
     const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
 
-    // Capturando os valores com segurança (evita o erro 'null')
     const { error } = await _supabase.from('dados_barbearia').upsert({
         id: 1,
         nome_proprietario: document.getElementById("prof-nome-dono")?.value || "",
         nome_empresa: document.getElementById("prof-empresa")?.value || "",
         documento: document.getElementById("prof-documento")?.value || "",
         whatsapp: document.getElementById("prof-whats")?.value || "",
-
-        // MUITA ATENÇÃO AQUI: Verifique no seu HTML se o ID é "prof-insta" ou "prof-instagram"
-        instagram: document.getElementById("prof-instagram")?.value || document.getElementById("prof-insta")?.value || "",
-
+        instagram: document.getElementById("prof-insta")?.value || "",
         facebook: document.getElementById("prof-facebook")?.value || "",
         link_site: document.getElementById("prof-link-site")?.value || "",
+        // ADICIONE ESTA LINHA ABAIXO:
+        chave_pix: document.getElementById("prof-pix")?.value || "", 
         url_logo: window["url_link_logo-barbearia"] || p?.url_logo
     });
 
