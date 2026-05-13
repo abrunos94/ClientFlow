@@ -247,19 +247,17 @@ window.agendarAgora = async function () {
         .select("preco")
         .eq("nome", servico)
         .single();
-    const { error } = await _supabase
-        .from("agendamentos")
-        .insert([
-            {
-                cliente_nome: nome,
-                servico: servico,
-                telefone: telefone,
-                data: dataISO,
-                horario: horaAtual,
-                status: "concluido",
-                valor: sInfo ? sInfo.preco : 0,
-            },
-        ]);
+    const { error } = await _supabase.from("agendamentos").insert([
+        {
+            cliente_nome: nome,
+            servico: servico,
+            telefone: telefone,
+            data: dataISO,
+            horario: horaAtual,
+            status: "concluido",
+            valor: sInfo ? sInfo.preco : 0,
+        },
+    ]);
 
     if (error) alert("Erro: " + error.message);
     else {
@@ -1019,17 +1017,32 @@ window.abrirSubConfigGeral = async function (tipo) {
             .maybeSingle();
         if (p) {
             // 1. Preenchimento dos campos do Perfil
-            ["nome_proprietario", "nome_empresa", "documento", "whatsapp", "instagram", "facebook", "link_site", "chave_pix"].forEach((k) => {
+            const colunasParaMapear = [
+                "nome_proprietario",
+                "nome_empresa",
+                "documento",
+                "whatsapp",
+                "instagram",
+                "facebook",
+                "link_site",
+                "chave_pix"
+            ];
+
+            colunasParaMapear.forEach((k) => {
                 let idFinal;
+
+                // Mapeamento manual para os IDs do seu HTML
                 if (k === "whatsapp") idFinal = "prof-whats";
                 else if (k === "instagram") idFinal = "prof-insta";
                 else if (k === "nome_empresa") idFinal = "prof-empresa";
                 else if (k === "nome_proprietario") idFinal = "prof-nome-dono";
-                else if (k === "chave_pix") idFinal = "prof-pix"; // <-- NOVA LINHA
+                else if (k === "chave_pix") idFinal = "prof-pix";
                 else idFinal = "prof-" + k.replace("_", "-");
 
                 const el = document.getElementById(idFinal);
-                if (el) el.value = p[k] || "";
+                if (el) {
+                    el.value = p[k] || "";
+                }
             });
 
             // 2. Atualização da Logo
@@ -1038,14 +1051,10 @@ window.abrirSubConfigGeral = async function (tipo) {
                 prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
             }
 
-            // 3. Saudação Personalizada no Dashboard (NOVO)
+            // 3. Saudação Personalizada no Dashboard
             if (p.nome_proprietario) {
-                // Pega apenas a primeira parte do nome e remove espaços extras
-                const primeiroNome = p.nome_proprietario.trim().split(' ')[0];
-
-                // Localiza o H1 dentro do header do dashboard
+                const primeiroNome = p.nome_proprietario.trim().split(" ")[0];
                 const saudacaoElemento = document.querySelector("#header-principal h1");
-
                 if (saudacaoElemento) {
                     saudacaoElemento.innerText = `Olá, ${primeiroNome}!`;
                 }
@@ -1178,12 +1187,18 @@ window.salvarVitrineMidias = async function () {
 };
 
 window.salvarPerfilBarbearia = async function () {
-    const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']"); 
+    const btn = document.querySelector(
+        "button[onclick='salvarPerfilBarbearia()']",
+    );
     if (btn) btn.innerText = "Salvando...";
 
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
 
-    const { error } = await _supabase.from('dados_barbearia').upsert({
+    const { error } = await _supabase.from("dados_barbearia").upsert({
         id: 1,
         nome_proprietario: document.getElementById("prof-nome-dono")?.value || "",
         nome_empresa: document.getElementById("prof-empresa")?.value || "",
@@ -1193,11 +1208,12 @@ window.salvarPerfilBarbearia = async function () {
         facebook: document.getElementById("prof-facebook")?.value || "",
         link_site: document.getElementById("prof-link-site")?.value || "",
         // ADICIONE ESTA LINHA ABAIXO:
-        chave_pix: document.getElementById("prof-pix")?.value || "", 
-        url_logo: window["url_link_logo-barbearia"] || p?.url_logo
+        chave_pix: document.getElementById("prof-pix")?.value || "",
+        url_logo: window["url_link_logo-barbearia"] || p?.url_logo,
     });
 
-    if (error) alert("Erro: " + error.message); else alert("Perfil atualizado!");
+    if (error) alert("Erro: " + error.message);
+    else alert("Perfil atualizado!");
     if (btn) btn.innerHTML = '<i class="fas fa-save"></i> Salvar Dados do Perfil';
 };
 
@@ -1220,26 +1236,42 @@ window.uploadMidia = async function (tipo) {
 
 window.copiarVagasInteligente = async function (periodo) {
     const agora = new Date();
-    const dataAlvo = periodo === 'hoje'
-        ? agora.toLocaleDateString("en-CA")
-        : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
+    const dataAlvo =
+        periodo === "hoje"
+            ? agora.toLocaleDateString("en-CA")
+            : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
 
-    const { data: ocupados } = await _supabase.from("agendamentos").select("horario").eq("data", dataAlvo).neq("status", "cancelado");
-    const { data: config } = await _supabase.from('configuracoes').select('*').eq('id', 1).single();
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+    const { data: ocupados } = await _supabase
+        .from("agendamentos")
+        .select("horario")
+        .eq("data", dataAlvo)
+        .neq("status", "cancelado");
+    const { data: config } = await _supabase
+        .from("configuracoes")
+        .select("*")
+        .eq("id", 1)
+        .single();
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
 
     let vagasDisponiveis = [];
     let hLoop = config.hora_inicio;
 
     // Pega a hora atual em formato "HH:mm" para comparar
-    const horaAtualSimples = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+    const horaAtualSimples =
+        agora.getHours().toString().padStart(2, "0") +
+        ":" +
+        agora.getMinutes().toString().padStart(2, "0");
 
     while (hLoop < config.hora_fim) {
-        const noAlmoco = (hLoop >= config.almoco_inicio && hLoop < config.almoco_fim);
-        const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
+        const noAlmoco = hLoop >= config.almoco_inicio && hLoop < config.almoco_fim;
+        const ocupado = ocupados?.some((a) => a.horario.substring(0, 5) === hLoop);
 
         // NOVO: Se for para 'hoje', o hLoop tem que ser maior que a hora atual
-        const jaPassou = periodo === 'hoje' && hLoop <= horaAtualSimples;
+        const jaPassou = periodo === "hoje" && hLoop <= horaAtualSimples;
 
         if (!noAlmoco && !ocupado && !jaPassou) {
             vagasDisponiveis.push(`✅ ${hLoop}`);
@@ -1262,7 +1294,11 @@ window.copiarVagasInteligente = async function (periodo) {
     texto += `\n\n📍 Reserve agora:\n${link}`;
     if (texto.length > 700) texto = texto.substring(0, 695) + "...";
 
-    navigator.clipboard.writeText(texto).then(() => alert(`Vagas de ${periodo} copiadas! (Apenas horários futuros)`));
+    navigator.clipboard
+        .writeText(texto)
+        .then(() =>
+            alert(`Vagas de ${periodo} copiadas! (Apenas horários futuros)`),
+        );
 };
 
 window.gerarTextoMarketing = async function (gatilho) {
@@ -1271,24 +1307,33 @@ window.gerarTextoMarketing = async function (gatilho) {
     btnTexto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
 
     // 1. Busca os dados do barbeiro para trocar as tags
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
-    const nomeBarbeiro = p?.nome_proprietario ? p.nome_proprietario.split(' ')[0] : 'Barbeiro';
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+    const nomeBarbeiro = p?.nome_proprietario
+        ? p.nome_proprietario.split(" ")[0]
+        : "Barbeiro";
     const linkSite = p?.link_site || window.location.origin;
 
     // 2. Busca TODOS os modelos desse gatilho específico no Supabase
     const { data: templates, error } = await _supabase
-        .from('templates_marketing')
-        .select('texto_base')
-        .eq('gatilho', gatilho);
+        .from("templates_marketing")
+        .select("texto_base")
+        .eq("gatilho", gatilho);
 
     let textoFinal = "";
 
     // 3. Fallback de Segurança (Se o banco estiver vazio ou der erro)
     if (error || !templates || templates.length === 0) {
         console.warn("Banco vazio, usando modelo padrão.");
-        if (gatilho === 'escassez') textoFinal = `🚨 *Últimos horários!* O ${nomeBarbeiro} avisou que a agenda está quase lotada. Garanta a sua vaga: ${linkSite}`;
-        else if (gatilho === 'urgencia') textoFinal = `🔥 *Precisa de um corte pra hoje?* Corre que ainda dá tempo. Veja os horários: ${linkSite}`;
-        else textoFinal = `⚔️ *Corte de respeito!* Agende com o ${nomeBarbeiro} e garanta o melhor visual. Link: ${linkSite}`;
+        if (gatilho === "escassez")
+            textoFinal = `🚨 *Últimos horários!* O ${nomeBarbeiro} avisou que a agenda está quase lotada. Garanta a sua vaga: ${linkSite}`;
+        else if (gatilho === "urgencia")
+            textoFinal = `🔥 *Precisa de um corte pra hoje?* Corre que ainda dá tempo. Veja os horários: ${linkSite}`;
+        else
+            textoFinal = `⚔️ *Corte de respeito!* Agende com o ${nomeBarbeiro} e garanta o melhor visual. Link: ${linkSite}`;
     } else {
         // 4. Sorteia 1 mensagem aleatória dentre as 30 cadastradas
         const sorteado = templates[Math.floor(Math.random() * templates.length)];
@@ -1300,7 +1345,8 @@ window.gerarTextoMarketing = async function (gatilho) {
     }
 
     // Trava de segurança para Status (Max 700 chars)
-    if (textoFinal.length > 700) textoFinal = textoFinal.substring(0, 695) + "...";
+    if (textoFinal.length > 700)
+        textoFinal = textoFinal.substring(0, 695) + "...";
 
     // Copia para a área de transferência
     navigator.clipboard.writeText(textoFinal).then(() => {
@@ -1325,18 +1371,15 @@ function somarMinutos(hora, min) {
 window.enviarLembrete = (tel, nome, dISO, hora) => {
     if (!tel) return alert("Sem telefone!");
 
-    // 1. Limpeza do número
     const num = tel.replace(/\D/g, "");
     const ddi = num.startsWith("55") ? "" : "55";
+    const numeroCompleto = `${ddi}${num}`;
 
-    // 2. Recupera a Chave PIX que está salva no campo do Perfil (HTML)
-    const chavePix = document.getElementById("prof-pix")?.value || "[Chave não informada]";
-
-    // 3. Formatação da Data (Brasil: DD/MM/YYYY)
+    const chavePix =
+        document.getElementById("prof-pix")?.value || "[Chave não informada]";
     const dataBr = dISO ? dISO.split("-").reverse().join("/") : "";
     const horaBr = hora ? hora.substring(0, 5) : "";
 
-    // 4. Mensagem Cordial com Gatilho de Pagamento
     const txt = `✅ *AGENDAMENTO CONFIRMADO*
 
 Olá, ${nome}! Tudo bem? 
@@ -1352,13 +1395,26 @@ Poderia realizar o pagamento via PIX para garantir sua vaga na agenda?
 
 Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
 
-    // 5. Abertura do link do WhatsApp
-    window.open(
-        `https://wa.me/${ddi}${num}?text=${encodeURIComponent(txt)}`,
-        "_blank"
-    );
-};;
+    const mensagem = encodeURIComponent(txt);
 
+    // 🚀 A MÁGICA PARA ANDROID: Forçando o pacote do Business (w4b)
+    // Essa estrutura é a correta para disparar o app específico
+    const intentUrl = `intent://send?phone=${numeroCompleto}&text=${mensagem}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
+
+    // Plano B: Se o barbeiro estiver no computador (WhatsApp Web)
+    const webUrl = `https://web.whatsapp.com/send?phone=${numeroCompleto}&text=${mensagem}`;
+
+    // Detecta se é mobile (Android)
+    if (/Android/i.test(navigator.userAgent)) {
+        window.location.href = intentUrl;
+    } else {
+        // Se for PC ou iPhone, usa o link padrão
+        window.open(
+            `https://api.whatsapp.com/send?phone=${numeroCompleto}&text=${mensagem}`,
+            "_blank",
+        );
+    }
+};
 // MOTOR DE ARRANQUE
 window.addEventListener("load", async () => {
     console.log("🚀 Sistema ClientFlow Inicializado.");
