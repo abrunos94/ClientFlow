@@ -1010,48 +1010,44 @@ window.abrirSubConfigGeral = async function (tipo) {
             .maybeSingle();
         window.alternarLayoutMidia(m?.tipo_exibicao || "galeria", m);
     } else if (tipo === "perfil") {
-        const { data: p } = await _supabase
+        const { data: p, error: errP } = await _supabase
             .from("dados_barbearia")
             .select("*")
             .eq("id", 1)
             .maybeSingle();
+
+        if (errP) {
+            console.error("Erro ao buscar dados da barbearia:", errP);
+        }
+
         if (p) {
-            // 1. Preenchimento dos campos do Perfil
-            const colunasParaMapear = [
-                "nome_proprietario",
-                "nome_empresa",
-                "documento",
-                "whatsapp",
-                "instagram",
-                "facebook",
-                "link_site",
-                "chave_pix"
-            ];
+            // 1. Mapeamento exato: Coluna do Banco -> ID do HTML
+            const mapaIds = {
+                "nome_proprietario": "prof-nome-dono",
+                "nome_empresa": "prof-empresa",
+                "documento": "prof-documento",
+                "whatsapp": "prof-whats",
+                "instagram": "prof-insta",
+                "facebook": "prof-facebook",
+                "link_site": "prof-link-site",
+                "chave_pix": "prof-pix" // Garante que o campo PIX seja preenchido
+            };
 
-            colunasParaMapear.forEach((k) => {
-                let idFinal;
-
-                // Mapeamento manual para os IDs do seu HTML
-                if (k === "whatsapp") idFinal = "prof-whats";
-                else if (k === "instagram") idFinal = "prof-insta";
-                else if (k === "nome_empresa") idFinal = "prof-empresa";
-                else if (k === "nome_proprietario") idFinal = "prof-nome-dono";
-                else if (k === "chave_pix") idFinal = "prof-pix";
-                else idFinal = "prof-" + k.replace("_", "-");
-
-                const el = document.getElementById(idFinal);
+            // Preenche cada campo na tela com o que veio do Supabase
+            Object.keys(mapaIds).forEach((coluna) => {
+                const idHtml = mapaIds[coluna];
+                const el = document.getElementById(idHtml);
                 if (el) {
-                    el.value = p[k] || "";
+                    el.value = p[coluna] || "";
                 }
             });
 
-            // 2. Atualização da Logo
+            // 2. Logo e Saudação
             const prev = document.getElementById("preview-logo");
             if (p.url_logo && prev) {
                 prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
             }
 
-            // 3. Saudação Personalizada no Dashboard
             if (p.nome_proprietario) {
                 const primeiroNome = p.nome_proprietario.trim().split(" ")[0];
                 const saudacaoElemento = document.querySelector("#header-principal h1");
