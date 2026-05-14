@@ -8,7 +8,7 @@
    ========================================================================== */
 
 // REMOVA o "/rest/v1/" do final da URL
-const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co"; 
+const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co";
 
 // A KEY permanece a mesma
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
@@ -124,20 +124,28 @@ async function gerarSlots(dataEscolhida) {
     gridHorarios.innerHTML = "<p style='color: var(--cor-subtexto);'>Buscando horários...</p>";
     containerHorarios.style.display = "block";
 
-    const { data: configBanco } = await _supabase.from('configuracoes').select('*').eq('id', 1).single();
+    // 1. Busca as novas configurações dinâmicas
+    const { data: config } = await _supabase
+        .from('configuracoes')
+        .select('horarios_semana, duracao_atendimento')
+        .eq('id', 1)
+        .single();
 
-    const configs = configBanco || {
-        hora_inicio: "09:00", hora_fim: "18:00",
-        almoco_inicio: "12:00", almoco_fim: "13:00",
-        intervalo: 30, dias_trabalhados: [1, 2, 3, 4, 5, 6]
-    };
+    // Fallback: se não houver dados, assume 30min e objeto vazio
+    const horariosSemana = config?.horarios_semana || {};
+    const duracaoAtendimento = parseInt(config?.duracao_atendimento) || 30;
 
+    // Identifica o dia da semana (0 = Domingo, 1 = Segunda, etc.)
     const diaSemana = new Date(dataEscolhida + "T00:00:00").getDay();
-    if (!configs.dias_trabalhados.includes(diaSemana)) {
+    const turnosDoDia = horariosSemana[diaSemana];
+
+    // Se o dia não tiver turnos ativos no objeto JSON, bloqueia o agendamento
+    if (!turnosDoDia || turnosDoDia.length === 0) {
         gridHorarios.innerHTML = "<p style='grid-column: 1/-1; color: var(--cor-primaria);'>Não funcionamos neste dia.</p>";
         return;
     }
 
+    // 2. Busca agendamentos ocupados para filtrar o grid
     const { data: agendamentosMarcados } = await _supabase
         .from('agendamentos')
         .select('horario')
@@ -149,13 +157,13 @@ async function gerarSlots(dataEscolhida) {
     const hojeDataLocal = agora.toLocaleDateString('en-CA');
     const hojeHoraLocal = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
 
-    let horaLoop = configs.hora_inicio;
     let slotsGerados = 0;
 
-    while (horaLoop < configs.hora_fim) {
-        const noAlmoco = (horaLoop >= configs.almoco_inicio && horaLoop < configs.almoco_fim);
+    // 3. Lógica Multi-Turnos: Percorre cada intervalo definido no Dashboard
+    turnosDoDia.forEach(turno => {
+        let horaLoop = turno.inicio;
 
-        if (!noAlmoco) {
+        while (horaLoop < turno.fim) {
             const isOcupado = agendamentosMarcados?.some(a => a.horario.substring(0, 5) === horaLoop);
             const isPassado = (dataEscolhida === hojeDataLocal) && (horaLoop <= hojeHoraLocal);
 
@@ -171,11 +179,14 @@ async function gerarSlots(dataEscolhida) {
                 gridHorarios.appendChild(slot);
                 slotsGerados++;
             }
+            // Avança o loop com base na duração média (30, 45, 60min...)
+            horaLoop = somarMinutos(horaLoop, duracaoAtendimento);
         }
-        horaLoop = somarMinutos(horaLoop, configs.intervalo);
-    }
+    });
 
-    if (slotsGerados === 0) gridHorarios.innerHTML = "<p style='grid-column: 1/-1;'>Sem horários disponíveis para hoje.</p>";
+    if (slotsGerados === 0) {
+        gridHorarios.innerHTML = "<p style='grid-column: 1/-1;'>Sem horários disponíveis para este dia.</p>";
+    }
 }
 
 /* ==========================================================================

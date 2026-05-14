@@ -10,30 +10,34 @@
 const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co";
 
 // A KEY permanece a mesma
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
+const SUPABASE_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
 
 // O cliente agora montará a URL corretamente
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Cache de Elementos Principais
 const secoes = {
-    home: document.getElementById("conteudo-dashboard"),
+    dashboard: document.getElementById("conteudo-dashboard"),
     agenda: document.getElementById("secao-agenda-completa"),
     clientes: document.getElementById("secao-clientes"),
-    configs: document.getElementById("configuracoes-section"),
     relatorios: document.getElementById("secao-relatorios"),
+    configuracoes: document.getElementById("configuracoes-section"), // Adicione esta linha
 };
 const headerPrincipal = document.getElementById("header-principal");
 const painelConquista = document.getElementById("painel-conquista");
 const listaAgendamentos = document.getElementById("lista-agendamentos");
-
+const conteudoDashboard = document.getElementById("conteudo-dashboard");
 // Estado Global
 let chartFaturamento = null;
 let dataCalendario = new Date();
 
 // Autenticação Real e Segura
 async function validarSessaoSegura() {
-    const { data: { user }, error } = await _supabase.auth.getUser();
+    const {
+        data: { user },
+        error,
+    } = await _supabase.auth.getUser();
     if (error || !user) {
         console.warn("Acesso Negado: Redirecionando para login.");
         localStorage.removeItem("logado");
@@ -43,18 +47,78 @@ async function validarSessaoSegura() {
 validarSessaoSegura();
 
 /* ==========================================================================
+   1.1 Inicialização dados barbearia
+   ========================================================================== */
+
+// FUNÇÃO PARA GARANTIR DADOS SEMPRE DISPONÍVEIS
+async function inicializarDadosBarbearia() {
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+    if (p) {
+        // Guarda no objeto window para acesso rápido em qualquer lugar
+        window.dadosBarbeariaGlobal = p;
+
+        // Preenche os campos da aba Perfil (mesmo que estejam escondidos)
+        const mapa = {
+            "prof-nome-dono": p.nome_proprietario,
+            "prof-pix": p.chave_pix,
+            "prof-whats": p.whatsapp,
+            "prof-empresa": p.nome_empresa,
+            "prof-insta": p.instagram,
+            "prof-facebook": p.facebook,
+            "prof-link-site": p.link_site,
+            "prof-documento": p.documento,
+        };
+
+        Object.keys(mapa).forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.value = mapa[id] || "";
+        });
+
+        // Atualiza a saudação do topo "Olá, Alex!"
+        if (p.nome_proprietario) {
+            const nome = p.nome_proprietario.trim().split(" ")[0];
+            const h1 = document.querySelector("#header-principal h1");
+            if (h1) h1.innerText = `Olá, ${nome}!`;
+        }
+    }
+}
+
+/* ==========================================================================
    2. NAVEGAÇÃO E INTERFACE (ROUTER)
    ========================================================================== */
 function esconderTodasSessoes() {
-    Object.values(secoes).forEach((s) => {
-        if (s) s.style.display = "none";
+    // 1. Captura dinâmica para evitar erro de referência
+    const header = document.getElementById("header-principal");
+    const meta = document.getElementById("painel-conquista");
+    const home = document.getElementById("conteudo-dashboard");
+    const config = document.getElementById("configuracoes-section");
+
+    // 2. REMOÇÃO FÍSICA DO FLUXO (O que resolve o vácuo no topo)
+    if (header) header.style.display = "none";
+    if (meta) meta.style.display = "none";
+    if (home) home.style.display = "none";
+    if (config) config.style.display = "none";
+
+    // 3. Esconde as outras seções do objeto global secoes
+    if (typeof secoes !== 'undefined') {
+        Object.values(secoes).forEach(s => { if (s) s.style.display = "none"; });
+    }
+
+    // 4. Limpa sub-seções e menus ativos
+    document.querySelectorAll(".config-sub-section, .relatorio-sub-section").forEach(sub => {
+        sub.style.display = "none";
     });
-    document
-        .querySelectorAll(".menu a")
-        .forEach((a) => a.classList.remove("active"));
-    document
-        .querySelectorAll(".config-sub-section, .relatorio-sub-section")
-        .forEach((s) => (s.style.display = "none"));
+    document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+
+    // 5. RESET DE SCROLL TOTAL
+    window.scrollTo(0, 0);
+    const main = document.querySelector('.main-content');
+    if (main) main.scrollTop = 0;
 }
 
 // Inicializador de Dropdowns (DRY)
@@ -113,7 +177,7 @@ document.querySelectorAll(".menu > a").forEach((link) => {
             painelConquista.style.display = mostrarTopo ? "block" : "none";
 
         if (texto.includes("Dashboard")) {
-            secoes.home.style.display = "block";
+            secoes.dashboard.style.display = "block";
             carregarAgendamentosDoDia();
         } else if (texto.includes("Agenda")) {
             secoes.agenda.style.display = "block";
@@ -152,21 +216,33 @@ window.carregarAgendamentosDoDia = async function () {
 
     listaAgendamentos.innerHTML = "";
     if (error || !agendamentos || agendamentos.length === 0) {
-        listaAgendamentos.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento para hoje.</td></tr>';
+        listaAgendamentos.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento para hoje.</td></tr>';
         atualizarCardsEstatisticas([]);
     } else {
         agendamentos.forEach((ag) => {
+            const estaConcluido = ag.status === 'concluido';
+            const classeStatus = estaConcluido ? 'status-concluido' : '';
+            const iconeBotao = estaConcluido ? 'fa-check' : 'fa-exclamation';
+
+            // LÓGICA Versão 1.01: Pega apenas o primeiro nome do cliente
+            const primeiroNome = ag.cliente_nome ? ag.cliente_nome.trim().split(" ")[0] : "Cliente";
+
             listaAgendamentos.innerHTML += `
                 <tr>
                     <td>${String(ag.horario).substring(0, 5)}h</td>
-                    <td><strong>${ag.cliente_nome}</strong></td>
-                    <td class="hide-mobile">${ag.servico}</td>
+                    <td><strong>${primeiroNome}</strong></td>
+                    <td class="coluna-servico-v1">${ag.servico}</td> 
                     <td>
                         <div class="acoes-buttons">
-                            <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}', '${ag.data}', '${ag.horario}')"><i class="fab fa-whatsapp"></i></button>
-                            <button class="btn-concluir" onclick="mudarStatusAgendamento('${ag.id}', 'concluido')"><i class="fas fa-check"></i></button>
-                            <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')"><i class="fas fa-times"></i></button>
+                            <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}', '${ag.data}', '${ag.horario}')">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button class="btn-concluir ${classeStatus}" onclick="mudarStatusAgendamento('${ag.id}', 'concluido', this)">
+                                <i class="fas ${iconeBotao}"></i>
+                            </button>
+                            <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>`;
@@ -247,19 +323,17 @@ window.agendarAgora = async function () {
         .select("preco")
         .eq("nome", servico)
         .single();
-    const { error } = await _supabase
-        .from("agendamentos")
-        .insert([
-            {
-                cliente_nome: nome,
-                servico: servico,
-                telefone: telefone,
-                data: dataISO,
-                horario: horaAtual,
-                status: "concluido",
-                valor: sInfo ? sInfo.preco : 0,
-            },
-        ]);
+    const { error } = await _supabase.from("agendamentos").insert([
+        {
+            cliente_nome: nome,
+            servico: servico,
+            telefone: telefone,
+            data: dataISO,
+            horario: horaAtual,
+            status: "concluido",
+            valor: sInfo ? sInfo.preco : 0,
+        },
+    ]);
 
     if (error) alert("Erro: " + error.message);
     else {
@@ -461,7 +535,9 @@ window.renderizarListaClientes = async function () {
             <td>${c.telefone || "---"}</td>
             <td><div class="acoes-buttons">
                 <button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.cliente_nome}')"><i class="fab fa-whatsapp"></i></button>
-                <button class="btn-concluir" style="background:#3498db" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')"><i class="fas fa-eye"></i></button>
+                <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')">
+    <i class="fas fa-eye"></i>
+</button>
             </div></td></tr>`;
         })
         .join("");
@@ -834,70 +910,126 @@ function atualizarTrendUI(id, atual, antigo) {
 /* ==========================================================================
    8. CONFIGURAÇÕES DO NEGÓCIO (EXPEDIENTE, META, SERVIÇOS)
    ========================================================================== */
+// 1. Garanta que a função seja GLOBAL para o HTML encontrá-la
 window.abrirSubConfig = async function (tipo) {
+    // 2. Limpa o rastro de qualquer aba anterior e reseta o scroll
     esconderTodasSessoes();
-    if (headerPrincipal) headerPrincipal.style.display = "none";
-    if (painelConquista) painelConquista.style.display = "none";
+
+    // 3. REMOÇÃO DO TOPO: Garante que o conteúdo cole no início da tela
+    if (typeof headerPrincipal !== "undefined" && headerPrincipal)
+        headerPrincipal.style.display = "none";
+    if (typeof painelConquista !== "undefined" && painelConquista)
+        painelConquista.style.display = "none";
+    if (typeof conteudoDashboard !== "undefined" && conteudoDashboard) {
+        conteudoDashboard.style.display = "none";
+    }
+
     const pai = document.getElementById("configuracoes-section");
-    if (pai) pai.style.display = "block";
+    if (pai) {
+        pai.style.display = "block";
+        pai.style.opacity = "1";
+    }
+
     const areas = {
         expediente: "area-expediente",
         meta: "area-meta",
         servicos: "area-servicos",
     };
-    const alvo = document.getElementById(areas[tipo]);
-    if (alvo) alvo.style.display = "block";
 
+    // 4. Esconde todas as sub-áreas antes de mostrar a correta
+    document
+        .querySelectorAll(".config-sub-section")
+        .forEach((s) => (s.style.display = "none"));
+
+    const alvo = document.getElementById(areas[tipo]);
+    if (alvo) {
+        alvo.style.display = "block";
+
+        // 5. RESET DE SCROLL: Força a visão para o topo absoluto
+        window.scrollTo(0, 0);
+        alvo.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+
+    // 6. Lógica de busca de dados no Supabase
     if (tipo === "expediente") {
         const { data: cfg } = await _supabase
             .from("configuracoes")
-            .select("*")
+            .select("horarios_semana, duracao_atendimento")
             .eq("id", 1)
             .maybeSingle();
-        if (cfg) {
-            [
-                "hora_inicio",
-                "hora_fim",
-                "intervalo",
-                "almoco_inicio",
-                "almoco_fim",
-            ].forEach((k) => {
-                const el = document.getElementById(`cfg-${k.replace("_", "-")}`);
-                if (el) el.value = cfg[k] || "";
+
+        const campoDuracao = document.getElementById("cfg-duracao-atendimento");
+        if (campoDuracao) campoDuracao.value = cfg?.duracao_atendimento || 30;
+
+        if (window.renderizarInterfaceExpediente) {
+            window.renderizarInterfaceExpediente(cfg?.horarios_semana || {});
+        }
+    }
+
+    if (tipo === "servicos" && window.renderizarConfigServicos) {
+        await window.renderizarConfigServicos();
+    }
+};
+
+window.salvarNovoExpediente = async function () {
+    const btn = document.querySelector(
+        "button[onclick='salvarNovoExpediente()']",
+    );
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
+        btn.disabled = true;
+    }
+
+    const novosHorarios = {};
+    const duracaoCampo = document.getElementById("cfg-duracao-atendimento");
+    const duracaoValor = duracaoCampo ? parseInt(duracaoCampo.value) : 30;
+
+    // 1. Captura os turnos garantindo chaves como Strings
+    for (let i = 0; i < 7; i++) {
+        const check = document.getElementById(`check-dia-${i}`);
+        if (check && check.checked) {
+            const inis = document.querySelectorAll(`.h-ini-${i}`);
+            const fims = document.querySelectorAll(`.h-fim-${i}`);
+
+            const turnosDoDia = [];
+            inis.forEach((el, index) => {
+                if (el.value && fims[index].value) {
+                    turnosDoDia.push({
+                        inicio: el.value,
+                        fim: fims[index].value,
+                    });
+                }
             });
-            if (cfg.dias_trabalhados && Array.isArray(cfg.dias_trabalhados)) {
-                const ds = cfg.dias_trabalhados.map(String);
-                document
-                    .querySelectorAll(".cfg-dia")
-                    .forEach((cb) => (cb.checked = ds.includes(String(cb.value))));
+
+            if (turnosDoDia.length > 0) {
+                // Forçamos a chave a ser string para o JSONB
+                novosHorarios[String(i)] = turnosDoDia;
             }
         }
     }
-    if (tipo === "servicos") await window.renderizarConfigServicos();
-};
 
-window.salvarConfiguracoes = async function () {
-    const btn = document.querySelector("button[onclick='salvarConfiguracoes()']");
-    if (btn) {
-        btn.innerText = "Salvando...";
-        btn.disabled = true;
-    }
-    const { error } = await _supabase.from("configuracoes").upsert({
-        id: 1,
-        hora_inicio: document.getElementById("cfg-hora-inicio").value,
-        hora_fim: document.getElementById("cfg-hora-fim").value,
-        intervalo: parseInt(document.getElementById("cfg-intervalo").value),
-        almoco_inicio: document.getElementById("cfg-almoco-inicio").value,
-        almoco_fim: document.getElementById("cfg-almoco-fim").value,
-        dias_trabalhados: Array.from(
-            document.querySelectorAll(".cfg-dia:checked"),
-        ).map((cb) => parseInt(cb.value)),
-    });
-    if (error) alert("Erro: " + error.message);
-    else alert("Expediente atualizado!");
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-save"></i> Salvar Expediente';
-        btn.disabled = false;
+    try {
+        // 2. Enviamos explicitamente para o ID 1 usando apenas .update()
+        // Como o registro já existe, o .update() é mais seguro que o .upsert()
+        const { error } = await _supabase
+            .from("configuracoes")
+            .update({
+                horarios_semana: novosHorarios,
+                duracao_atendimento: duracaoValor,
+            })
+            .eq("id", 1); // Alvo direto no registro do barbeiro
+
+        if (error) throw error;
+
+        alert("Expediente e tempo atualizados no banco! ✅");
+    } catch (err) {
+        console.error("Erro Supabase:", err);
+        alert("Erro ao salvar: " + err.message);
+    } finally {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-save"></i> GUARDAR EXPEDIENTE';
+            btn.disabled = false;
+        }
     }
 };
 
@@ -966,14 +1098,116 @@ window.excluirServico = async function (id) {
 };
 
 /* ==========================================================================
+   8.1 FUNÇÕES DE INTERFACE DO EXPEDIENTE (NOVO)
+   ========================================================================== */
+const DIAS_NOMES = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+];
+
+// Esta função gera o HTML que você viu na foto
+window.renderizarInterfaceExpediente = function (dadosExistentes = {}) {
+    const container = document.getElementById("container-dias-expediente");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DIAS_NOMES.forEach((nome, index) => {
+        const turnos = dadosExistentes[index] || [];
+        const ativo = turnos.length > 0;
+
+        const diaHtml = `
+        <div class="stat-card" style="border-left: 4px solid ${ativo ? "var(--cor-primaria)" : "#333"}; padding: 15px; margin-bottom:10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong style="color: #fff;">${nome}</strong>
+                <label class="switch">
+                    <input type="checkbox" id="check-dia-${index}" ${ativo ? "checked" : ""} onchange="toggleDia(${index})">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div id="turnos-dia-${index}" style="display: ${ativo ? "block" : "none"};">
+                <div class="lista-turnos-container" id="lista-turnos-${index}">
+                    ${(turnos.length > 0
+                ? turnos
+                : [{ inicio: "08:30", fim: "19:00" }]
+            )
+                .map(
+                    (t, i) => `
+                        <div class="input-turno" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <input type="time" class="h-ini-${index}" value="${t.inicio}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+                            <span style="color: var(--cor-subtexto);">-</span>
+                            <input type="time" class="h-fim-${index}" value="${t.fim}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+                            ${i > 0 ? `<button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--cor-erro); cursor:pointer;"><i class="fas fa-times-circle"></i></button>` : ""}
+                        </div>
+                    `,
+                )
+                .join("")}
+                </div>
+                <button onclick="adicionarTurno(${index})" style="background:none; border:none; color:var(--cor-primaria); font-size: 0.8rem; cursor:pointer; padding:0;">
+                    <i class="fas fa-plus-circle"></i> Adicionar turno
+                </button>
+            </div>
+        </div>`;
+        container.innerHTML += diaHtml;
+    });
+};
+
+window.toggleDia = (index) => {
+    const box = document.getElementById(`turnos-dia-${index}`);
+    const check = document.getElementById(`check-dia-${index}`);
+    if (box && check) box.style.display = check.checked ? "block" : "none";
+};
+
+window.adicionarTurno = (index) => {
+    const container = document.getElementById(`lista-turnos-${index}`);
+    if (!container) return;
+    const novoTurno = document.createElement("div");
+    novoTurno.className = "input-turno";
+    novoTurno.style =
+        "display: flex; align-items: center; gap: 10px; margin-bottom: 10px;";
+    novoTurno.innerHTML = `
+        <input type="time" class="h-ini-${index}" value="13:00" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+        <span style="color: var(--cor-subtexto);">-</span>
+        <input type="time" class="h-fim-${index}" value="18:00" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--cor-erro); cursor:pointer;"><i class="fas fa-times-circle"></i></button>
+    `;
+    container.appendChild(novoTurno);
+};
+
+/* ==========================================================================
    9. CMS E GESTÃO DO SITE (EDITAR HOME, MARKETING)
    ========================================================================== */
 window.abrirSubConfigGeral = async function (tipo) {
+    // 1. LIMPEZA INICIAL
     esconderTodasSessoes();
-    const pai = document.getElementById("configuracoes-section");
-    if (pai) pai.style.display = "block";
+
+    // Reset de scroll no container principal
+    const container = document.querySelector(".main-content");
+    if (container) container.scrollTop = 0;
+
+    // Remove o topo da página para não empurrar o conteúdo para baixo
     if (headerPrincipal) headerPrincipal.style.display = "none";
     if (painelConquista) painelConquista.style.display = "none";
+    if (typeof conteudoDashboard !== "undefined" && conteudoDashboard) {
+        conteudoDashboard.style.display = "none";
+    }
+
+    // 2. EXIBIÇÃO DA SEÇÃO
+    const pai = document.getElementById("configuracoes-section");
+    if (pai) {
+        pai.style.display = "block";
+        pai.style.opacity = "1";
+    }
+
+    // Esconde todas as sub-áreas antes de mostrar a correta
+    document
+        .querySelectorAll(".config-sub-section")
+        .forEach((s) => (s.style.display = "none"));
 
     const areas = {
         submenu1: "area-config-home",
@@ -981,76 +1215,88 @@ window.abrirSubConfigGeral = async function (tipo) {
         marketing: "area-marketing",
         perfil: "area-perfil-barbeiro",
     };
-    document.getElementById(areas[tipo]).style.display = "block";
 
-    if (tipo === "submenu1") {
-        const { data: c } = await _supabase
-            .from("configuracoes1")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-        if (c)
-            [
-                "hero_titulo",
-                "sobre_texto",
-                "end_rua",
-                "end_numero",
-                "end_cidade",
-                "end_estado",
-                "end_cep",
-                "end_tel",
-                "mapa_iframe",
-            ].forEach((k) => {
-                const el = document.getElementById(`cfg-${k.replace("_", "-")}`);
-                if (el) el.value = c[k] || "";
-            });
-    } else if (tipo === "submenu2") {
-        const { data: m } = await _supabase
-            .from("vitrine_midias")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-        window.alternarLayoutMidia(m?.tipo_exibicao || "galeria", m);
-    } else if (tipo === "perfil") {
-        const { data: p } = await _supabase
-            .from("dados_barbearia")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-        if (p) {
-            // 1. Preenchimento dos campos do Perfil
-            ["nome_proprietario", "nome_empresa", "documento", "whatsapp", "instagram", "facebook", "link_site", "chave_pix"].forEach((k) => {
-                let idFinal;
-                if (k === "whatsapp") idFinal = "prof-whats";
-                else if (k === "instagram") idFinal = "prof-insta";
-                else if (k === "nome_empresa") idFinal = "prof-empresa";
-                else if (k === "nome_proprietario") idFinal = "prof-nome-dono";
-                else if (k === "chave_pix") idFinal = "prof-pix"; // <-- NOVA LINHA
-                else idFinal = "prof-" + k.replace("_", "-");
+    const alvo = document.getElementById(areas[tipo]);
+    if (alvo) {
+        alvo.style.display = "block";
+        // AJUSTE DE LAYOUT: Força o elemento a colar no topo absoluto
+        alvo.scrollIntoView({ behavior: "instant", block: "start" });
+    }
 
-                const el = document.getElementById(idFinal);
-                if (el) el.value = p[k] || "";
-            });
+    // 3. LÓGICA DE CARREGAMENTO DE DADOS (SUPABASE)
+    try {
+        if (tipo === "submenu1") {
+            const { data: c } = await _supabase
+                .from("configuracoes1")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
 
-            // 2. Atualização da Logo
-            const prev = document.getElementById("preview-logo");
-            if (p.url_logo && prev) {
-                prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
+            if (c) {
+                [
+                    "hero_titulo",
+                    "sobre_texto",
+                    "end_rua",
+                    "end_numero",
+                    "end_cidade",
+                    "end_estado",
+                    "end_cep",
+                    "end_tel",
+                    "mapa_iframe",
+                ].forEach((k) => {
+                    const el = document.getElementById(`cfg-${k.replace(/_/g, "-")}`);
+                    if (el) el.value = c[k] || "";
+                });
             }
+        } else if (tipo === "submenu2") {
+            const { data: m } = await _supabase
+                .from("vitrine_midias")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
+            if (window.alternarLayoutMidia) {
+                window.alternarLayoutMidia(m?.tipo_exibicao || "galeria", m);
+            }
+        } else if (tipo === "perfil") {
+            const { data: p, error: err } = await _supabase
+                .from("dados_barbearia")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
 
-            // 3. Saudação Personalizada no Dashboard (NOVO)
-            if (p.nome_proprietario) {
-                // Pega apenas a primeira parte do nome e remove espaços extras
-                const primeiroNome = p.nome_proprietario.trim().split(' ')[0];
+            if (err) throw err;
 
-                // Localiza o H1 dentro do header do dashboard
-                const saudacaoElemento = document.querySelector("#header-principal h1");
+            if (p) {
+                const preencher = (id, valor) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = valor || "";
+                };
 
-                if (saudacaoElemento) {
-                    saudacaoElemento.innerText = `Olá, ${primeiroNome}!`;
+                preencher("prof-nome-dono", p.nome_proprietario);
+                preencher("prof-empresa", p.nome_empresa);
+                preencher("prof-documento", p.documento);
+                preencher("prof-whats", p.whatsapp);
+                preencher("prof-insta", p.instagram);
+                preencher("prof-facebook", p.facebook);
+                preencher("prof-link-site", p.link_site);
+                preencher("prof-pix", p.chave_pix);
+
+                // Atualiza saudação no Header (mesmo que esteja oculto agora)
+                if (p.nome_proprietario) {
+                    const nomeExibicao = p.nome_proprietario.trim().split(" ")[0];
+                    const h1 = document.querySelector("#header-principal h1");
+                    if (h1) h1.innerText = `Olá, ${nomeExibicao}!`;
+                }
+
+                // Preview da Logo
+                const prev = document.getElementById("preview-logo");
+                if (p.url_logo && prev) {
+                    prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
                 }
             }
         }
+    } catch (error) {
+        console.error("Erro ao carregar dados da sub-configuração:", error);
     }
 };
 
@@ -1178,12 +1424,18 @@ window.salvarVitrineMidias = async function () {
 };
 
 window.salvarPerfilBarbearia = async function () {
-    const btn = document.querySelector("button[onclick='salvarPerfilBarbearia()']"); 
+    const btn = document.querySelector(
+        "button[onclick='salvarPerfilBarbearia()']",
+    );
     if (btn) btn.innerText = "Salvando...";
 
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
 
-    const { error } = await _supabase.from('dados_barbearia').upsert({
+    const { error } = await _supabase.from("dados_barbearia").upsert({
         id: 1,
         nome_proprietario: document.getElementById("prof-nome-dono")?.value || "",
         nome_empresa: document.getElementById("prof-empresa")?.value || "",
@@ -1193,11 +1445,12 @@ window.salvarPerfilBarbearia = async function () {
         facebook: document.getElementById("prof-facebook")?.value || "",
         link_site: document.getElementById("prof-link-site")?.value || "",
         // ADICIONE ESTA LINHA ABAIXO:
-        chave_pix: document.getElementById("prof-pix")?.value || "", 
-        url_logo: window["url_link_logo-barbearia"] || p?.url_logo
+        chave_pix: document.getElementById("prof-pix")?.value || "",
+        url_logo: window["url_link_logo-barbearia"] || p?.url_logo,
     });
 
-    if (error) alert("Erro: " + error.message); else alert("Perfil atualizado!");
+    if (error) alert("Erro: " + error.message);
+    else alert("Perfil atualizado!");
     if (btn) btn.innerHTML = '<i class="fas fa-save"></i> Salvar Dados do Perfil';
 };
 
@@ -1220,26 +1473,42 @@ window.uploadMidia = async function (tipo) {
 
 window.copiarVagasInteligente = async function (periodo) {
     const agora = new Date();
-    const dataAlvo = periodo === 'hoje'
-        ? agora.toLocaleDateString("en-CA")
-        : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
+    const dataAlvo =
+        periodo === "hoje"
+            ? agora.toLocaleDateString("en-CA")
+            : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
 
-    const { data: ocupados } = await _supabase.from("agendamentos").select("horario").eq("data", dataAlvo).neq("status", "cancelado");
-    const { data: config } = await _supabase.from('configuracoes').select('*').eq('id', 1).single();
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
+    const { data: ocupados } = await _supabase
+        .from("agendamentos")
+        .select("horario")
+        .eq("data", dataAlvo)
+        .neq("status", "cancelado");
+    const { data: config } = await _supabase
+        .from("configuracoes")
+        .select("*")
+        .eq("id", 1)
+        .single();
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
 
     let vagasDisponiveis = [];
     let hLoop = config.hora_inicio;
 
     // Pega a hora atual em formato "HH:mm" para comparar
-    const horaAtualSimples = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+    const horaAtualSimples =
+        agora.getHours().toString().padStart(2, "0") +
+        ":" +
+        agora.getMinutes().toString().padStart(2, "0");
 
     while (hLoop < config.hora_fim) {
-        const noAlmoco = (hLoop >= config.almoco_inicio && hLoop < config.almoco_fim);
-        const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
+        const noAlmoco = hLoop >= config.almoco_inicio && hLoop < config.almoco_fim;
+        const ocupado = ocupados?.some((a) => a.horario.substring(0, 5) === hLoop);
 
         // NOVO: Se for para 'hoje', o hLoop tem que ser maior que a hora atual
-        const jaPassou = periodo === 'hoje' && hLoop <= horaAtualSimples;
+        const jaPassou = periodo === "hoje" && hLoop <= horaAtualSimples;
 
         if (!noAlmoco && !ocupado && !jaPassou) {
             vagasDisponiveis.push(`✅ ${hLoop}`);
@@ -1262,7 +1531,11 @@ window.copiarVagasInteligente = async function (periodo) {
     texto += `\n\n📍 Reserve agora:\n${link}`;
     if (texto.length > 700) texto = texto.substring(0, 695) + "...";
 
-    navigator.clipboard.writeText(texto).then(() => alert(`Vagas de ${periodo} copiadas! (Apenas horários futuros)`));
+    navigator.clipboard
+        .writeText(texto)
+        .then(() =>
+            alert(`Vagas de ${periodo} copiadas! (Apenas horários futuros)`),
+        );
 };
 
 window.gerarTextoMarketing = async function (gatilho) {
@@ -1271,24 +1544,33 @@ window.gerarTextoMarketing = async function (gatilho) {
     btnTexto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
 
     // 1. Busca os dados do barbeiro para trocar as tags
-    const { data: p } = await _supabase.from('dados_barbearia').select('*').eq('id', 1).maybeSingle();
-    const nomeBarbeiro = p?.nome_proprietario ? p.nome_proprietario.split(' ')[0] : 'Barbeiro';
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+    const nomeBarbeiro = p?.nome_proprietario
+        ? p.nome_proprietario.split(" ")[0]
+        : "Barbeiro";
     const linkSite = p?.link_site || window.location.origin;
 
     // 2. Busca TODOS os modelos desse gatilho específico no Supabase
     const { data: templates, error } = await _supabase
-        .from('templates_marketing')
-        .select('texto_base')
-        .eq('gatilho', gatilho);
+        .from("templates_marketing")
+        .select("texto_base")
+        .eq("gatilho", gatilho);
 
     let textoFinal = "";
 
     // 3. Fallback de Segurança (Se o banco estiver vazio ou der erro)
     if (error || !templates || templates.length === 0) {
         console.warn("Banco vazio, usando modelo padrão.");
-        if (gatilho === 'escassez') textoFinal = `🚨 *Últimos horários!* O ${nomeBarbeiro} avisou que a agenda está quase lotada. Garanta a sua vaga: ${linkSite}`;
-        else if (gatilho === 'urgencia') textoFinal = `🔥 *Precisa de um corte pra hoje?* Corre que ainda dá tempo. Veja os horários: ${linkSite}`;
-        else textoFinal = `⚔️ *Corte de respeito!* Agende com o ${nomeBarbeiro} e garanta o melhor visual. Link: ${linkSite}`;
+        if (gatilho === "escassez")
+            textoFinal = `🚨 *Últimos horários!* O ${nomeBarbeiro} avisou que a agenda está quase lotada. Garanta a sua vaga: ${linkSite}`;
+        else if (gatilho === "urgencia")
+            textoFinal = `🔥 *Precisa de um corte pra hoje?* Corre que ainda dá tempo. Veja os horários: ${linkSite}`;
+        else
+            textoFinal = `⚔️ *Corte de respeito!* Agende com o ${nomeBarbeiro} e garanta o melhor visual. Link: ${linkSite}`;
     } else {
         // 4. Sorteia 1 mensagem aleatória dentre as 30 cadastradas
         const sorteado = templates[Math.floor(Math.random() * templates.length)];
@@ -1300,7 +1582,8 @@ window.gerarTextoMarketing = async function (gatilho) {
     }
 
     // Trava de segurança para Status (Max 700 chars)
-    if (textoFinal.length > 700) textoFinal = textoFinal.substring(0, 695) + "...";
+    if (textoFinal.length > 700)
+        textoFinal = textoFinal.substring(0, 695) + "...";
 
     // Copia para a área de transferência
     navigator.clipboard.writeText(textoFinal).then(() => {
@@ -1309,7 +1592,8 @@ window.gerarTextoMarketing = async function (gatilho) {
     });
 };
 
-/* ==========================================================================
+/* 
+==========================================================================
    10. UTILITÁRIOS E ARRANQUE DO SISTEMA
    ========================================================================== */
 function somarMinutos(hora, min) {
@@ -1325,18 +1609,20 @@ function somarMinutos(hora, min) {
 window.enviarLembrete = (tel, nome, dISO, hora) => {
     if (!tel) return alert("Sem telefone!");
 
-    // 1. Limpeza do número
     const num = tel.replace(/\D/g, "");
     const ddi = num.startsWith("55") ? "" : "55";
+    const numeroCompleto = `${ddi}${num}`;
 
-    // 2. Recupera a Chave PIX que está salva no campo do Perfil (HTML)
-    const chavePix = document.getElementById("prof-pix")?.value || "[Chave não informada]";
+    const chavePix =
+        document.getElementById("prof-pix")?.value ||
+        window.dadosBarbeariaGlobal?.chave_pix ||
+        "[Chave não informada]";
 
-    // 3. Formatação da Data (Brasil: DD/MM/YYYY)
+    const nomeBarbeiro =
+        window.dadosBarbeariaGlobal?.nome_proprietario || "Barbeiro";
     const dataBr = dISO ? dISO.split("-").reverse().join("/") : "";
     const horaBr = hora ? hora.substring(0, 5) : "";
 
-    // 4. Mensagem Cordial com Gatilho de Pagamento
     const txt = `✅ *AGENDAMENTO CONFIRMADO*
 
 Olá, ${nome}! Tudo bem? 
@@ -1352,13 +1638,26 @@ Poderia realizar o pagamento via PIX para garantir sua vaga na agenda?
 
 Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
 
-    // 5. Abertura do link do WhatsApp
-    window.open(
-        `https://wa.me/${ddi}${num}?text=${encodeURIComponent(txt)}`,
-        "_blank"
-    );
-};;
+    const mensagem = encodeURIComponent(txt);
 
+    // 🚀 A MÁGICA PARA ANDROID: Forçando o pacote do Business (w4b)
+    // Essa estrutura é a correta para disparar o app específico
+    const intentUrl = `intent://send?phone=${numeroCompleto}&text=${mensagem}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
+
+    // Plano B: Se o barbeiro estiver no computador (WhatsApp Web)
+    const webUrl = `https://web.whatsapp.com/send?phone=${numeroCompleto}&text=${mensagem}`;
+
+    // Detecta se é mobile (Android)
+    if (/Android/i.test(navigator.userAgent)) {
+        window.location.href = intentUrl;
+    } else {
+        // Se for PC ou iPhone, usa o link padrão
+        window.open(
+            `https://api.whatsapp.com/send?phone=${numeroCompleto}&text=${mensagem}`,
+            "_blank",
+        );
+    }
+};
 // MOTOR DE ARRANQUE
 window.addEventListener("load", async () => {
     console.log("🚀 Sistema ClientFlow Inicializado.");
@@ -1416,4 +1715,5 @@ window.addEventListener("load", async () => {
     // Inicia Painel
     await carregarAgendamentosDoDia();
     await recalcularFaturamentoDoDia();
+    await inicializarDadosBarbearia();
 });

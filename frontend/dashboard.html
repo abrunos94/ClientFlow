@@ -133,7 +133,7 @@
                 <tr>
                   <th>Horário</th>
                   <th>Cliente</th>
-                  <th class="hide-mobile">Serviço</th>
+                  <th class="coluna-servico-v1">Serviço</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -191,37 +191,36 @@
       </section>
 
       <section id="configuracoes-section" class="agenda-section" style="display: none">
-        <div id="area-expediente" class="config-sub-section">
-          <h3><i class="fas fa-clock"></i> Configurar Expediente</h3>
-          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-            <div class="config-grid-form">
-              <div class="input-group-modal"><label for="cfg-hora-inicio">Início</label><input type="time"
-                  id="cfg-hora-inicio" /></div>
-              <div class="input-group-modal"><label for="cfg-hora-fim">Fim</label><input type="time"
-                  id="cfg-hora-fim" /></div>
-              <div class="input-group-modal"><label for="cfg-intervalo">Intervalo (min)</label><input type="number"
-                  id="cfg-intervalo" /></div>
-              <div class="input-group-modal"><label for="cfg-almoco-inicio">Almoço Início</label><input type="time"
-                  id="cfg-almoco-inicio" /></div>
-              <div class="input-group-modal"><label for="cfg-almoco-fim">Almoço Fim</label><input type="time"
-                  id="cfg-almoco-fim" /></div>
+        <div id="area-expediente" class="config-sub-section" style="display: none;">
+          <h3><i class="fas fa-clock"></i> Configurar Expediente Semanal</h3>
+
+          <div class="stat-card" style="margin-bottom: 20px; border-left: 4px solid var(--cor-primaria);">
+            <label style="display: block; color: var(--cor-subtexto); font-size: 0.85rem; margin-bottom: 8px;">
+              Duração Média por Atendimento (minutos)
+            </label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="number" id="cfg-duracao-atendimento" value="30" step="5" min="5"
+                style="width: 80px; background:#111; color:#fff; border:1px solid #333; padding:8px; border-radius:4px;">
+              <span style="color: #fff;">minutos</span>
             </div>
-            <div class="dias-expediente" style="margin-top: 20px">
-              <p>Dias de Funcionamento:</p>
-              <div class="checkbox-group">
-                <label><input type="checkbox" class="cfg-dia" value="1" /> Seg</label>
-                <label><input type="checkbox" class="cfg-dia" value="2" /> Ter</label>
-                <label><input type="checkbox" class="cfg-dia" value="3" /> Qua</label>
-                <label><input type="checkbox" class="cfg-dia" value="4" /> Qui</label>
-                <label><input type="checkbox" class="cfg-dia" value="5" /> Sex</label>
-                <label><input type="checkbox" class="cfg-dia" value="6" /> Sáb</label>
-                <label><input type="checkbox" class="cfg-dia" value="0" /> Dom</label>
-              </div>
-            </div>
-            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
-                class="fas fa-save"></i> Salvar Expediente</button>
           </div>
+
+          <p style="color: var(--cor-subtexto); font-size: 0.85rem; margin-bottom: 20px;">
+            Ative os dias de trabalho e defina os turnos.
+          </p>
+
+          <div id="container-dias-expediente"
+            style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+          </div>
+          <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <button onclick="salvarNovoExpediente()" class="btn-primario"
+              style="width: 100%; height: 60px; font-size: 1.1rem; font-weight: 700; background-color: var(--cor-primaria); color: #000;">
+              <i class="fas fa-save" style="margin-right: 10px;"></i> SALVAR EXPEDIENTE
+            </button>
+          </div>
+
         </div>
+
 
         <div id="area-meta" class="config-sub-section" style="display: none">
           <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
@@ -308,7 +307,8 @@
             </div>
             <div id="container-inputs-dinamicos"></div>
             <button onclick="salvarVitrineMidias()" class="btn-principal"
-              style="margin-top: 20px; width: 100%">Sincronizar Vitrine</button>
+              style="margin-top: 20px; width: 100%">Sincronizar
+              Vitrine</button>
           </div>
         </div>
 
@@ -361,15 +361,18 @@
               <div class="input-group-modal"><label for="prof-nome-dono">Proprietário</label><input type="text"
                   id="prof-nome-dono" /></div>
               <div class="input-group-modal"><label for="prof-empresa">Empresa</label><input type="text"
-                  id="prof-empresa" /></div>
+                  id="prof-empresa" />
+              </div>
               <div class="input-group-modal"><label for="prof-documento">CPF / CNPJ</label><input type="text"
                   id="prof-documento" /></div>
               <div class="input-group-modal"><label for="prof-whats">WhatsApp</label><input type="text"
-                  id="prof-whats" /></div>
+                  id="prof-whats" />
+              </div>
               <div class="input-group-modal"><label for="prof-link-site">Link Site</label><input type="text"
                   id="prof-link-site" /></div>
               <div class="input-group-modal"><label for="prof-insta">Instagram</label><input type="text"
-                  id="prof-insta" /></div>
+                  id="prof-insta" />
+              </div>
               <div class="input-group-modal"><label for="prof-facebook">Facebook</label><input type="text"
                   id="prof-facebook" /></div>
               <div class="input-group-modal">
