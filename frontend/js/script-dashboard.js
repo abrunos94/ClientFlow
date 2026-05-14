@@ -10,30 +10,34 @@
 const SUPABASE_URL = "https://qposfoxkszlxdmcrabbx.supabase.co";
 
 // A KEY permanece a mesma
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
+const SUPABASE_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwb3Nmb3hrc3pseGRtY3JhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTU0OTYsImV4cCI6MjA5NDE5MTQ5Nn0.OfGnMWsiiQDQ95XCOEcwPKPgF-YOLIai1ICZuWu2YqY";
 
 // O cliente agora montará a URL corretamente
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Cache de Elementos Principais
 const secoes = {
-    home: document.getElementById("conteudo-dashboard"),
+    dashboard: document.getElementById("conteudo-dashboard"),
     agenda: document.getElementById("secao-agenda-completa"),
     clientes: document.getElementById("secao-clientes"),
-    configs: document.getElementById("configuracoes-section"),
     relatorios: document.getElementById("secao-relatorios"),
+    configuracoes: document.getElementById("configuracoes-section"), // Adicione esta linha
 };
 const headerPrincipal = document.getElementById("header-principal");
 const painelConquista = document.getElementById("painel-conquista");
 const listaAgendamentos = document.getElementById("lista-agendamentos");
-
+const conteudoDashboard = document.getElementById("conteudo-dashboard");
 // Estado Global
 let chartFaturamento = null;
 let dataCalendario = new Date();
 
 // Autenticação Real e Segura
 async function validarSessaoSegura() {
-    const { data: { user }, error } = await _supabase.auth.getUser();
+    const {
+        data: { user },
+        error,
+    } = await _supabase.auth.getUser();
     if (error || !user) {
         console.warn("Acesso Negado: Redirecionando para login.");
         localStorage.removeItem("logado");
@@ -43,18 +47,78 @@ async function validarSessaoSegura() {
 validarSessaoSegura();
 
 /* ==========================================================================
+   1.1 Inicialização dados barbearia
+   ========================================================================== */
+
+// FUNÇÃO PARA GARANTIR DADOS SEMPRE DISPONÍVEIS
+async function inicializarDadosBarbearia() {
+    const { data: p } = await _supabase
+        .from("dados_barbearia")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+    if (p) {
+        // Guarda no objeto window para acesso rápido em qualquer lugar
+        window.dadosBarbeariaGlobal = p;
+
+        // Preenche os campos da aba Perfil (mesmo que estejam escondidos)
+        const mapa = {
+            "prof-nome-dono": p.nome_proprietario,
+            "prof-pix": p.chave_pix,
+            "prof-whats": p.whatsapp,
+            "prof-empresa": p.nome_empresa,
+            "prof-insta": p.instagram,
+            "prof-facebook": p.facebook,
+            "prof-link-site": p.link_site,
+            "prof-documento": p.documento,
+        };
+
+        Object.keys(mapa).forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.value = mapa[id] || "";
+        });
+
+        // Atualiza a saudação do topo "Olá, Alex!"
+        if (p.nome_proprietario) {
+            const nome = p.nome_proprietario.trim().split(" ")[0];
+            const h1 = document.querySelector("#header-principal h1");
+            if (h1) h1.innerText = `Olá, ${nome}!`;
+        }
+    }
+}
+
+/* ==========================================================================
    2. NAVEGAÇÃO E INTERFACE (ROUTER)
    ========================================================================== */
 function esconderTodasSessoes() {
-    Object.values(secoes).forEach((s) => {
-        if (s) s.style.display = "none";
+    // 1. Captura dinâmica para evitar erro de referência
+    const header = document.getElementById("header-principal");
+    const meta = document.getElementById("painel-conquista");
+    const home = document.getElementById("conteudo-dashboard");
+    const config = document.getElementById("configuracoes-section");
+
+    // 2. REMOÇÃO FÍSICA DO FLUXO (O que resolve o vácuo no topo)
+    if (header) header.style.display = "none";
+    if (meta) meta.style.display = "none";
+    if (home) home.style.display = "none";
+    if (config) config.style.display = "none";
+
+    // 3. Esconde as outras seções do objeto global secoes
+    if (typeof secoes !== 'undefined') {
+        Object.values(secoes).forEach(s => { if (s) s.style.display = "none"; });
+    }
+
+    // 4. Limpa sub-seções e menus ativos
+    document.querySelectorAll(".config-sub-section, .relatorio-sub-section").forEach(sub => {
+        sub.style.display = "none";
     });
-    document
-        .querySelectorAll(".menu a")
-        .forEach((a) => a.classList.remove("active"));
-    document
-        .querySelectorAll(".config-sub-section, .relatorio-sub-section")
-        .forEach((s) => (s.style.display = "none"));
+    document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+
+    // 5. RESET DE SCROLL TOTAL
+    window.scrollTo(0, 0);
+    const main = document.querySelector('.main-content');
+    if (main) main.scrollTop = 0;
 }
 
 // Inicializador de Dropdowns (DRY)
@@ -113,7 +177,7 @@ document.querySelectorAll(".menu > a").forEach((link) => {
             painelConquista.style.display = mostrarTopo ? "block" : "none";
 
         if (texto.includes("Dashboard")) {
-            secoes.home.style.display = "block";
+            secoes.dashboard.style.display = "block";
             carregarAgendamentosDoDia();
         } else if (texto.includes("Agenda")) {
             secoes.agenda.style.display = "block";
@@ -832,70 +896,126 @@ function atualizarTrendUI(id, atual, antigo) {
 /* ==========================================================================
    8. CONFIGURAÇÕES DO NEGÓCIO (EXPEDIENTE, META, SERVIÇOS)
    ========================================================================== */
+// 1. Garanta que a função seja GLOBAL para o HTML encontrá-la
 window.abrirSubConfig = async function (tipo) {
+    // 2. Limpa o rastro de qualquer aba anterior e reseta o scroll
     esconderTodasSessoes();
-    if (headerPrincipal) headerPrincipal.style.display = "none";
-    if (painelConquista) painelConquista.style.display = "none";
+
+    // 3. REMOÇÃO DO TOPO: Garante que o conteúdo cole no início da tela
+    if (typeof headerPrincipal !== "undefined" && headerPrincipal)
+        headerPrincipal.style.display = "none";
+    if (typeof painelConquista !== "undefined" && painelConquista)
+        painelConquista.style.display = "none";
+    if (typeof conteudoDashboard !== "undefined" && conteudoDashboard) {
+        conteudoDashboard.style.display = "none";
+    }
+
     const pai = document.getElementById("configuracoes-section");
-    if (pai) pai.style.display = "block";
+    if (pai) {
+        pai.style.display = "block";
+        pai.style.opacity = "1";
+    }
+
     const areas = {
         expediente: "area-expediente",
         meta: "area-meta",
         servicos: "area-servicos",
     };
-    const alvo = document.getElementById(areas[tipo]);
-    if (alvo) alvo.style.display = "block";
 
+    // 4. Esconde todas as sub-áreas antes de mostrar a correta
+    document
+        .querySelectorAll(".config-sub-section")
+        .forEach((s) => (s.style.display = "none"));
+
+    const alvo = document.getElementById(areas[tipo]);
+    if (alvo) {
+        alvo.style.display = "block";
+
+        // 5. RESET DE SCROLL: Força a visão para o topo absoluto
+        window.scrollTo(0, 0);
+        alvo.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+
+    // 6. Lógica de busca de dados no Supabase
     if (tipo === "expediente") {
         const { data: cfg } = await _supabase
             .from("configuracoes")
-            .select("*")
+            .select("horarios_semana, duracao_atendimento")
             .eq("id", 1)
             .maybeSingle();
-        if (cfg) {
-            [
-                "hora_inicio",
-                "hora_fim",
-                "intervalo",
-                "almoco_inicio",
-                "almoco_fim",
-            ].forEach((k) => {
-                const el = document.getElementById(`cfg-${k.replace("_", "-")}`);
-                if (el) el.value = cfg[k] || "";
+
+        const campoDuracao = document.getElementById("cfg-duracao-atendimento");
+        if (campoDuracao) campoDuracao.value = cfg?.duracao_atendimento || 30;
+
+        if (window.renderizarInterfaceExpediente) {
+            window.renderizarInterfaceExpediente(cfg?.horarios_semana || {});
+        }
+    }
+
+    if (tipo === "servicos" && window.renderizarConfigServicos) {
+        await window.renderizarConfigServicos();
+    }
+};
+
+window.salvarNovoExpediente = async function () {
+    const btn = document.querySelector(
+        "button[onclick='salvarNovoExpediente()']",
+    );
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
+        btn.disabled = true;
+    }
+
+    const novosHorarios = {};
+    const duracaoCampo = document.getElementById("cfg-duracao-atendimento");
+    const duracaoValor = duracaoCampo ? parseInt(duracaoCampo.value) : 30;
+
+    // 1. Captura os turnos garantindo chaves como Strings
+    for (let i = 0; i < 7; i++) {
+        const check = document.getElementById(`check-dia-${i}`);
+        if (check && check.checked) {
+            const inis = document.querySelectorAll(`.h-ini-${i}`);
+            const fims = document.querySelectorAll(`.h-fim-${i}`);
+
+            const turnosDoDia = [];
+            inis.forEach((el, index) => {
+                if (el.value && fims[index].value) {
+                    turnosDoDia.push({
+                        inicio: el.value,
+                        fim: fims[index].value,
+                    });
+                }
             });
-            if (cfg.dias_trabalhados && Array.isArray(cfg.dias_trabalhados)) {
-                const ds = cfg.dias_trabalhados.map(String);
-                document
-                    .querySelectorAll(".cfg-dia")
-                    .forEach((cb) => (cb.checked = ds.includes(String(cb.value))));
+
+            if (turnosDoDia.length > 0) {
+                // Forçamos a chave a ser string para o JSONB
+                novosHorarios[String(i)] = turnosDoDia;
             }
         }
     }
-    if (tipo === "servicos") await window.renderizarConfigServicos();
-};
 
-window.salvarConfiguracoes = async function () {
-    const btn = document.querySelector("button[onclick='salvarConfiguracoes()']");
-    if (btn) {
-        btn.innerText = "Salvando...";
-        btn.disabled = true;
-    }
-    const { error } = await _supabase.from("configuracoes").upsert({
-        id: 1,
-        hora_inicio: document.getElementById("cfg-hora-inicio").value,
-        hora_fim: document.getElementById("cfg-hora-fim").value,
-        intervalo: parseInt(document.getElementById("cfg-intervalo").value),
-        almoco_inicio: document.getElementById("cfg-almoco-inicio").value,
-        almoco_fim: document.getElementById("cfg-almoco-fim").value,
-        dias_trabalhados: Array.from(
-            document.querySelectorAll(".cfg-dia:checked"),
-        ).map((cb) => parseInt(cb.value)),
-    });
-    if (error) alert("Erro: " + error.message);
-    else alert("Expediente atualizado!");
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-save"></i> Salvar Expediente';
-        btn.disabled = false;
+    try {
+        // 2. Enviamos explicitamente para o ID 1 usando apenas .update()
+        // Como o registro já existe, o .update() é mais seguro que o .upsert()
+        const { error } = await _supabase
+            .from("configuracoes")
+            .update({
+                horarios_semana: novosHorarios,
+                duracao_atendimento: duracaoValor,
+            })
+            .eq("id", 1); // Alvo direto no registro do barbeiro
+
+        if (error) throw error;
+
+        alert("Expediente e tempo atualizados no banco! ✅");
+    } catch (err) {
+        console.error("Erro Supabase:", err);
+        alert("Erro ao salvar: " + err.message);
+    } finally {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-save"></i> GUARDAR EXPEDIENTE';
+            btn.disabled = false;
+        }
     }
 };
 
@@ -964,14 +1084,116 @@ window.excluirServico = async function (id) {
 };
 
 /* ==========================================================================
+   8.1 FUNÇÕES DE INTERFACE DO EXPEDIENTE (NOVO)
+   ========================================================================== */
+const DIAS_NOMES = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+];
+
+// Esta função gera o HTML que você viu na foto
+window.renderizarInterfaceExpediente = function (dadosExistentes = {}) {
+    const container = document.getElementById("container-dias-expediente");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DIAS_NOMES.forEach((nome, index) => {
+        const turnos = dadosExistentes[index] || [];
+        const ativo = turnos.length > 0;
+
+        const diaHtml = `
+        <div class="stat-card" style="border-left: 4px solid ${ativo ? "var(--cor-primaria)" : "#333"}; padding: 15px; margin-bottom:10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong style="color: #fff;">${nome}</strong>
+                <label class="switch">
+                    <input type="checkbox" id="check-dia-${index}" ${ativo ? "checked" : ""} onchange="toggleDia(${index})">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div id="turnos-dia-${index}" style="display: ${ativo ? "block" : "none"};">
+                <div class="lista-turnos-container" id="lista-turnos-${index}">
+                    ${(turnos.length > 0
+                ? turnos
+                : [{ inicio: "08:30", fim: "19:00" }]
+            )
+                .map(
+                    (t, i) => `
+                        <div class="input-turno" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <input type="time" class="h-ini-${index}" value="${t.inicio}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+                            <span style="color: var(--cor-subtexto);">-</span>
+                            <input type="time" class="h-fim-${index}" value="${t.fim}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+                            ${i > 0 ? `<button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--cor-erro); cursor:pointer;"><i class="fas fa-times-circle"></i></button>` : ""}
+                        </div>
+                    `,
+                )
+                .join("")}
+                </div>
+                <button onclick="adicionarTurno(${index})" style="background:none; border:none; color:var(--cor-primaria); font-size: 0.8rem; cursor:pointer; padding:0;">
+                    <i class="fas fa-plus-circle"></i> Adicionar turno
+                </button>
+            </div>
+        </div>`;
+        container.innerHTML += diaHtml;
+    });
+};
+
+window.toggleDia = (index) => {
+    const box = document.getElementById(`turnos-dia-${index}`);
+    const check = document.getElementById(`check-dia-${index}`);
+    if (box && check) box.style.display = check.checked ? "block" : "none";
+};
+
+window.adicionarTurno = (index) => {
+    const container = document.getElementById(`lista-turnos-${index}`);
+    if (!container) return;
+    const novoTurno = document.createElement("div");
+    novoTurno.className = "input-turno";
+    novoTurno.style =
+        "display: flex; align-items: center; gap: 10px; margin-bottom: 10px;";
+    novoTurno.innerHTML = `
+        <input type="time" class="h-ini-${index}" value="13:00" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+        <span style="color: var(--cor-subtexto);">-</span>
+        <input type="time" class="h-fim-${index}" value="18:00" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--cor-erro); cursor:pointer;"><i class="fas fa-times-circle"></i></button>
+    `;
+    container.appendChild(novoTurno);
+};
+
+/* ==========================================================================
    9. CMS E GESTÃO DO SITE (EDITAR HOME, MARKETING)
    ========================================================================== */
 window.abrirSubConfigGeral = async function (tipo) {
+    // 1. LIMPEZA INICIAL
     esconderTodasSessoes();
-    const pai = document.getElementById("configuracoes-section");
-    if (pai) pai.style.display = "block";
+
+    // Reset de scroll no container principal
+    const container = document.querySelector(".main-content");
+    if (container) container.scrollTop = 0;
+
+    // Remove o topo da página para não empurrar o conteúdo para baixo
     if (headerPrincipal) headerPrincipal.style.display = "none";
     if (painelConquista) painelConquista.style.display = "none";
+    if (typeof conteudoDashboard !== "undefined" && conteudoDashboard) {
+        conteudoDashboard.style.display = "none";
+    }
+
+    // 2. EXIBIÇÃO DA SEÇÃO
+    const pai = document.getElementById("configuracoes-section");
+    if (pai) {
+        pai.style.display = "block";
+        pai.style.opacity = "1";
+    }
+
+    // Esconde todas as sub-áreas antes de mostrar a correta
+    document
+        .querySelectorAll(".config-sub-section")
+        .forEach((s) => (s.style.display = "none"));
 
     const areas = {
         submenu1: "area-config-home",
@@ -979,83 +1201,88 @@ window.abrirSubConfigGeral = async function (tipo) {
         marketing: "area-marketing",
         perfil: "area-perfil-barbeiro",
     };
-    document.getElementById(areas[tipo]).style.display = "block";
 
-    if (tipo === "submenu1") {
-        const { data: c } = await _supabase
-            .from("configuracoes1")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-        if (c)
-            [
-                "hero_titulo",
-                "sobre_texto",
-                "end_rua",
-                "end_numero",
-                "end_cidade",
-                "end_estado",
-                "end_cep",
-                "end_tel",
-                "mapa_iframe",
-            ].forEach((k) => {
-                const el = document.getElementById(`cfg-${k.replace("_", "-")}`);
-                if (el) el.value = c[k] || "";
-            });
-    } else if (tipo === "submenu2") {
-        const { data: m } = await _supabase
-            .from("vitrine_midias")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-        window.alternarLayoutMidia(m?.tipo_exibicao || "galeria", m);
-    } else if (tipo === "perfil") {
-        const { data: p, error: errP } = await _supabase
-            .from("dados_barbearia")
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
+    const alvo = document.getElementById(areas[tipo]);
+    if (alvo) {
+        alvo.style.display = "block";
+        // AJUSTE DE LAYOUT: Força o elemento a colar no topo absoluto
+        alvo.scrollIntoView({ behavior: "instant", block: "start" });
+    }
 
-        if (errP) {
-            console.error("Erro ao buscar dados da barbearia:", errP);
-        }
+    // 3. LÓGICA DE CARREGAMENTO DE DADOS (SUPABASE)
+    try {
+        if (tipo === "submenu1") {
+            const { data: c } = await _supabase
+                .from("configuracoes1")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
 
-        if (p) {
-            // 1. Mapeamento exato: Coluna do Banco -> ID do HTML
-            const mapaIds = {
-                "nome_proprietario": "prof-nome-dono",
-                "nome_empresa": "prof-empresa",
-                "documento": "prof-documento",
-                "whatsapp": "prof-whats",
-                "instagram": "prof-insta",
-                "facebook": "prof-facebook",
-                "link_site": "prof-link-site",
-                "chave_pix": "prof-pix" // Garante que o campo PIX seja preenchido
-            };
-
-            // Preenche cada campo na tela com o que veio do Supabase
-            Object.keys(mapaIds).forEach((coluna) => {
-                const idHtml = mapaIds[coluna];
-                const el = document.getElementById(idHtml);
-                if (el) {
-                    el.value = p[coluna] || "";
-                }
-            });
-
-            // 2. Logo e Saudação
-            const prev = document.getElementById("preview-logo");
-            if (p.url_logo && prev) {
-                prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
+            if (c) {
+                [
+                    "hero_titulo",
+                    "sobre_texto",
+                    "end_rua",
+                    "end_numero",
+                    "end_cidade",
+                    "end_estado",
+                    "end_cep",
+                    "end_tel",
+                    "mapa_iframe",
+                ].forEach((k) => {
+                    const el = document.getElementById(`cfg-${k.replace(/_/g, "-")}`);
+                    if (el) el.value = c[k] || "";
+                });
             }
+        } else if (tipo === "submenu2") {
+            const { data: m } = await _supabase
+                .from("vitrine_midias")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
+            if (window.alternarLayoutMidia) {
+                window.alternarLayoutMidia(m?.tipo_exibicao || "galeria", m);
+            }
+        } else if (tipo === "perfil") {
+            const { data: p, error: err } = await _supabase
+                .from("dados_barbearia")
+                .select("*")
+                .eq("id", 1)
+                .maybeSingle();
 
-            if (p.nome_proprietario) {
-                const primeiroNome = p.nome_proprietario.trim().split(" ")[0];
-                const saudacaoElemento = document.querySelector("#header-principal h1");
-                if (saudacaoElemento) {
-                    saudacaoElemento.innerText = `Olá, ${primeiroNome}!`;
+            if (err) throw err;
+
+            if (p) {
+                const preencher = (id, valor) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = valor || "";
+                };
+
+                preencher("prof-nome-dono", p.nome_proprietario);
+                preencher("prof-empresa", p.nome_empresa);
+                preencher("prof-documento", p.documento);
+                preencher("prof-whats", p.whatsapp);
+                preencher("prof-insta", p.instagram);
+                preencher("prof-facebook", p.facebook);
+                preencher("prof-link-site", p.link_site);
+                preencher("prof-pix", p.chave_pix);
+
+                // Atualiza saudação no Header (mesmo que esteja oculto agora)
+                if (p.nome_proprietario) {
+                    const nomeExibicao = p.nome_proprietario.trim().split(" ")[0];
+                    const h1 = document.querySelector("#header-principal h1");
+                    if (h1) h1.innerText = `Olá, ${nomeExibicao}!`;
+                }
+
+                // Preview da Logo
+                const prev = document.getElementById("preview-logo");
+                if (p.url_logo && prev) {
+                    prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
                 }
             }
         }
+    } catch (error) {
+        console.error("Erro ao carregar dados da sub-configuração:", error);
     }
 };
 
@@ -1351,7 +1578,8 @@ window.gerarTextoMarketing = async function (gatilho) {
     });
 };
 
-/* ==========================================================================
+/* 
+==========================================================================
    10. UTILITÁRIOS E ARRANQUE DO SISTEMA
    ========================================================================== */
 function somarMinutos(hora, min) {
@@ -1372,7 +1600,12 @@ window.enviarLembrete = (tel, nome, dISO, hora) => {
     const numeroCompleto = `${ddi}${num}`;
 
     const chavePix =
-        document.getElementById("prof-pix")?.value || "[Chave não informada]";
+        document.getElementById("prof-pix")?.value ||
+        window.dadosBarbeariaGlobal?.chave_pix ||
+        "[Chave não informada]";
+
+    const nomeBarbeiro =
+        window.dadosBarbeariaGlobal?.nome_proprietario || "Barbeiro";
     const dataBr = dISO ? dISO.split("-").reverse().join("/") : "";
     const horaBr = hora ? hora.substring(0, 5) : "";
 
@@ -1468,4 +1701,5 @@ window.addEventListener("load", async () => {
     // Inicia Painel
     await carregarAgendamentosDoDia();
     await recalcularFaturamentoDoDia();
+    await inicializarDadosBarbearia();
 });

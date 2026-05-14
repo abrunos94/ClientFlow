@@ -12,8 +12,11 @@
 
 .main-content {
     flex: 1;
-    padding: 40px;
+    display: block !important; /* Mudamos de flex para block para evitar o 'empurrão' vertical */
+    padding: 20px 30px;
     background-color: var(--cor-fundo);
+    min-height: 100vh;
+    position: relative;
 }
 
 .dash-header {
@@ -917,7 +920,7 @@
 
     /* 4. Ajustes do Conteúdo Principal */
     .main-content {
-        padding: 80px 15px 30px !important;
+        padding-top: 80px !important; /* Espaço apenas para o botão de menu */
     }
 
     .dash-header {
@@ -1263,4 +1266,94 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+}
+
+/* Botão Switch Estilo iOS/Android */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--cor-primaria);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* Melhoria de contraste e legibilidade para inputs de horário */
+#container-dias-expediente input[type="time"] {
+    background: #1a1a1a; /* Fundo um pouco mais claro que o principal para dar profundidade */
+    color: #ffffff !important; /* Letra branca pura para contraste máximo */
+    font-size: 1.1rem; /* Letra maior para leitura rápida */
+    border: 1px solid #444;
+    padding: 12px; /* Maior área de toque */
+    border-radius: 8px;
+    width: 100%; /* Ocupa a largura disponível no celular */
+}
+
+/* Ajuste do Card de Dia para Mobile */
+.dia-config-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Responsividade específica para a área de horários */
+@media (max-width: 768px) {
+    .linha-horario {
+        flex-direction: column; /* Empilha os horários no celular */
+        gap: 10px;
+    }
+    
+    .btn-remover-turno {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+        margin-top: 5px;
+    }
+
+    .config-sub-section h3 {
+        font-size: 1.3rem; /* Título maior no celular */
+    }
+}
+
+/* No dashboard.css */
+.config-sub-section {
+    scroll-margin-top: 80px; /* Ajuste para a altura do seu menu mobile */
 }

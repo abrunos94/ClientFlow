@@ -191,293 +191,291 @@
       </section>
 
       <section id="configuracoes-section" class="agenda-section" style="display: none">
-        <div id="area-expediente" class="config-sub-section">
-          <h3><i class="fas fa-clock"></i> Configurar Expediente</h3>
-          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-            <div class="config-grid-form">
-              <div class="input-group-modal"><label for="cfg-hora-inicio">Início</label><input type="time"
-                  id="cfg-hora-inicio" /></div>
-              <div class="input-group-modal"><label for="cfg-hora-fim">Fim</label><input type="time"
-                  id="cfg-hora-fim" /></div>
-              <div class="input-group-modal"><label for="cfg-intervalo">Intervalo (min)</label><input type="number"
-                  id="cfg-intervalo" /></div>
-              <div class="input-group-modal"><label for="cfg-almoco-inicio">Almoço Início</label><input type="time"
-                  id="cfg-almoco-inicio" /></div>
-              <div class="input-group-modal"><label for="cfg-almoco-fim">Almoço Fim</label><input type="time"
-                  id="cfg-almoco-fim" /></div>
+        <div id="area-expediente" class="config-sub-section" style="display: none;">
+          <h3><i class="fas fa-clock"></i> Configurar Expediente Semanal</h3>
+
+          <div class="stat-card" style="margin-bottom: 20px; border-left: 4px solid var(--cor-primaria);">
+            <label style="display: block; color: var(--cor-subtexto); font-size: 0.85rem; margin-bottom: 8px;">
+              Duração Média por Atendimento (minutos)
+            </label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="number" id="cfg-duracao-atendimento" value="30" step="5" min="5"
+                style="width: 80px; background:#111; color:#fff; border:1px solid #333; padding:8px; border-radius:4px;">
+              <span style="color: #fff;">minutos</span>
             </div>
-            <div class="dias-expediente" style="margin-top: 20px">
-              <p>Dias de Funcionamento:</p>
-              <div class="checkbox-group">
-                <label><input type="checkbox" class="cfg-dia" value="1" /> Seg</label>
-                <label><input type="checkbox" class="cfg-dia" value="2" /> Ter</label>
-                <label><input type="checkbox" class="cfg-dia" value="3" /> Qua</label>
-                <label><input type="checkbox" class="cfg-dia" value="4" /> Qui</label>
-                <label><input type="checkbox" class="cfg-dia" value="5" /> Sex</label>
-                <label><input type="checkbox" class="cfg-dia" value="6" /> Sáb</label>
-                <label><input type="checkbox" class="cfg-dia" value="0" /> Dom</label>
-              </div>
-            </div>
-            <button onclick="salvarConfiguracoes()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
-                class="fas fa-save"></i> Salvar Expediente</button>
           </div>
-        </div>
 
-        <div id="area-meta" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
-          <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px">
-            <div class="input-group-modal"><label for="cfg-meta-valor">Valor da Meta (R$)</label><input type="number"
-                id="cfg-meta-valor" /></div>
-            <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">Atualizar
-              Meta</button>
+          <p style="color: var(--cor-subtexto); font-size: 0.85rem; margin-bottom: 20px;">
+            Ative os dias de trabalho e defina os turnos.
+          </p>
+
+          <div id="container-dias-expediente"
+            style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
           </div>
-        </div>
-
-        <div id="area-servicos" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-cut"></i> Gerenciar Serviços</h3>
-          <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
-            <div class="config-grid-form">
-              <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-servico-nome" /></div>
-              <div class="input-group-modal"><label>Preço</label><input type="number" id="cfg-servico-preco" /></div>
-            </div>
-
-            <button onclick="adicionarNovoServico()" id="btn-add-servico-banco" class="btn-principal"
-              style="margin-top: 20px; width: 100%">
-              Adicionar Serviço
-            </button>
-
-            <div id="lista-servicos-config" style="margin-top: 20px"></div>
-          </div>
-        </div>
-
-        <div id="area-config-home" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-edit"></i> Conteúdo da Home</h3>
-          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-            <div class="input-group-modal">
-              <label for="cfg-hero-titulo">Título Principal (Hero)</label>
-              <input type="text" id="cfg-hero-titulo" placeholder="Ex: Cortes Modernos e Barba de Respeito" />
-            </div>
-            <div class="input-group-modal">
-              <label for="cfg-sobre-texto">Texto 'Sobre Nós'</label>
-              <textarea id="cfg-sobre-texto" rows="4"
-                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
-            </div>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            <p style="color: var(--cor-primaria); font-weight: bold; margin-bottom: 10px;">Endereço e Contato</p>
-            <div class="config-grid-form">
-              <div class="input-group-modal"><label for="cfg-end-rua">Rua</label><input type="text" id="cfg-end-rua" />
-              </div>
-              <div class="input-group-modal"><label for="cfg-end-numero">Número</label><input type="text"
-                  id="cfg-end-numero" /></div>
-              <div class="input-group-modal"><label for="cfg-end-cidade">Cidade</label><input type="text"
-                  id="cfg-end-cidade" /></div>
-              <div class="input-group-modal"><label for="cfg-end-estado">Estado</label><input type="text"
-                  id="cfg-end-estado" /></div>
-              <div class="input-group-modal"><label for="cfg-end-cep">CEP</label><input type="text" id="cfg-end-cep" />
-              </div>
-              <div class="input-group-modal"><label for="cfg-end-tel">Telefone Comercial</label><input type="text"
-                  id="cfg-end-tel" /></div>
-            </div>
-            <div class="input-group-modal" style="margin-top: 20px;">
-              <label for="cfg-mapa-iframe">Link do Google Maps (Iframe)</label>
-              <textarea id="cfg-mapa-iframe" placeholder="Cole aqui o <iframe> do Google Maps" rows="3"
-                style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
-            </div>
-            <button onclick="salvarConteudoHome()" class="btn-principal" style="margin-top: 20px; width: 100%">
-              <i class="fas fa-save"></i> Atualizar Site
+          <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <button onclick="salvarNovoExpediente()" class="btn-primario"
+              style="width: 100%; height: 60px; font-size: 1.1rem; font-weight: 700; background-color: var(--cor-primaria); color: #000;">
+              <i class="fas fa-save" style="margin-right: 10px;"></i> SALVAR EXPEDIENTE
             </button>
           </div>
+
         </div>
+  
 
-        <div id="area-galeria-midia" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-camera"></i> Vitrine e Mídias</h3>
-          <div class="stat-card" style="border-left: 4px solid #3498db; margin-top: 20px;">
-            <p style="margin-bottom: 10px; font-weight: bold;">O que os clientes verão no site?</p>
-            <div class="seletor-moderno">
-              <input type="radio" id="opt-galeria" name="opt-exibicao" value="galeria" checked
-                onchange="alternarLayoutMidia('galeria')">
-              <label for="opt-galeria"><i class="fas fa-images"></i> Galeria</label>
+  <div id="area-meta" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-bullseye"></i> Meta Diária</h3>
+    <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px">
+      <div class="input-group-modal"><label for="cfg-meta-valor">Valor da Meta (R$)</label><input type="number"
+          id="cfg-meta-valor" /></div>
+      <button onclick="salvarMetaDiaria()" class="btn-principal" style="margin-top: 20px; width: 100%">Atualizar
+        Meta</button>
+    </div>
+  </div>
 
-              <input type="radio" id="opt-produtos" name="opt-exibicao" value="produtos"
-                onchange="alternarLayoutMidia('produtos')">
-              <label for="opt-produtos"><i class="fas fa-box-open"></i> Produtos</label>
+  <div id="area-servicos" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-cut"></i> Gerenciar Serviços</h3>
+    <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px">
+      <div class="config-grid-form">
+        <div class="input-group-modal"><label>Nome</label><input type="text" id="cfg-servico-nome" /></div>
+        <div class="input-group-modal"><label>Preço</label><input type="number" id="cfg-servico-preco" /></div>
+      </div>
 
-              <input type="radio" id="opt-ambos" name="opt-exibicao" value="ambos"
-                onchange="alternarLayoutMidia('ambos')">
-              <label for="opt-ambos"><i class="fas fa-star"></i> Ambos</label>
-            </div>
-            <div id="container-inputs-dinamicos"></div>
-            <button onclick="salvarVitrineMidias()" class="btn-principal"
-              style="margin-top: 20px; width: 100%">Sincronizar Vitrine</button>
+      <button onclick="adicionarNovoServico()" id="btn-add-servico-banco" class="btn-principal"
+        style="margin-top: 20px; width: 100%">
+        Adicionar Serviço
+      </button>
+
+      <div id="lista-servicos-config" style="margin-top: 20px"></div>
+    </div>
+  </div>
+
+  <div id="area-config-home" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-edit"></i> Conteúdo da Home</h3>
+    <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
+      <div class="input-group-modal">
+        <label for="cfg-hero-titulo">Título Principal (Hero)</label>
+        <input type="text" id="cfg-hero-titulo" placeholder="Ex: Cortes Modernos e Barba de Respeito" />
+      </div>
+      <div class="input-group-modal">
+        <label for="cfg-sobre-texto">Texto 'Sobre Nós'</label>
+        <textarea id="cfg-sobre-texto" rows="4"
+          style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+      <p style="color: var(--cor-primaria); font-weight: bold; margin-bottom: 10px;">Endereço e Contato</p>
+      <div class="config-grid-form">
+        <div class="input-group-modal"><label for="cfg-end-rua">Rua</label><input type="text" id="cfg-end-rua" />
+        </div>
+        <div class="input-group-modal"><label for="cfg-end-numero">Número</label><input type="text"
+            id="cfg-end-numero" /></div>
+        <div class="input-group-modal"><label for="cfg-end-cidade">Cidade</label><input type="text"
+            id="cfg-end-cidade" /></div>
+        <div class="input-group-modal"><label for="cfg-end-estado">Estado</label><input type="text"
+            id="cfg-end-estado" /></div>
+        <div class="input-group-modal"><label for="cfg-end-cep">CEP</label><input type="text" id="cfg-end-cep" />
+        </div>
+        <div class="input-group-modal"><label for="cfg-end-tel">Telefone Comercial</label><input type="text"
+            id="cfg-end-tel" /></div>
+      </div>
+      <div class="input-group-modal" style="margin-top: 20px;">
+        <label for="cfg-mapa-iframe">Link do Google Maps (Iframe)</label>
+        <textarea id="cfg-mapa-iframe" placeholder="Cole aqui o <iframe> do Google Maps" rows="3"
+          style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px;"></textarea>
+      </div>
+      <button onclick="salvarConteudoHome()" class="btn-principal" style="margin-top: 20px; width: 100%">
+        <i class="fas fa-save"></i> Atualizar Site
+      </button>
+    </div>
+  </div>
+
+  <div id="area-galeria-midia" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-camera"></i> Vitrine e Mídias</h3>
+    <div class="stat-card" style="border-left: 4px solid #3498db; margin-top: 20px;">
+      <p style="margin-bottom: 10px; font-weight: bold;">O que os clientes verão no site?</p>
+      <div class="seletor-moderno">
+        <input type="radio" id="opt-galeria" name="opt-exibicao" value="galeria" checked
+          onchange="alternarLayoutMidia('galeria')">
+        <label for="opt-galeria"><i class="fas fa-images"></i> Galeria</label>
+
+        <input type="radio" id="opt-produtos" name="opt-exibicao" value="produtos"
+          onchange="alternarLayoutMidia('produtos')">
+        <label for="opt-produtos"><i class="fas fa-box-open"></i> Produtos</label>
+
+        <input type="radio" id="opt-ambos" name="opt-exibicao" value="ambos" onchange="alternarLayoutMidia('ambos')">
+        <label for="opt-ambos"><i class="fas fa-star"></i> Ambos</label>
+      </div>
+      <div id="container-inputs-dinamicos"></div>
+      <button onclick="salvarVitrineMidias()" class="btn-principal" style="margin-top: 20px; width: 100%">Sincronizar
+        Vitrine</button>
+    </div>
+  </div>
+
+  <div id="area-marketing" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-bullhorn"></i> Marketing & Vendas</h3>
+    <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px;">
+      <p style="margin-bottom: 15px; font-weight: bold; color: #fff;"><i class="fab fa-whatsapp"></i> Divulgar
+        Horários</p>
+      <div class="config-grid-form" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+        <button onclick="copiarVagasInteligente('hoje')" class="btn-principal"
+          style="background: rgba(37, 211, 102, 0.1); color: #25d366; border: 1px solid #25d366; padding: 15px;">
+          <i class="fas fa-calendar-day"></i> Vagas Hoje
+        </button>
+        <button onclick="copiarVagasInteligente('amanha')" class="btn-principal"
+          style="background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid #3498db; padding: 15px;">
+          <i class="fas fa-calendar-plus"></i> Vagas Amanhã
+        </button>
+      </div>
+    </div>
+
+    <!-- Card 2: Gatilhos Mentais -->
+    <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px;">
+      <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">
+        <i class="fas fa-brain"></i> Gatilhos Comerciais
+      </p>
+      <p style="font-size: 0.8rem; color: var(--cor-subtexto); margin-bottom: 15px;">
+        Gera textos persuasivos aleatórios baseados no seu banco de dados.
+      </p>
+      <div class="config-grid-form" style="grid-template-columns: 1fr; gap: 10px;">
+        <button onclick="gerarTextoMarketing('escassez')" class="btn-principal"
+          style="background: #111; border: 1px solid #e67e22; color: #e67e22; padding: 12px; justify-content: flex-start;">
+          <i class="fas fa-hourglass-half" style="width: 25px;"></i> Gatilho: Escassez
+        </button>
+        <button onclick="gerarTextoMarketing('urgencia')" class="btn-principal"
+          style="background: #111; border: 1px solid #e74c3c; color: #e74c3c; padding: 12px; justify-content: flex-start;">
+          <i class="fas fa-fire" style="width: 25px;"></i> Gatilho: Urgência
+        </button>
+        <button onclick="gerarTextoMarketing('autoridade')" class="btn-principal"
+          style="background: #111; border: 1px solid #9b59b6; color: #9b59b6; padding: 12px; justify-content: flex-start;">
+          <i class="fas fa-crown" style="width: 25px;"></i> Gatilho: Autoridade
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="area-perfil-barbeiro" class="config-sub-section" style="display: none">
+    <h3><i class="fas fa-user-circle"></i> Perfil Profissional</h3>
+    <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
+      <div class="config-grid-form">
+        <div class="input-group-modal"><label for="prof-nome-dono">Proprietário</label><input type="text"
+            id="prof-nome-dono" /></div>
+        <div class="input-group-modal"><label for="prof-empresa">Empresa</label><input type="text" id="prof-empresa" />
+        </div>
+        <div class="input-group-modal"><label for="prof-documento">CPF / CNPJ</label><input type="text"
+            id="prof-documento" /></div>
+        <div class="input-group-modal"><label for="prof-whats">WhatsApp</label><input type="text" id="prof-whats" />
+        </div>
+        <div class="input-group-modal"><label for="prof-link-site">Link Site</label><input type="text"
+            id="prof-link-site" /></div>
+        <div class="input-group-modal"><label for="prof-insta">Instagram</label><input type="text" id="prof-insta" />
+        </div>
+        <div class="input-group-modal"><label for="prof-facebook">Facebook</label><input type="text"
+            id="prof-facebook" /></div>
+        <div class="input-group-modal">
+          <label for="prof-pix">Chave PIX (Para confirmação)</label>
+          <input type="text" id="prof-pix" placeholder="E-mail, CPF ou Aleatória" />
+        </div>
+      </div>
+      <div class="input-group-modal" style="margin-top: 20px;">
+        <label for="up-logo-barbearia">Logo da Barbearia</label>
+        <input type="file" id="up-logo-barbearia" onchange="uploadMidia('logo-barbearia')" accept="image/*" />
+        <div id="preview-logo" style="margin-top: 10px;"></div>
+      </div>
+      <button onclick="salvarPerfilBarbearia()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
+          class="fas fa-save"></i> Salvar Dados</button>
+    </div>
+  </div>
+  </section>
+  <section id="secao-relatorios" class="aba-content" style="display: none;">
+    <div class="relatorio-header">
+      <div class="relatorio-titulo-area">
+        <h2 id="titulo-sub-relatorio"> Resultados</h2>
+        <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
+      </div>
+      <div class="relatorio-icon-area">
+        <div class="wrapper-seletor-data">
+          <i class="fas fa-calendar-alt"></i>
+          <label for="filtro-periodo-relatorio" style="display:none;">Filtro Período</label>
+          <select id="filtro-periodo-relatorio" onchange="mudarPeriodoRelatorio(this.value)">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Mês Atual</option>
+            <option value="90">Últimos 3 meses</option>
+            <option value="365">Este Ano</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="area-resultados" class="relatorio-sub-section">
+      <div class="stats-grid-relatorios">
+        <div class="stat-card-advanced faturamento">
+          <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+          <p class="label">Faturamento</p>
+          <span class="value" id="rel-faturamento">R$ 0,00</span>
+          <p class="trend" id="trend-faturamento">--% <span>vs anterior</span></p>
+        </div>
+        <div class="stat-card-advanced atendimentos">
+          <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+          <p class="label">Atendimentos</p>
+          <span class="value" id="rel-atendimentos">0</span>
+          <p class="trend" id="trend-atendimentos">--% <span>vs anterior</span></p>
+        </div>
+        <div class="stat-card-advanced ticket">
+          <div class="card-icon"><i class="fas fa-gem"></i></div>
+          <p class="label">Ticket Médio</p>
+          <span class="value" id="rel-ticket">R$ 0,00</span>
+          <p class="trend" id="trend-ticket">--% <span>vs anterior</span></p>
+        </div>
+        <div class="stat-card-advanced comparecimento">
+          <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+          <p class="label">Taxa de Comparecimento</p>
+          <span class="value" id="rel-comparecimento">0%</span>
+          <p class="trend" id="trend-comparecimento">--% <span>vs anterior</span></p>
+          <div class="progress-mini">
+            <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
           </div>
         </div>
+      </div>
 
-        <div id="area-marketing" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-bullhorn"></i> Marketing & Vendas</h3>
-          <div class="stat-card" style="border-left: 4px solid #2ecc71; margin-top: 20px;">
-            <p style="margin-bottom: 15px; font-weight: bold; color: #fff;"><i class="fab fa-whatsapp"></i> Divulgar
-              Horários</p>
-            <div class="config-grid-form" style="grid-template-columns: 1fr 1fr; gap: 15px;">
-              <button onclick="copiarVagasInteligente('hoje')" class="btn-principal"
-                style="background: rgba(37, 211, 102, 0.1); color: #25d366; border: 1px solid #25d366; padding: 15px;">
-                <i class="fas fa-calendar-day"></i> Vagas Hoje
-              </button>
-              <button onclick="copiarVagasInteligente('amanha')" class="btn-principal"
-                style="background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid #3498db; padding: 15px;">
-                <i class="fas fa-calendar-plus"></i> Vagas Amanhã
-              </button>
-            </div>
+      <div class="stats-grid-insights">
+        <div class="insight-card">
+          <div class="card-header-insight"><i class="fas fa-clock"></i>
+            <h3>Horários de Pico</h3>
           </div>
-
-          <!-- Card 2: Gatilhos Mentais -->
-          <div class="stat-card" style="border-left: 4px solid #f1c40f; margin-top: 20px;">
-            <p style="margin-bottom: 15px; font-weight: bold; color: #fff;">
-              <i class="fas fa-brain"></i> Gatilhos Comerciais
-            </p>
-            <p style="font-size: 0.8rem; color: var(--cor-subtexto); margin-bottom: 15px;">
-              Gera textos persuasivos aleatórios baseados no seu banco de dados.
-            </p>
-            <div class="config-grid-form" style="grid-template-columns: 1fr; gap: 10px;">
-              <button onclick="gerarTextoMarketing('escassez')" class="btn-principal"
-                style="background: #111; border: 1px solid #e67e22; color: #e67e22; padding: 12px; justify-content: flex-start;">
-                <i class="fas fa-hourglass-half" style="width: 25px;"></i> Gatilho: Escassez
-              </button>
-              <button onclick="gerarTextoMarketing('urgencia')" class="btn-principal"
-                style="background: #111; border: 1px solid #e74c3c; color: #e74c3c; padding: 12px; justify-content: flex-start;">
-                <i class="fas fa-fire" style="width: 25px;"></i> Gatilho: Urgência
-              </button>
-              <button onclick="gerarTextoMarketing('autoridade')" class="btn-principal"
-                style="background: #111; border: 1px solid #9b59b6; color: #9b59b6; padding: 12px; justify-content: flex-start;">
-                <i class="fas fa-crown" style="width: 25px;"></i> Gatilho: Autoridade
-              </button>
+          <div id="lista-horarios-pico" class="lista-insights">
+            <p class="loading-text">Analisando...</p>
+          </div>
+          <div class="dica-box"><i class="fas fa-lightbulb"></i>
+            <p id="insight-horario-texto">Carregando dica...</p>
+          </div>
+        </div>
+        <div class="insight-card">
+          <div class="card-header-insight"><i class="fas fa-users"></i>
+            <h3>Fidelização</h3>
+          </div>
+          <div class="metricas-clientes">
+            <div class="metrica-item"><span>Novos Clientes</span><strong id="rel-novos-clientes">0</strong></div>
+            <div class="metrica-item"><span>Recorrentes</span><strong id="rel-recorrentes">0</strong></div>
+          </div>
+          <div class="retencao-container">
+            <div class="retencao-header"><span>Taxa de Retenção</span><strong id="rel-taxa-retencao">0%</strong>
+            </div>
+            <div class="barra-progresso-fina">
+              <div id="fill-retencao" class="fill"></div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div id="area-perfil-barbeiro" class="config-sub-section" style="display: none">
-          <h3><i class="fas fa-user-circle"></i> Perfil Profissional</h3>
-          <div class="stat-card" style="border-left: 4px solid var(--cor-primaria); margin-top: 20px;">
-            <div class="config-grid-form">
-              <div class="input-group-modal"><label for="prof-nome-dono">Proprietário</label><input type="text"
-                  id="prof-nome-dono" /></div>
-              <div class="input-group-modal"><label for="prof-empresa">Empresa</label><input type="text"
-                  id="prof-empresa" /></div>
-              <div class="input-group-modal"><label for="prof-documento">CPF / CNPJ</label><input type="text"
-                  id="prof-documento" /></div>
-              <div class="input-group-modal"><label for="prof-whats">WhatsApp</label><input type="text"
-                  id="prof-whats" /></div>
-              <div class="input-group-modal"><label for="prof-link-site">Link Site</label><input type="text"
-                  id="prof-link-site" /></div>
-              <div class="input-group-modal"><label for="prof-insta">Instagram</label><input type="text"
-                  id="prof-insta" /></div>
-              <div class="input-group-modal"><label for="prof-facebook">Facebook</label><input type="text"
-                  id="prof-facebook" /></div>
-              <div class="input-group-modal">
-                <label for="prof-pix">Chave PIX (Para confirmação)</label>
-                <input type="text" id="prof-pix" placeholder="E-mail, CPF ou Aleatória" />
-              </div>
-            </div>
-            <div class="input-group-modal" style="margin-top: 20px;">
-              <label for="up-logo-barbearia">Logo da Barbearia</label>
-              <input type="file" id="up-logo-barbearia" onchange="uploadMidia('logo-barbearia')" accept="image/*" />
-              <div id="preview-logo" style="margin-top: 10px;"></div>
-            </div>
-            <button onclick="salvarPerfilBarbearia()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
-                class="fas fa-save"></i> Salvar Dados</button>
-          </div>
-        </div>
-      </section>
-      <section id="secao-relatorios" class="aba-content" style="display: none;">
-        <div class="relatorio-header">
-          <div class="relatorio-titulo-area">
-            <h2 id="titulo-sub-relatorio"> Resultados</h2>
-            <p id="subtitulo-periodo">Visão geral • <span id="data-range"></span></p>
-          </div>
-          <div class="relatorio-icon-area">
-            <div class="wrapper-seletor-data">
-              <i class="fas fa-calendar-alt"></i>
-              <label for="filtro-periodo-relatorio" style="display:none;">Filtro Período</label>
-              <select id="filtro-periodo-relatorio" onchange="mudarPeriodoRelatorio(this.value)">
-                <option value="7">Últimos 7 dias</option>
-                <option value="30" selected>Mês Atual</option>
-                <option value="90">Últimos 3 meses</option>
-                <option value="365">Este Ano</option>
-              </select>
-            </div>
-          </div>
-        </div>
+    <div id="area-desempenho" class="relatorio-sub-section" style="display: none;">
+      <h2>Evolução do Faturamento</h2>
+      <div class="grafico-container-full" style="height: 500px;">
+        <canvas id="graficoEvolucao"></canvas>
+      </div>
+    </div>
+  </section>
 
-        <div id="area-resultados" class="relatorio-sub-section">
-          <div class="stats-grid-relatorios">
-            <div class="stat-card-advanced faturamento">
-              <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
-              <p class="label">Faturamento</p>
-              <span class="value" id="rel-faturamento">R$ 0,00</span>
-              <p class="trend" id="trend-faturamento">--% <span>vs anterior</span></p>
-            </div>
-            <div class="stat-card-advanced atendimentos">
-              <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
-              <p class="label">Atendimentos</p>
-              <span class="value" id="rel-atendimentos">0</span>
-              <p class="trend" id="trend-atendimentos">--% <span>vs anterior</span></p>
-            </div>
-            <div class="stat-card-advanced ticket">
-              <div class="card-icon"><i class="fas fa-gem"></i></div>
-              <p class="label">Ticket Médio</p>
-              <span class="value" id="rel-ticket">R$ 0,00</span>
-              <p class="trend" id="trend-ticket">--% <span>vs anterior</span></p>
-            </div>
-            <div class="stat-card-advanced comparecimento">
-              <div class="card-icon"><i class="fas fa-check-circle"></i></div>
-              <p class="label">Taxa de Comparecimento</p>
-              <span class="value" id="rel-comparecimento">0%</span>
-              <p class="trend" id="trend-comparecimento">--% <span>vs anterior</span></p>
-              <div class="progress-mini">
-                <div class="fill" id="fill-comparecimento" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="stats-grid-insights">
-            <div class="insight-card">
-              <div class="card-header-insight"><i class="fas fa-clock"></i>
-                <h3>Horários de Pico</h3>
-              </div>
-              <div id="lista-horarios-pico" class="lista-insights">
-                <p class="loading-text">Analisando...</p>
-              </div>
-              <div class="dica-box"><i class="fas fa-lightbulb"></i>
-                <p id="insight-horario-texto">Carregando dica...</p>
-              </div>
-            </div>
-            <div class="insight-card">
-              <div class="card-header-insight"><i class="fas fa-users"></i>
-                <h3>Fidelização</h3>
-              </div>
-              <div class="metricas-clientes">
-                <div class="metrica-item"><span>Novos Clientes</span><strong id="rel-novos-clientes">0</strong></div>
-                <div class="metrica-item"><span>Recorrentes</span><strong id="rel-recorrentes">0</strong></div>
-              </div>
-              <div class="retencao-container">
-                <div class="retencao-header"><span>Taxa de Retenção</span><strong id="rel-taxa-retencao">0%</strong>
-                </div>
-                <div class="barra-progresso-fina">
-                  <div id="fill-retencao" class="fill"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="area-desempenho" class="relatorio-sub-section" style="display: none;">
-          <h2>Evolução do Faturamento</h2>
-          <div class="grafico-container-full" style="height: 500px;">
-            <canvas id="graficoEvolucao"></canvas>
-          </div>
-        </div>
-      </section>
-
-    </main>
+  </main>
   </div>
 
   <div id="modal-agendamento" class="modal">
