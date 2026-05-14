@@ -216,21 +216,33 @@ window.carregarAgendamentosDoDia = async function () {
 
     listaAgendamentos.innerHTML = "";
     if (error || !agendamentos || agendamentos.length === 0) {
-        listaAgendamentos.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento para hoje.</td></tr>';
+        listaAgendamentos.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento para hoje.</td></tr>';
         atualizarCardsEstatisticas([]);
     } else {
         agendamentos.forEach((ag) => {
+            const estaConcluido = ag.status === 'concluido';
+            const classeStatus = estaConcluido ? 'status-concluido' : '';
+            const iconeBotao = estaConcluido ? 'fa-check' : 'fa-exclamation';
+
+            // LÓGICA Versão 1.01: Pega apenas o primeiro nome do cliente
+            const primeiroNome = ag.cliente_nome ? ag.cliente_nome.trim().split(" ")[0] : "Cliente";
+
             listaAgendamentos.innerHTML += `
                 <tr>
                     <td>${String(ag.horario).substring(0, 5)}h</td>
-                    <td><strong>${ag.cliente_nome}</strong></td>
-                    <td class="hide-mobile">${ag.servico}</td>
+                    <td><strong>${primeiroNome}</strong></td>
+                    <td class="coluna-servico-v1">${ag.servico}</td> 
                     <td>
                         <div class="acoes-buttons">
-                            <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}', '${ag.data}', '${ag.horario}')"><i class="fab fa-whatsapp"></i></button>
-                            <button class="btn-concluir" onclick="mudarStatusAgendamento('${ag.id}', 'concluido')"><i class="fas fa-check"></i></button>
-                            <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')"><i class="fas fa-times"></i></button>
+                            <button class="btn-whatsapp" onclick="enviarLembrete('${ag.telefone}', '${ag.cliente_nome}', '${ag.data}', '${ag.horario}')">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button class="btn-concluir ${classeStatus}" onclick="mudarStatusAgendamento('${ag.id}', 'concluido', this)">
+                                <i class="fas ${iconeBotao}"></i>
+                            </button>
+                            <button class="btn-cancelar" onclick="mudarStatusAgendamento('${ag.id}', 'cancelado')">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>`;
@@ -523,7 +535,9 @@ window.renderizarListaClientes = async function () {
             <td>${c.telefone || "---"}</td>
             <td><div class="acoes-buttons">
                 <button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.cliente_nome}')"><i class="fab fa-whatsapp"></i></button>
-                <button class="btn-concluir" style="background:#3498db" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')"><i class="fas fa-eye"></i></button>
+                <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')">
+    <i class="fas fa-eye"></i>
+</button>
             </div></td></tr>`;
         })
         .join("");
