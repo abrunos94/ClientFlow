@@ -1696,10 +1696,16 @@ Seu horário foi reservado com sucesso! ✂️
 📅 *Data:* ${dataBr}
 ⏰ *Horário:* ${horaBr}h
 
-📌 *Para finalizar a confirmação:*
-Poderia realizar o pagamento via PIX para garantir sua vaga na agenda?
+💳 Formas de pagamento aceitas: PIX, cartão e dinheiro.
+
+Caso prefira realizar o pagamento antecipado via PIX, segue a chave abaixo:
 
 🔑 *Chave PIX:* ${chavePix}
+
+📌 Se fizer o pagamento antecipado, basta me enviar o comprovante por aqui 😊
+
+Obrigado pela preferência! Será um prazer te atender.
+
 
 Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
 
@@ -1788,7 +1794,8 @@ window.addEventListener("load", async () => {
         atualizarProgressoMeta();
     }
 
-    // 6. ESCUTA REALTIME COM ALERTA SONORO E VIBRAÇÃO (Versão 1.01)
+    // 6. ESCUTA REALTIME COM ALERTA SONORO (Versão 1.01)
+    // Substitua pelo seu link público do Storage do Supabase
     const somNotificacao = new Audio('https://qposfoxkszlxdmcrabbx.supabase.co/storage/v1/object/public/notificacoes/alerta.mp3');
 
     const canalAgendamentos = _supabase
@@ -1798,15 +1805,10 @@ window.addEventListener("load", async () => {
             schema: 'public',
             table: 'agendamentos'
         }, payload => {
-            console.log('⚡ Realtime: Novo agendamento! Alerta visual, sonoro e vibratório disparado.');
+            console.log('⚡ Realtime: Novo agendamento detectado!');
 
-            // A. DISPARA O SOM ÚNICO
+            // DISPARA O SOM ÚNICO (Requer interação prévia do usuário na tela)
             somNotificacao.play().catch(e => console.log("Áudio aguardando interação inicial."));
-
-            // B. DISPARA A VIBRAÇÃO (Padrão: vibra 500ms, pausa 200ms, vibra 500ms)
-            if ("vibrate" in navigator) {
-                navigator.vibrate([500, 200, 500]);
-            }
 
             const abaAtual = localStorage.getItem("ultimaAbaClientFlow");
             if (!abaAtual || abaAtual === "Dashboard") {
@@ -1829,5 +1831,5 @@ window.addEventListener("load", async () => {
         }
     }, DEZ_MINUTOS);
 
-    console.log("⏱️ Monitoramento Realtime (Som + Vibração) e Intervalo ativados.");
+    console.log("⏱️ Monitoramento Realtime, Alerta Sonoro e Intervalo ativados.");
 });
