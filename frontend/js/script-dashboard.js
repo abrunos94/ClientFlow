@@ -161,31 +161,54 @@ if (btnAbrirMenu && sidebar && overlay) {
     });
 }
 
-// Router Principal de Abas
+/* ==========================================================================
+   2.1 NAVEGAÇÃO E INTERFACE (ROUTER COM PERSISTÊNCIA - Versão 1.01)
+   ========================================================================== */
+
+// Função central de navegação para evitar repetição
+window.executarNavegacao = function (abaNome, linkElemento = null) {
+    esconderTodasSessoes();
+
+    // 1. Gerencia estados visuais do menu
+    document.querySelectorAll(".menu > a").forEach(a => a.classList.remove("active"));
+    if (linkElemento) {
+        linkElemento.classList.add("active");
+    } else {
+        // Tenta achar o link pelo texto caso venha do recarregamento
+        const linkRecuperado = Array.from(document.querySelectorAll(".menu > a"))
+            .find(a => a.innerText.trim().includes(abaNome));
+        if (linkRecuperado) linkRecuperado.classList.add("active");
+    }
+
+    // 2. Controla a exibição do Header e Painel de Metas
+    const mostrarTopo = abaNome.includes("Dashboard") || abaNome.includes("Agenda");
+    if (headerPrincipal) headerPrincipal.style.display = mostrarTopo ? "flex" : "none";
+    if (painelConquista) painelConquista.style.display = mostrarTopo ? "block" : "none";
+
+    // 3. Carrega o conteúdo específico
+    if (abaNome.includes("Dashboard")) {
+        secoes.dashboard.style.display = "block";
+        carregarAgendamentosDoDia();
+    } else if (abaNome.includes("Agenda")) {
+        secoes.agenda.style.display = "block";
+        if (typeof inicializarAgenda === "function") inicializarAgenda();
+    } else if (abaNome.includes("Clientes")) {
+        secoes.clientes.style.display = "block";
+        if (typeof renderizarListaClientes === "function") renderizarListaClientes();
+    }
+
+    // 4. Salva o estado para o F5 (Persistência 1.01)
+    localStorage.setItem("ultimaAbaClientFlow", abaNome);
+};
+
+// Listener de cliques atualizado
 document.querySelectorAll(".menu > a").forEach((link) => {
     link.addEventListener("click", (e) => {
         if (link.id.includes("-master") || link.id === "btn-logout") return;
         e.preventDefault();
-        esconderTodasSessoes();
-        link.classList.add("active");
 
         const texto = link.innerText.trim();
-        const mostrarTopo = texto.includes("Dashboard") || texto.includes("Agenda");
-        if (headerPrincipal)
-            headerPrincipal.style.display = mostrarTopo ? "flex" : "none";
-        if (painelConquista)
-            painelConquista.style.display = mostrarTopo ? "block" : "none";
-
-        if (texto.includes("Dashboard")) {
-            secoes.dashboard.style.display = "block";
-            carregarAgendamentosDoDia();
-        } else if (texto.includes("Agenda")) {
-            secoes.agenda.style.display = "block";
-            inicializarAgenda();
-        } else if (texto.includes("Clientes")) {
-            secoes.clientes.style.display = "block";
-            renderizarListaClientes();
-        }
+        executarNavegacao(texto, link);
     });
 });
 
@@ -508,37 +531,64 @@ async function selecionarDiaAgenda(dataISO, elemento) {
 }
 
 /* ==========================================================================
-   6. CLIENTES E FIDELIDADE
+   6. CLIENTES E FIDELIDADE - ATUALIZAÇÃO 14/05/2026 - Versão 1.01
+   Adicionei dispararWhatsAppBusiness
    ========================================================================== */
+window.dispararWhatsAppBusiness = function (tel, mensagem = "") {
+    if (!tel) return alert("Sem telefone cadastrado!");
+
+    const num = tel.replace(/\D/g, "");
+    const ddi = num.startsWith("55") ? "" : "55";
+    const numeroCompleto = `${ddi}${num}`;
+    const msgCodificada = encodeURIComponent(mensagem);
+
+    // Estrutura de Intent para forçar o WhatsApp Business no Android
+    const intentUrl = `intent://send?phone=${numeroCompleto}&text=${msgCodificada}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
+
+    if (/Android/i.test(navigator.userAgent)) {
+        window.location.href = intentUrl;
+    } else {
+        // Fallback para PC ou iPhone
+        window.open(`https://api.whatsapp.com/send?phone=${numeroCompleto}&text=${msgCodificada}`, "_blank");
+    }
+};
+
 window.renderizarListaClientes = async function () {
     const corpo = document.getElementById("corpo-tabela-clientes");
     if (!corpo) return;
-    corpo.innerHTML =
-        '<tr><td colspan=\"4\" style=\"text-align:center;\">Carregando...</td></tr>';
+
+    corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
 
     const { data: clis } = await _supabase
         .from("lista_clientes_resumo")
         .select("*")
         .order("cliente_nome");
-    if (!clis || clis.length === 0)
-        return (corpo.innerHTML =
-            '<tr><td colspan=\"4\" style=\"text-align:center;\">Nenhum cliente.</td></tr>');
+
+    if (!clis || clis.length === 0) {
+        return (corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente.</td></tr>');
+    }
 
     corpo.innerHTML = clis
         .map((c) => {
             const dVisita = c.data_ultima_visita
                 ? new Date(c.data_ultima_visita).toLocaleDateString("pt-BR")
                 : "---";
+
             return `<tr>
-            <td><strong>${c.cliente_nome}</strong></td>
-            <td>${c.ultimo_servico || "---"} <br><small style="color:var(--cor-subtexto)">Último: ${dVisita}</small></td>
-            <td>${c.telefone || "---"}</td>
-            <td><div class="acoes-buttons">
-                <button class="btn-whatsapp" onclick="enviarLembrete('${c.telefone}', '${c.cliente_nome}')"><i class="fab fa-whatsapp"></i></button>
-                <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')">
-    <i class="fas fa-eye"></i>
-</button>
-            </div></td></tr>`;
+                <td><strong>${c.cliente_nome}</strong></td>
+                <td>${c.ultimo_servico || "---"} <br><small style="color:var(--cor-subtexto)">Último: ${dVisita}</small></td>
+                <td>${c.telefone || "---"}</td>
+                <td>
+                    <div class="acoes-buttons">
+                        <button class="btn-whatsapp" onclick="dispararWhatsAppBusiness('${c.telefone}', '')" title="Conversar">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')" title="Ver Histórico">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
         })
         .join("");
 };
@@ -908,8 +958,9 @@ function atualizarTrendUI(id, atual, antigo) {
 }
 
 /* ==========================================================================
-   8. CONFIGURAÇÕES DO NEGÓCIO (EXPEDIENTE, META, SERVIÇOS)
+   8. CONFIGURAÇÕES DO NEGÓCIO (ATUALIZAÇÃO 14/05/2026 - Versão 1.01)
    ========================================================================== */
+
 // 1. Garanta que a função seja GLOBAL para o HTML encontrá-la
 window.abrirSubConfig = async function (tipo) {
     // 2. Limpa o rastro de qualquer aba anterior e reseta o scroll
@@ -949,6 +1000,9 @@ window.abrirSubConfig = async function (tipo) {
         window.scrollTo(0, 0);
         alvo.scrollIntoView({ behavior: "instant", block: "start" });
     }
+
+    // PERSISTÊNCIA 1.01: Salva que o usuário está na área de configurações
+    localStorage.setItem("ultimaAbaClientFlow", "Configuracoes");
 
     // 6. Lógica de busca de dados no Supabase
     if (tipo === "expediente") {
@@ -1182,6 +1236,10 @@ window.adicionarTurno = (index) => {
 /* ==========================================================================
    9. CMS E GESTÃO DO SITE (EDITAR HOME, MARKETING)
    ========================================================================== */
+/* ==========================================================================
+   ATUALIZAÇÃO 14/05/2026 - Versão 1.01
+   Persistência de Estado nas Configurações Gerais
+   ========================================================================== */
 window.abrirSubConfigGeral = async function (tipo) {
     // 1. LIMPEZA INICIAL
     esconderTodasSessoes();
@@ -1222,6 +1280,9 @@ window.abrirSubConfigGeral = async function (tipo) {
         // AJUSTE DE LAYOUT: Força o elemento a colar no topo absoluto
         alvo.scrollIntoView({ behavior: "instant", block: "start" });
     }
+
+    // PERSISTÊNCIA 1.01: Salva que o usuário está em uma sub-aba de configurações
+    localStorage.setItem("ultimaAbaClientFlow", "Configuracoes");
 
     // 3. LÓGICA DE CARREGAMENTO DE DADOS (SUPABASE)
     try {
@@ -1281,14 +1342,12 @@ window.abrirSubConfigGeral = async function (tipo) {
                 preencher("prof-link-site", p.link_site);
                 preencher("prof-pix", p.chave_pix);
 
-                // Atualiza saudação no Header (mesmo que esteja oculto agora)
                 if (p.nome_proprietario) {
                     const nomeExibicao = p.nome_proprietario.trim().split(" ")[0];
                     const h1 = document.querySelector("#header-principal h1");
                     if (h1) h1.innerText = `Olá, ${nomeExibicao}!`;
                 }
 
-                // Preview da Logo
                 const prev = document.getElementById("preview-logo");
                 if (p.url_logo && prev) {
                     prev.innerHTML = `<img src="${p.url_logo}" style="height:50px; border-radius:4px;"/>`;
@@ -1471,71 +1530,77 @@ window.uploadMidia = async function (tipo) {
     alert("Upload OK!");
 };
 
+/* ==========================================================================
+   ATUALIZAÇÃO 14/05/2026 - Versão 1.01
+   Correção de Vagas e Limite de 4 Horários para Status
+   ========================================================================== */
 window.copiarVagasInteligente = async function (periodo) {
     const agora = new Date();
-    const dataAlvo =
-        periodo === "hoje"
-            ? agora.toLocaleDateString("en-CA")
-            : new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
+    const diaSemana = periodo === "hoje" ? agora.getDay() : new Date(agora.getTime() + 86400000).getDay();
+    const dataAlvo = periodo === "hoje"
+        ? agora.toLocaleDateString("en-CA")
+        : new Date(agora.getTime() + 86400000).toLocaleDateString("en-CA");
 
+    // 1. Busca dados necessários
     const { data: ocupados } = await _supabase
         .from("agendamentos")
         .select("horario")
         .eq("data", dataAlvo)
         .neq("status", "cancelado");
+
     const { data: config } = await _supabase
         .from("configuracoes")
-        .select("*")
+        .select("horarios_semana, duracao_atendimento")
         .eq("id", 1)
         .single();
+
     const { data: p } = await _supabase
         .from("dados_barbearia")
-        .select("*")
+        .select("link_site")
         .eq("id", 1)
         .maybeSingle();
 
+    // 2. Lógica de busca de vagas baseada nos TURNOS da Versão 1.01
     let vagasDisponiveis = [];
-    let hLoop = config.hora_inicio;
+    const turnosDoDia = config?.horarios_semana?.[String(diaSemana)] || [];
+    const intervalo = config?.duracao_atendimento || 30;
+    const horaAtualStr = agora.getHours().toString().padStart(2, "0") + ":" + agora.getMinutes().toString().padStart(2, "0");
 
-    // Pega a hora atual em formato "HH:mm" para comparar
-    const horaAtualSimples =
-        agora.getHours().toString().padStart(2, "0") +
-        ":" +
-        agora.getMinutes().toString().padStart(2, "0");
+    turnosDoDia.forEach(turno => {
+        let hLoop = turno.inicio;
+        while (hLoop < turno.fim) {
+            const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
+            const jaPassou = periodo === "hoje" && hLoop <= horaAtualStr;
 
-    while (hLoop < config.hora_fim) {
-        const noAlmoco = hLoop >= config.almoco_inicio && hLoop < config.almoco_fim;
-        const ocupado = ocupados?.some((a) => a.horario.substring(0, 5) === hLoop);
-
-        // NOVO: Se for para 'hoje', o hLoop tem que ser maior que a hora atual
-        const jaPassou = periodo === "hoje" && hLoop <= horaAtualSimples;
-
-        if (!noAlmoco && !ocupado && !jaPassou) {
-            vagasDisponiveis.push(`✅ ${hLoop}`);
+            if (!ocupado && !jaPassou) {
+                vagasDisponiveis.push(`✅ ${hLoop}`);
+            }
+            hLoop = somarMinutos(hLoop, intervalo);
         }
-        hLoop = somarMinutos(hLoop, config.intervalo);
-    }
+    });
 
-    // ... (restante do código de formatação do texto continua igual)
+    // 3. Montagem do Texto limitada a 4 horários
     const link = p?.link_site || window.location.origin;
     let texto = `✂️ *VAGAS DE ${periodo.toUpperCase()}*\n\n`;
 
     if (vagasDisponiveis.length === 0) {
         texto += "🚫 Agenda lotada ou horários encerrados!";
     } else {
+        // VERSÃO 1.01: Pega exatamente 4 ou menos
         const vagasExibidas = vagasDisponiveis.slice(0, 4);
         texto += vagasExibidas.join("\n");
-        if (vagasDisponiveis.length > 4) texto += `\n➕ E mais horários livres...`;
+
+        if (vagasDisponiveis.length > 4) {
+            texto += `\n\n➕ E mais horários disponíveis no site...`;
+        }
     }
 
     texto += `\n\n📍 Reserve agora:\n${link}`;
-    if (texto.length > 700) texto = texto.substring(0, 695) + "...";
 
-    navigator.clipboard
-        .writeText(texto)
-        .then(() =>
-            alert(`Vagas de ${periodo} copiadas! (Apenas horários futuros)`),
-        );
+    // Copia para o clipboard
+    navigator.clipboard.writeText(texto).then(() => {
+        alert(`Vagas de ${periodo} copiadas com o limite de 4 horários! 🚀`);
+    });
 };
 
 window.gerarTextoMarketing = async function (gatilho) {
@@ -1658,25 +1723,26 @@ Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
         );
     }
 };
-// MOTOR DE ARRANQUE
+
+/* ==========================================================================
+   10.1 UTILITÁRIOS E MOTOR DE ARRANQUE (ATUALIZAÇÃO FINAL 14/05/2026 - Versão 1.01)
+   ========================================================================== */
+
 window.addEventListener("load", async () => {
-    console.log("🚀 Sistema ClientFlow Inicializado.");
+    console.log("🚀 Sistema ClientFlow Inicializado - Versão 1.01");
 
-    // Modal de Atendimento Rápido (Setup)
+    // 1. Modal de Atendimento Rápido (Setup)
     const m = document.getElementById("modal-agendamento");
-    document.getElementById("btn-novo-agendamento").onclick = () => {
-        m.style.display = "block";
-    };
-    document.getElementById("fechar-modal").onclick = () => {
-        m.style.display = "none";
-    };
-    window.onclick = (e) => {
-        if (e.target == m) m.style.display = "none";
-    };
+    const btnNovo = document.getElementById("btn-novo-agendamento");
+    const btnFechar = document.getElementById("fechar-modal");
 
-    // Máscara Telefone Modal
+    if (btnNovo) btnNovo.onclick = () => { m.style.display = "block"; };
+    if (btnFechar) btnFechar.onclick = () => { m.style.display = "none"; };
+    window.onclick = (e) => { if (e.target == m) m.style.display = "none"; };
+
+    // 2. Máscara Telefone Modal
     const tel = document.getElementById("rapido-telefone");
-    if (tel)
+    if (tel) {
         tel.addEventListener("input", (e) => {
             let v = e.target.value.replace(/\D/g, "");
             if (v.length > 11) v = v.substring(0, 11);
@@ -1684,36 +1750,80 @@ window.addEventListener("load", async () => {
             if (v.length > 9) v = `${v.substring(0, 10)}-${v.substring(10)}`;
             e.target.value = v;
         });
+    }
 
-    // Carrega Serviços no Modal
+    // 3. Carrega Serviços no Modal
     const { data: srvs } = await _supabase
         .from("servicos")
         .select("nome, preco")
         .order("nome");
     const sel = document.getElementById("rapido-servico");
     if (sel && srvs) {
-        sel.innerHTML =
-            '<option value="" disabled selected>Selecione um serviço</option>' +
-            srvs
-                .map(
-                    (s) => `<option value="${s.nome}">${s.nome} - R$ ${s.preco}</option>`,
-                )
-                .join("");
+        sel.innerHTML = '<option value="" disabled selected>Selecione um serviço</option>' +
+            srvs.map((s) => `<option value="${s.nome}">${s.nome} - R$ ${s.preco}</option>`).join("");
     }
 
-    // Carrega Meta Diária Inicial
-    const { data: cfg } = await _supabase
+    // 4. Carrega Meta Diária Inicial
+    const { data: cfgMeta } = await _supabase
         .from("configuracoes")
         .select("meta_diaria")
         .eq("id", 1)
         .single();
-    if (cfg && document.getElementById("cfg-meta-valor")) {
-        document.getElementById("cfg-meta-valor").value = cfg.meta_diaria;
-        localStorage.setItem("metaDiaria", cfg.meta_diaria);
+    if (cfgMeta && document.getElementById("cfg-meta-valor")) {
+        document.getElementById("cfg-meta-valor").value = cfgMeta.meta_diaria;
+        localStorage.setItem("metaDiaria", cfgMeta.meta_diaria);
     }
 
-    // Inicia Painel
-    await carregarAgendamentosDoDia();
-    await recalcularFaturamentoDoDia();
+    // 5. INICIALIZAÇÃO DE DADOS E PERSISTÊNCIA
     await inicializarDadosBarbearia();
+    await recalcularFaturamentoDoDia();
+
+    const abaSalva = localStorage.getItem("ultimaAbaClientFlow");
+    if (abaSalva && abaSalva !== "Dashboard") {
+        if (typeof executarNavegacao === "function") {
+            executarNavegacao(abaSalva);
+        }
+    } else {
+        await carregarAgendamentosDoDia();
+        atualizarProgressoMeta();
+    }
+
+    // 6. ESCUTA REALTIME COM ALERTA SONORO (Versão 1.01)
+    // Substitua pelo seu link público do Storage do Supabase
+    const somNotificacao = new Audio('https://qposfoxkszlxdmcrabbx.supabase.co/storage/v1/object/public/notificacoes/alerta.mp3');
+
+    const canalAgendamentos = _supabase
+        .channel('agendamentos-realtime')
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'agendamentos'
+        }, payload => {
+            console.log('⚡ Realtime: Novo agendamento detectado!');
+
+            // DISPARA O SOM ÚNICO (Requer interação prévia do usuário na tela)
+            somNotificacao.play().catch(e => console.log("Áudio aguardando interação inicial."));
+
+            const abaAtual = localStorage.getItem("ultimaAbaClientFlow");
+            if (!abaAtual || abaAtual === "Dashboard") {
+                carregarAgendamentosDoDia();
+                recalcularFaturamentoDoDia();
+                atualizarProgressoMeta();
+            }
+        })
+        .subscribe();
+
+    // 7. ROTINA DE AUTO-REFRESH DE SEGURANÇA (10 MINUTOS)
+    const DEZ_MINUTOS = 10 * 60 * 1000;
+    setInterval(async () => {
+        const abaAtual = localStorage.getItem("ultimaAbaClientFlow");
+        if (!abaAtual || abaAtual === "Dashboard") {
+            console.log("🔄 Auto-Refresh 1.01: Sincronização periódica...");
+            await carregarAgendamentosDoDia();
+            await recalcularFaturamentoDoDia();
+            atualizarProgressoMeta();
+        }
+    }, DEZ_MINUTOS);
+
+    console.log("⏱️ Monitoramento Realtime, Alerta Sonoro e Intervalo ativados.");
 });

@@ -942,21 +942,28 @@
         gap: 15px;
     }
 
+    /* AJUSTE Versão 1.01: Descola o título "Agendamentos de Hoje" */
+    .agenda-section h3 {
+        margin-top: 15px;
+        margin-bottom: 15px;
+        padding-left: 5px;
+    }
+
     .stats-grid {
         grid-template-columns: 1fr 1fr;
         gap: 12px;
     }
 
-    /* Versão 1.01: Ajuste para a coluna de serviço não sumir */
+    /* Versão 1.01: Padding aumentado para respiro lateral e vertical */
     .tabela-agenda th,
     .tabela-agenda td {
-        padding: 10px 5px !important;
-        font-size: 0.8rem !important;
+        padding: 12px 8px !important;
+        font-size: 0.85rem !important;
     }
 
     .coluna-servico-v1 {
         display: table-cell !important;
-        max-width: 90px;
+        max-width: 85px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -969,6 +976,12 @@
 
 /* Layout Celular Específico (Ajustes de espaço) */
 @media (max-width: 768px) {
+    /* AJUSTE Versão 1.01: Faz a tabela usar melhor as laterais da tela */
+    .tabela-container {
+        margin: 0 -10px;
+        border-radius: 0;
+    }
+
     .agenda-container-flex {
         flex-direction: column;
         padding: 0;
@@ -1044,9 +1057,11 @@
         padding: 15px;
     }
 
-    /* Versão 1.01: Garante que os botões não quebrem linha */
+    /* Versão 1.01: Espaçamento de segurança (Gap de 10px) para evitar cliques errados */
     .acoes-buttons {
-        gap: 4px !important;
+        gap: 10px !important;
+        justify-content: flex-end;
+        padding-right: 5px;
     }
 }
 
