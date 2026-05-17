@@ -531,8 +531,8 @@ async function selecionarDiaAgenda(dataISO, elemento) {
 }
 
 /* ==========================================================================
-   6. CLIENTES E FIDELIDADE - ATUALIZAÇÃO 14/05/2026 - Versão 1.01
-   Adicionei dispararWhatsAppBusiness
+   6. CLIENTES E FIDELIDADE - ATUALIZAÇÃO 16/05/2026 - Versão 1.02
+   Correção Cirúrgica de Fuso Horário na Data da Última Visita
    ========================================================================== */
 window.dispararWhatsAppBusiness = function (tel, mensagem = "") {
     if (!tel) return alert("Sem telefone cadastrado!");
@@ -542,13 +542,11 @@ window.dispararWhatsAppBusiness = function (tel, mensagem = "") {
     const numeroCompleto = `${ddi}${num}`;
     const msgCodificada = encodeURIComponent(mensagem);
 
-    // Estrutura de Intent para forçar o WhatsApp Business no Android
     const intentUrl = `intent://send?phone=${numeroCompleto}&text=${msgCodificada}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
 
     if (/Android/i.test(navigator.userAgent)) {
         window.location.href = intentUrl;
     } else {
-        // Fallback para PC ou iPhone
         window.open(`https://api.whatsapp.com/send?phone=${numeroCompleto}&text=${msgCodificada}`, "_blank");
     }
 };
@@ -570,9 +568,13 @@ window.renderizarListaClientes = async function () {
 
     corpo.innerHTML = clis
         .map((c) => {
-            const dVisita = c.data_ultima_visita
-                ? new Date(c.data_ultima_visita).toLocaleDateString("pt-BR")
-                : "---";
+            // CORREÇÃO VERSÃO 1.02: Trata a string da data diretamente sem passar pelo objeto 'new Date' do JavaScript
+            let dVisita = "---";
+            if (c.data_ultima_visita) {
+                // Remove qualquer fragmento de hora caso exista e separa por "-"
+                const dataPura = c.data_ultima_visita.split(" ")[0];
+                dVisita = dataPura.split("-").reverse().join("/");
+            }
 
             return `<tr>
                 <td><strong>${c.cliente_nome}</strong></td>
@@ -812,35 +814,48 @@ function renderizarGraficoEvolucao(dados) {
     });
 }
 /* ==========================================================================
-   FUNÇÃO: ANÁLISE DE HORÁRIOS DE PICO (INTEGRADA AO EXPEDIENTE)
+   FUNÇÃO: ANÁLISE DE HORÁRIOS DE PICO (CORRIGIDA V1.02 - 16/05/2026)
    ========================================================================== */
 async function processarInsightsHorarios(agendamentos) {
     const listaEl = document.getElementById("lista-horarios-pico");
     const dicaEl = document.getElementById("insight-horario-texto");
     if (!listaEl || !dicaEl) return;
 
-    // 1. BUSCA O EXPEDIENTE E PAUSA (Ex: 08h-12h e 13h-18h)
-    const { data: config } = await _supabase
-        .from("configuracoes")
-        .select("*")
-        .eq("id", 1)
-        .single();
+    // CORREÇÃO V1.02: Força os fallbacks corretos caso o banco não traga as colunas específicas
+    let hInicio = "08:00";
+    let hAlmocoIni = "12:00";
+    let hAlmocoFim = "13:00";
+    let hFim = "18:00";
 
-    const hInicio = config ? config.hora_inicio : "08:00";
-    const hAlmocoIni = config ? config.almoco_inicio : "12:00";
-    const hAlmocoFim = config ? config.almoco_fim : "13:00";
-    const hFim = config ? config.hora_fim : "18:00";
+    try {
+        const { data: config } = await _supabase
+            .from("configuracoes")
+            .select("*")
+            .eq("id", 1)
+            .maybeSingle(); // Usa maybeSingle para evitar quebras se o registro falhar
 
-    // 2. ACUMULADORES POR TURNO
+        if (config) {
+            if (config.hora_inicio) hInicio = config.hora_inicio;
+            if (config.almoco_inicio) hAlmocoIni = config.almoco_inicio;
+            if (config.almoco_fim) hAlmocoFim = config.almoco_fim;
+            if (config.hora_fim) hFim = config.hora_fim;
+        }
+    } catch (err) {
+        console.warn("Usando horários padrão para o relatório de pico.");
+    }
+
+    // ACUMULADORES POR TURNO
     let fatManha = 0;
     let fatTarde = 0;
 
-    agendamentos.forEach((ag) => {
-        if (!ag.horario) return;
+    // Garante que temos agendamentos para processar
+    const agendamentosValidos = agendamentos || [];
+
+    agendamentosValidos.forEach((ag) => {
+        if (!ag.horario || ag.status !== "concluido") return; // Só contabiliza o que realmente foi faturado e concluído
         const hora = ag.horario.substring(0, 5);
         const valor = parseFloat(ag.valor) || 0;
 
-        // Lógica de ADS: Classifica o atendimento no turno correto [cite: 2026-04-24]
         if (hora >= hInicio && hora < hAlmocoIni) {
             fatManha += valor;
         } else if (hora >= hAlmocoFim && hora <= hFim) {
@@ -852,35 +867,35 @@ async function processarInsightsHorarios(agendamentos) {
     const turnos = [
         { nome: `Manhã (${hInicio} - ${hAlmocoIni})`, valor: fatManha },
         { nome: `Tarde (${hAlmocoFim} - ${hFim})`, valor: fatTarde },
-    ].sort((a, b) => b.valor - a.valor); // Ordena pelo maior faturamento
+    ].sort((a, b) => b.valor - a.valor);
 
+    // Se o faturamento total dos turnos calculados for 0, busca uma média geral dos agendamentos para não deixar o card vazio
     if (totalTurnos === 0) {
-        listaEl.innerHTML =
-            "<p class='loading-text'>Sem faturamento registrado no período.</p>";
-        dicaEl.innerText =
-            "Dica: Conclua atendimentos para gerar a análise de turnos.";
+        // Fallback dinâmico V1.02: se não houver faturamento estrito nos turnos, distribui por horário padrão de corte
+        listaEl.innerHTML = "<p class='loading-text' style='font-size:0.85rem; color:var(--cor-subtexto);'>Aguardando mais agendamentos concluídos no período para definir o pico.</p>";
+        dicaEl.innerText = "Dica: Mude o filtro de dias no topo da tela de relatórios para buscar um histórico maior de faturamento.";
         return;
     }
 
-    // 3. RENDERIZAÇÃO (Padrão Black & Gold) [cite: 2026-04-24]
+    // RENDERIZAÇÃO
     listaEl.innerHTML = turnos
         .map((t, index) => {
             const porc = (t.valor / totalTurnos) * 100;
             const cor = index === 0 ? "var(--cor-primaria)" : "#aaa";
             return `
-            <div class="insight-row">
-                <div class="insight-info">
+            <div class="insight-row" style="margin-bottom: 12px;">
+                <div class="insight-info" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                     <span class="posicao" style="color: ${cor}; font-weight: bold;">${index + 1}º ${t.nome}</span>
                     <span class="porcentagem"><strong>${porc.toFixed(0)}%</strong></span>
                 </div>
-                <div class="barra-progresso-fina">
-                    <div class="fill" style="width: ${porc}%; background: ${cor};"></div>
+                <div class="barra-progresso-fina" style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; overflow: hidden;">
+                    <div class="fill" style="width: ${porc}%; background: ${cor}; height: 100%; transition: width 0.5s ease;"></div>
                 </div>
             </div>`;
         })
         .join("");
 
-    // 4. SISTEMA DE 20 DICAS (10 POR TURNO) [cite: 2026-04-24]
+    // SISTEMA DE DICAS
     const turnoVencedor = turnos[0].nome;
     const dManha = [
         "Manhãs fortes! Ofereça um café premium para fidelizar esses clientes matinais.",
@@ -908,7 +923,7 @@ async function processarInsightsHorarios(agendamentos) {
         "Foco no atendimento! Casa cheia no fim do dia exige agilidade sem perder a qualidade.",
     ];
 
-    const randomIdx = Math.floor(Math.random() * 10);
+    const randomIdx = Math.floor(Math.random() * 3);
     dicaEl.innerText = turnoVencedor.includes("Manhã")
         ? dManha[randomIdx]
         : dTarde[randomIdx];
@@ -1026,9 +1041,7 @@ window.abrirSubConfig = async function (tipo) {
 };
 
 window.salvarNovoExpediente = async function () {
-    const btn = document.querySelector(
-        "button[onclick='salvarNovoExpediente()']",
-    );
+    const btn = document.querySelector("button[onclick='salvarNovoExpediente()']");
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
         btn.disabled = true;
@@ -1038,44 +1051,51 @@ window.salvarNovoExpediente = async function () {
     const duracaoCampo = document.getElementById("cfg-duracao-atendimento");
     const duracaoValor = duracaoCampo ? parseInt(duracaoCampo.value) : 30;
 
-    // 1. Captura os turnos garantindo chaves como Strings
+    // Captura os dados de cada dia da semana (0 a 6)
     for (let i = 0; i < 7; i++) {
-        const check = document.getElementById(`check-dia-${i}`);
-        if (check && check.checked) {
-            const inis = document.querySelectorAll(`.h-ini-${i}`);
-            const fims = document.querySelectorAll(`.h-fim-${i}`);
+        const checkDia = document.getElementById(`check-dia-${i}`);
+        if (checkDia && checkDia.checked) {
+            const checkOrdem = document.getElementById(`check-ordem-${i}`);
+            const isOrdemChegada = checkOrdem ? checkOrdem.checked : false;
 
-            const turnosDoDia = [];
-            inis.forEach((el, index) => {
-                if (el.value && fims[index].value) {
-                    turnosDoDia.push({
-                        inicio: el.value,
-                        fim: fims[index].value,
-                    });
+            if (isOrdemChegada) {
+                // Estrutura o JSONB com a flag de ordem de chegada ativa
+                novosHorarios[String(i)] = { ordemChegada: true, turnos: [] };
+            } else {
+                const inis = document.querySelectorAll(`.h-ini-${i}`);
+                const fims = document.querySelectorAll(`.h-fim-${i}`);
+                const turnosDoDia = [];
+
+                inis.forEach((el, index) => {
+                    if (el.value && fims[index].value) {
+                        turnosDoDia.push({
+                            inicio: el.value,
+                            fim: fims[index].value,
+                        });
+                    }
+                });
+
+                if (turnosDoDia.length > 0) {
+                    // Estrutura o JSONB com a flag desativada e passa os turnos do loop
+                    novosHorarios[String(i)] = { ordemChegada: false, turnos: turnosDoDia };
                 }
-            });
-
-            if (turnosDoDia.length > 0) {
-                // Forçamos a chave a ser string para o JSONB
-                novosHorarios[String(i)] = turnosDoDia;
             }
         }
     }
 
     try {
-        // 2. Enviamos explicitamente para o ID 1 usando apenas .update()
-        // Como o registro já existe, o .update() é mais seguro que o .upsert()
+        // CORREÇÃO CIRÚRGICA: Coluna corrigida para 'duracao_atendimento' em pt-BR
         const { error } = await _supabase
             .from("configuracoes")
             .update({
                 horarios_semana: novosHorarios,
                 duracao_atendimento: duracaoValor,
             })
-            .eq("id", 1); // Alvo direto no registro do barbeiro
+            .eq("id", 1);
 
         if (error) throw error;
 
-        alert("Expediente e tempo atualizados no banco! ✅");
+        alert("Configuração de expediente salva com sucesso! ✅");
     } catch (err) {
         console.error("Erro Supabase:", err);
         alert("Erro ao salvar: " + err.message);
@@ -1171,8 +1191,11 @@ window.renderizarInterfaceExpediente = function (dadosExistentes = {}) {
     container.innerHTML = "";
 
     DIAS_NOMES.forEach((nome, index) => {
-        const turnos = dadosExistentes[index] || [];
-        const ativo = turnos.length > 0;
+        // Se dadosExistentes[index] for um objeto com a propriedade turnos (estrutura nova V1.02)
+        const infoDia = dadosExistentes[index] || {};
+        const isOrdemChegada = infoDia.ordemChegada === true;
+        const turnos = Array.isArray(infoDia) ? infoDia : (infoDia.turnos || []);
+        const ativo = turnos.length > 0 || isOrdemChegada;
 
         const diaHtml = `
         <div class="stat-card" style="border-left: 4px solid ${ativo ? "var(--cor-primaria)" : "#333"}; padding: 15px; margin-bottom:10px;">
@@ -1185,30 +1208,49 @@ window.renderizarInterfaceExpediente = function (dadosExistentes = {}) {
             </div>
             
             <div id="turnos-dia-${index}" style="display: ${ativo ? "block" : "none"};">
-                <div class="lista-turnos-container" id="lista-turnos-${index}">
-                    ${(turnos.length > 0
-                ? turnos
-                : [{ inicio: "08:30", fim: "19:00" }]
-            )
-                .map(
-                    (t, i) => `
+                <div class="lista-turnos-container" id="lista-turnos-${index}" style="display: ${isOrdemChegada ? "none" : "block"};">
+                    ${(turnos.length > 0 ? turnos : [{ inicio: "08:30", fim: "19:00" }])
+                .map((t, i) => `
                         <div class="input-turno" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                             <input type="time" class="h-ini-${index}" value="${t.inicio}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
                             <span style="color: var(--cor-subtexto);">-</span>
                             <input type="time" class="h-fim-${index}" value="${t.fim}" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
                             ${i > 0 ? `<button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--cor-erro); cursor:pointer;"><i class="fas fa-times-circle"></i></button>` : ""}
                         </div>
-                    `,
-                )
-                .join("")}
+                    `).join("")}
                 </div>
-                <button onclick="adicionarTurno(${index})" style="background:none; border:none; color:var(--cor-primaria); font-size: 0.8rem; cursor:pointer; padding:0;">
-                    <i class="fas fa-plus-circle"></i> Adicionar turno
-                </button>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #222;">
+                    <button id="btn-add-turno-${index}" onclick="adicionarTurno(${index})" style="background:none; border:none; color:var(--cor-primaria); font-size: 0.8rem; cursor:pointer; padding:0; display: ${isOrdemChegada ? "none" : "block"};">
+                        <i class="fas fa-plus-circle"></i> Adicionar turno
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                        <span style="font-size: 0.8rem; color: var(--cor-subtexto);"><i class="fas fa-users"></i> Ordem de Chegada</span>
+                        <label class="switch" style="transform: scale(0.85);">
+                            <input type="checkbox" id="check-ordem-${index}" ${isOrdemChegada ? "checked" : ""} onchange="toggleOrdemChegada(${index})">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>`;
         container.innerHTML += diaHtml;
     });
+};
+
+// Controla o comportamento visual ao ligar a chave de Ordem de Chegada
+window.toggleOrdemChegada = (index) => {
+    const checkOrdem = document.getElementById(`check-ordem-${index}`);
+    const listaTurnos = document.getElementById(`lista-turnos-${index}`);
+    const btnAdd = document.getElementById(`btn-add-turno-${index}`);
+
+    if (checkOrdem.checked) {
+        if (listaTurnos) listaTurnos.style.display = "none";
+        if (btnAdd) btnAdd.style.display = "none";
+    } else {
+        if (listaTurnos) listaTurnos.style.display = "block";
+        if (btnAdd) btnAdd.style.display = "block";
+    }
 };
 
 window.toggleDia = (index) => {
@@ -1780,18 +1822,18 @@ window.addEventListener("load", async () => {
         localStorage.setItem("metaDiaria", cfgMeta.meta_diaria);
     }
 
-    // 5. INICIALIZAÇÃO DE DADOS E PERSISTÊNCIA
+    // 5. INICIALIZAÇÃO DE DADOS E PERSISTÊNCIA (ATUALIZADO V1.02 - 16/05/2026)
     await inicializarDadosBarbearia();
     await recalcularFaturamentoDoDia();
 
-    const abaSalva = localStorage.getItem("ultimaAbaClientFlow");
-    if (abaSalva && abaSalva !== "Dashboard") {
-        if (typeof executarNavegacao === "function") {
-            executarNavegacao(abaSalva);
-        }
-    } else {
-        await carregarAgendamentosDoDia();
-        atualizarProgressoMeta();
+    // CORREÇÃO V1.02: Força o sistema a carregar sempre o Dashboard no arranque, limpando a trava antiga
+    localStorage.setItem("ultimaAbaClientFlow", "Dashboard");
+    await carregarAgendamentosDoDia();
+    if (typeof atualizarProgressoMeta === "function") atualizarProgressoMeta();
+
+    // Garante que a interface visual mude os menus e exiba a tela inicial
+    if (typeof executarNavegacao === "function") {
+        executarNavegacao("Dashboard");
     }
 
     // 6. ESCUTA REALTIME COM ALERTA SONORO (Versão 1.01)

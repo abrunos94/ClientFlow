@@ -104,7 +104,7 @@ if (campoTelefone) {
 }
 
 /* ==========================================================================
-   4. LÓGICA DE HORÁRIOS (SLOTS)
+   4. LÓGICA DE HORÁRIOS (SLOTS) - ATUALIZADO V1.02 (16/05/2026)
    ========================================================================== */
 if (campoData) {
     campoData.addEventListener("change", function () {
@@ -124,20 +124,42 @@ async function gerarSlots(dataEscolhida) {
     gridHorarios.innerHTML = "<p style='color: var(--cor-subtexto);'>Buscando horários...</p>";
     containerHorarios.style.display = "block";
 
-    // 1. Busca as novas configurações dinâmicas
+    // 1. Busca as configurações dinâmicas no banco
     const { data: config } = await _supabase
         .from('configuracoes')
         .select('horarios_semana, duracao_atendimento')
         .eq('id', 1)
         .single();
 
-    // Fallback: se não houver dados, assume 30min e objeto vazio
     const horariosSemana = config?.horarios_semana || {};
     const duracaoAtendimento = parseInt(config?.duracao_atendimento) || 30;
 
     // Identifica o dia da semana (0 = Domingo, 1 = Segunda, etc.)
     const diaSemana = new Date(dataEscolhida + "T00:00:00").getDay();
-    const turnosDoDia = horariosSemana[diaSemana];
+    const infoDia = horariosSemana[diaSemana];
+
+    // INTERCEPTAÇÃO V1.02: Se o dia for marcado como Ordem de Chegada, monta o banner e para
+    if (infoDia && infoDia.ordemChegada === true) {
+        gridHorarios.style.display = "block"; // Altera para block para o banner ocupar 100% da largura
+        gridHorarios.innerHTML = `
+            <div style="background: rgba(206, 158, 98, 0.08); border: 2px dashed #ce9e62; padding: 25px; border-radius: 8px; text-align: center; margin: 10px 0; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 1.8rem; margin-bottom: 8px;">✂️🔥</div>
+                <h4 style="color: #fff; font-size: 1.1rem; margin: 0 0 6px 0; font-family: sans-serif; text-transform: uppercase; letter-spacing: 1px;">Atendimento por Ordem de Chegada</h4>
+                <p style="color: #aaa; font-size: 0.88rem; margin: 0; line-height: 1.4; font-family: sans-serif;">
+                    Neste dia, o atendimento será realizado exclusivamente por <strong style="color: #ce9e62;">Ordem de Chegada</strong>. <br>
+                    Passe na barbearia e garanta seu corte!
+                </p>
+            </div>
+        `;
+        if (inputHorarioFinal) inputHorarioFinal.value = "";
+        return; // Curto-circuito para travar o formulário
+    }
+
+    // Se não for ordem de chegada, garante o comportamento padrão de Grid para os botões
+    gridHorarios.style.display = "grid";
+
+    // Trata se o nó do JSON é o array de turnos clássico ou a nova estrutura de objeto
+    const turnosDoDia = Array.isArray(infoDia) ? infoDia : (infoDia?.turnos || []);
 
     // Se o dia não tiver turnos ativos no objeto JSON, bloqueia o agendamento
     if (!turnosDoDia || turnosDoDia.length === 0) {
@@ -179,7 +201,6 @@ async function gerarSlots(dataEscolhida) {
                 gridHorarios.appendChild(slot);
                 slotsGerados++;
             }
-            // Avança o loop com base na duração média (30, 45, 60min...)
             horaLoop = somarMinutos(horaLoop, duracaoAtendimento);
         }
     });
