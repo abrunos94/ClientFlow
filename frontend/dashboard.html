@@ -532,6 +532,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="js/script-dashboard.js" defer></script>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/frontend/sw.js')
+        .then(reg => console.log('Service Worker registrado com sucesso! ✅', reg.scope))
+        .catch(err => console.error('Falha ao registrar o Service Worker ❌', err));
+    });
+  }
+</script>
 </body>
 
 </html>
