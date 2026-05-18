@@ -1,270 +1,140 @@
-# 🚀 ClientFlow
+# 🚀 ClientFlow - Palassi Barbearia
 
-> Plataforma simples para pequenos negócios captarem e atenderem clientes online.
+> Plataforma inteligente para pequenos negócios captarem, gerenciarem e atenderem clientes em tempo real.
 
-ClientFlow é um projeto de estudo e desenvolvimento focado em resolver um problema comum entre pequenos negócios: **perda de clientes por falta de presença digital e atendimento rápido**.
+O **ClientFlow** é um ecossistema SaaS desenvolvido para resolver um problema crítico de microempreendedores individuais (MEI): a perda de clientes devido à demora no atendimento e à falta de automação na gestão de agendamentos. 
 
-Este projeto está sendo desenvolvido como:
+Atualmente validado e operando de forma prática na **Palassi Barbearia**, o projeto evoluiu de um MVP de estudos para um ecossistema multiplataforma robusto.
 
-- 📚 Projeto de aprendizado
-- 💼 Projeto de portfólio
-- 💡 Base para um possível Micro SaaS
-
----
-
-# 📌 Problema
-
-Pequenos negócios (MEI) normalmente dependem apenas de:
-
-- Instagram
-- WhatsApp
-- Agenda manual
-- Atendimento totalmente manual
-
-Isso gera vários problemas:
-
-❌ Demora para responder clientes  
-❌ Falta de organização  
-❌ Perda de agendamentos  
-❌ Baixa presença digital  
-
-Muitos clientes acabam desistindo ou indo para concorrentes.
+💻 **Link da Aplicação:** [https://client-flow-liard.vercel.app/index.html](https://client-flow-liard.vercel.app/index.html)  
+⚙️ **Ambiente de Hospedagem:** Vercel  
+🗄️ **Banco de Dados Realtime:** Supabase (PostgreSQL)  
 
 ---
 
-# 💡 Solução
+## 💡 A Solução Multiplataforma
 
-O **ClientFlow** propõe uma solução simples:
-
-Uma plataforma que oferece:
-
-- 🌐 Página profissional para o negócio
-- 📅 Sistema de agendamento online
-- 🤖 Automação de atendimento
-- 📊 Painel simples de gestão
-
-Tudo pensado para **pequenos negócios que não possuem conhecimento técnico**.
+Para garantir a melhor experiência de mercado, o sistema foi arquitetado de forma cindida:
+1. **A Ponta do Cliente (Web Rápido):** Uma Landing Page otimizada e ultra-leve onde o cliente escolhe os serviços e realiza agendamentos tradicionais ou por **Ordem de Chegada**.
+2. **A Ponta do Administrador (PWA):** Um painel administrativo (Dashboard) que se transforma em aplicativo de celular (Progressive Web App), oferecendo persistência de cache offline e suporte a notificações em segundo plano para o barbeiro.
 
 ---
 
-# 🎯 Público-alvo
+## 🛠️ Tecnologias Utilizadas
 
-O projeto inicialmente foca em pequenos negócios baseados em serviços.
-
-Exemplos:
-
-- 💈 Barbearias
-- 💅 Manicures
-- 💇 Salões de beleza
-- 🦷 Clínicas pequenas
-- 🔧 Oficinas
-
-Esses negócios normalmente dependem de **agendamentos constantes**.
+- **Frontend:** HTML5, CSS3 (Variáveis nativas e design responsivo), JavaScript Assíncrono (ES6+)
+- **Backend as a Service (BaaS):** Supabase (Autenticação, PostgreSQL Relacional e Realtime Listeners)
+- **Engine Mobile:** Progressive Web App (PWA) via `manifest.json` e `sw.js` (Service Worker inteligente)
+- **Automação de Processos:** n8n integrado com Meta API (WhatsApp) para notificações e marketing automático
 
 ---
 
-# 🧠 Visão do Projeto
+## 📂 Estrutura do Repositório
+
+```text
+ClientFlow/
+├── .vscode/
+│   └── settings.json
+├── backend/
+│   ├── keySupabase.js          # Configurações de chaves criptográficas
+│   └── server.js               # Integrações e rotas de serviços
+├── Bkpbanco/                   # Backups e logs de migração de dados (.csv)
+│   ├── agendamentos_rows.csv
+│   ├── configuracoes1_rows.csv
+│   └── servicos_rows.csv
+└── frontend/                   # Core da Aplicação Web/PWA
+    ├── dashboard.html          # Painel administrativo do barbeiro
+    ├── index.html              # Landing Page de agendamento do cliente
+    ├── login.html              # Tela de autenticação segura
+    ├── manifest.json           # Manifesto de identidade do PWA
+    ├── sw.js                   # Service Worker (Cache inteligente e Push)
+    ├── assets/
+    │   ├── Docs/               # Manuais e documentações de engenharia
+    │   │   ├── Documentacao_Tecnica_HomeV1.pdf
+    │   │   ├── Documentacao_Tecnica_Login_ClientFlow.pdf
+    │   │   └── Manual_Tecnico_ClientFlowDashboard.pdf
+    │   ├── fonts/
+    │   └── images/             # Assets visuais otimizados (.webp / .png)
+    │       └── favicon.png     # Ícone mestre de ancoragem do app
+    ├── css/                    # Estilização modularizada
+    │   ├── dashboard.css
+    │   ├── home.css
+    │   ├── login.css
+    │   └── variables.css       # Design System (Cores e tipografia)
+    └── js/                     # Lógica aplicada e consumo de APIs
+        ├── auth.js             # Controle de sessão e segurança
+        ├── main.js             # Controle de regras da Home e Ordem de Chegada
+        └── script-dashboard.js # Regras de negócios, faturamento e Realtime
+
+
+🗄️ Modelagem do Banco de Dados (Supabase / PostgreSQL)
+O banco de dados foi estruturado de forma relacional para suportar faturamento dinâmico, logs de atendimento, gestão de mídia externa e templates parametrizáveis para envio via WhatsApp.
+
+       +-----------------------+             +-----------------------+
+       |     agendamentos      |             |       servicos        |
+       +-----------------------+             +-----------------------+
+       | id (UUID - PK)        |             | id (UUID - PK)        |
+       | created_at (Timestamp)|             | created_at (Timestamp)|
+       | cliente_nome (Text)   |             | nome (Text)           |
+       | servico (Text)        |             | preco (Numeric)       |
+       | telefone (Text)       |             | ordem (Integer)       |
+       | data (Text)           |             +-----------------------+
+       | horario (Text)        |
+       | status (Text)         |             +-----------------------+
+       | valor (Numeric)       |             |  templates_marketing  |
+       +-----------------------+             +-----------------------+
+                                             | id (Identity - PK)    |
+       +-----------------------+             | criado_em (Timestamp) |
+       |     configuracoes     |             | gatilho (Text)        |
+       +-----------------------+             | texto_base (Text)     |
+       | id (Integer - PK)     |             +-----------------------+
+       | intervalo (Integer)   |
+       | dias_trabalhados(JSONB|             +-----------------------+
+       | meta_diaria (Numeric) |             |    vitrine_midias     |
+       | horarios_semana(JSONB)|             +-----------------------+
+       | duracao_atendimento(I)|             | id (BigInt - PK)      |
+       +-----------------------+             | url_hero (Text)       |
+                                             | url_sobre (Text)      |
+       +-----------------------+             | tipo_exibicao (Text)  |
+       |    configuracoes1     |             | dados_galeria (JSONB) |
+       +-----------------------+             | dados_produtos(JSONB) |
+       | id (BigInt - PK)      |             | ultima_atualizacao(TS)|
+       | hero_titulo (Text)    |             +-----------------------+
+       | sobre_texto (Text)    |
+       | endereco (Vários Text)|             +-----------------------+
+       | mapa_iframe (Text)    |             |    dados_barbearia    |
+       +-----------------------+             +-----------------------+
+                                             | id (BigInt - PK)      |
+                                             | proprietario / empresa|
+                                             | whatsapp / instagram  |
+                                             | url_logo / chave_pix  |
+                                             +-----------------------+
+
+📈 Histórico de Evolução (Changelog)
+[V1.01] - Fundação e Integração
+[x] Criação da interface responsiva e regras de agendamento na Home.
+
+[x] Integração total com Supabase para persistência e login administrativo.
+
+[x] Acoplamento de gatilhos Webhook via n8n para disparo de notificações.
+
+[V1.02] - Refinamento Técnico e Regras de Negócio
+[x] Ajuste de Calendário: Correção do bug de renderização de data no Menu Clientes.
+
+[x] Local Storage: Isolamento completo de tokens e dados focados unicamente na Dashboard.
+
+[x] Segurança Avançada: Realocação e encriptação de chaves lógicas do banco de dados.
+
+[x] Customização Estética: Adaptação completa da identidade visual para a Barbearia Palassi.
+
+[x] Módulo Híbrido: Implementação da função de agendamento em Tempo Real por Ordem de Chegada.
+
+[V1.03] - Mutação PWA (Versão Atual) 🚀
+[x] Engine PWA: Criação do arquivo manifest.json para instalação do app em tela cheia (standalone).
 
-ClientFlow busca ser:
+[x] Cache Blindado: Service Worker (sw.js) configurado com loop de cache individual por arquivo, evitando quebras (404) e garantindo carregamento instantâneo.
 
-> "Uma página profissional com agendamento e atendimento automático para pequenos negócios."
+[x] Suporte a Notificações: Adaptação do escopo do Worker para escutar rotas de Push em segundo plano.
 
-No futuro, o projeto pode evoluir para um **Micro SaaS voltado para MEIs**.
-
----
-
-# ⚙️ Arquitetura do Sistema
-
-Arquitetura planejada:
-Cliente
-↓
-Frontend (site da empresa)
-↓
-Backend API
-↓
-Banco de dados
-↓
-Automação (n8n)
-
-
----
-
-## 🖥️ Frontend
-
-Responsável por:
-
-- exibir página da empresa
-- mostrar serviços
-- permitir agendamento
-
-Tecnologias:
-
-- HTML
-- CSS
-- JavaScript
-
----
-
-## 🔧 Backend
-
-Responsável por:
-
-- receber agendamentos
-- salvar dados
-- enviar dados para automações
-
-Tecnologias:
-
-- Node.js
-- Express
-
----
-
-## 🗄️ Banco de Dados
-
-Responsável por armazenar:
-
-- empresas
-- serviços
-- clientes
-- agendamentos
-
-Tecnologia planejada:
-
-- Supabase (PostgreSQL)
-
----
-
-## 🔁 Automação
-
-Automação de notificações usando:
-
-- n8n
-
-Fluxo exemplo:
-Novo agendamento
-↓
-Webhook n8n
-↓
-Notificação enviada
-↓
-Confirmação para cliente
-
-
----
-
-# 📂 Estrutura do Projeto
-clientflow/
-
-frontend/
-├── index.html
-├── styles.css
-└── script.js
-
-backend/
-├── server.js
-└── routes.js
-
-database/
-└── schema.sql
-
-docs/
-└── architecture.md
-
-
----
-
-# 🛠️ Funcionalidades do MVP
-
-Primeira versão do sistema incluirá:
-
-- [x] Página da empresa
-- [x] Lista de serviços
-- [x] Formulário de agendamento
-- [ ] API para receber agendamentos
-- [ ] Armazenamento de dados
-- [ ] Automação com n8n
-- [ ] Painel simples de agendamentos
-
----
-
-# 🗺️ Roadmap do Projeto
-
-## Fase 1 — MVP
-
-- Criar landing page
-- Criar lista de serviços
-- Criar formulário de agendamento
-- Criar API básica
-
----
-
-## Fase 2 — Automação
-
-- Integração com n8n
-- Confirmação automática
-- Notificação para empresa
-
----
-
-## Fase 3 — Painel administrativo
-
-- Lista de agendamentos
-- Gestão de serviços
-- Painel da empresa
-
----
-
-## Fase 4 — Melhorias
-
-- Agenda visual
-- Dashboard
-- Automação avançada
-- Multiempresa
-
----
-
-# 📚 Aprendizados do Projeto
-
-Este projeto explora conceitos como:
-
-- desenvolvimento web
-- arquitetura de sistemas
-- automação de processos
-- construção de produto digital
-
----
-
-# 🧪 Status do Projeto
-
-🚧 Em desenvolvimento
-
-Este projeto está sendo desenvolvido como **experimento e aprendizado contínuo**.
-
----
-
-# 🔗 Documentação
-
-Planejamento e documentação do projeto estão organizados no Notion.
-
-📄 Notion Workspace:
----
-
-# 🤝 Contribuições
-
-Este é um projeto pessoal de aprendizado, mas sugestões são sempre bem-vindas.
-
----
-
-# 👨‍💻 Autor
-
-Desenvolvido por **Alex Bruno**
-
-Estudante de Análise e Desenvolvimento de Sistemas em transição para a área de tecnologia.
-
----
-
-# ⭐ Objetivo
-
-Construir um sistema real enquanto desenvolvo minhas habilidades como programador e criador de produtos digitais.
-
+👨‍💻 Autor
+Desenvolvido com foco em excelência e arquitetura de software por Alex Bruno da Silva Mariano.
