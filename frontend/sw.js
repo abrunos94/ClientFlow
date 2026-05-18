@@ -1,23 +1,29 @@
 const CACHE_NAME = 'clientflow-v1.02';
 
-// Lista de arquivos para tentar cachear na raiz
+// Mapeamento cirúrgico baseado no comando TREE do projeto
 const ASSETS = [
   'dashboard.html',
-  'script-dashboard.js',
   'index.html',
-  'main.js',
-  'manifest.json'
+  'login.html',
+  'manifest.json',
+  'css/dashboard.css',
+  'css/home.css',
+  'css/login.css',
+  'css/variables.css',
+  'js/auth.js',
+  'js/main.js',
+  'js/script-dashboard.js',
+  'assets/images/favicon.png'
 ];
 
-// Instalação do Service Worker e Cache arquivo por arquivo
+// Instalação do Service Worker e Cache individual inteligente
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Em vez de addAll, fazemos um mapeamento individual para isolar o arquivo com erro
       return Promise.all(
         ASSETS.map((asset) => {
           return cache.add(asset).catch((err) => {
-            console.error(`⚠️ Erro de Cache: O arquivo "${asset}" não foi encontrado na raiz do projeto!`, err);
+            console.warn(`⚠️ Aviso de Cache: O arquivo "${asset}" não foi localizado na pasta frontend!`, err);
           });
         })
       );
@@ -40,7 +46,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Estratégia de Cache: Network First (Busca na rede primeiro, se cair usa o cache)
+// Estratégia de Cache: Network First (Garante dados novos do Supabase, usa cache se cair)
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request).catch(() => {
@@ -52,11 +58,11 @@ self.addEventListener('fetch', (e) => {
 // Ouvinte para Notificações Push
 self.addEventListener('push', (e) => {
   const data = e.data ? e.data.json() : { titulo: 'ClientFlow', msg: 'Novo evento registrado!' };
-
+  
   const options = {
     body: data.msg,
-    icon: 'assets/icon-192.png',
-    badge: 'assets/icon-192.png',
+    icon: 'assets/images/favicon.png',
+    badge: 'assets/images/favicon.png',
     vibrate: [200, 100, 200],
     data: { url: 'dashboard.html' }
   };
