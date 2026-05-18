@@ -1,4 +1,4 @@
-# 🚀 ClientFlow - Palassi Barbearia
+# 🚀 ClientFlow 
 
 > Plataforma inteligente para pequenos negócios captarem, gerenciarem e atenderem clientes em tempo real.
 
