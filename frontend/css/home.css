@@ -1,14 +1,15 @@
 /* =========================================
    1. CONFIGURAÇÕES GERAIS E VARIÁVEIS
    ========================================= */
-:root {
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,XOPQ,XTRA,YOPQ,YTDE,YTFI,YTLC,YTUC@8..144,100..1000,96,468,79,-203,738,514,712&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+   :root {
   --cor-fundo: #0d0d0d;
   --cor-card: #1a1a1a;
   --cor-primaria: #b8864b;
   --cor-texto: #ffffff;
   --cor-subtexto: #a1a1a1;
   --fonte-principal: "Montserrat", sans-serif;
-  --fonte-secundaria: "Playfair Display", serif; /* Nova fonte para textos Longos para facilidar a leitura */
+  --fonte-secundaria: "Roboto", serif; /* Nova fonte para textos Longos para facilidar a leitura */
 }
 
 * {
