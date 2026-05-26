@@ -1,34 +1,96 @@
 /* ==========================================================================
-   1. LAYOUT E ESTRUTURA GLOBAL
+   1. IMPORTS
    ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@100..900&display=swap');
+
+/* ==========================================================================
+   2. ROOT
+   ========================================================================== */
+
+:root {
+
+    /* CORES BASE */
+    --cor-fundo: #0d0d0d;
+    --cor-card: #1a1a1a;
+    --cor-fundo-input: #2a2a2a;
+    --cor-borda: #333333;
+
+    /* TEXTO */
+    --cor-texto: #ffffff;
+    --cor-subtexto: #a1a1a1;
+
+    /* CORES PRINCIPAIS */
+    --cor-primaria: #b8864b;
+    --cor-primaria-hover: #966d3b;
+
+    /* SISTEMA */
+    --cor-erro: #ff4d4d;
+
+    /* OVERLAY / SOMBRAS */
+    --sombra-forte: rgba(0, 0, 0, 0.8);
+
+    /* FONTES */
+    --fonte-principal: "Roboto", sans-serif;
+    --fonte-titulos: "Montserrat", sans-serif;
+
+    /* RADIUS */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* TRANSITIONS */
+    --transition-fast: all 0.3s ease;
+}
+
+/* ==========================================================================
+   3. RESET E CONFIGURAÇÕES GERAIS
+   ========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-x: hidden;
+}
 
 .body-login {
     background-color: var(--cor-fundo);
-    height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--fonte-principal);
+    color: var(--cor-texto);
+    padding: 20px;
 }
+
+/* ==========================================================================
+   4. LAYOUT
+   ========================================================================== */
 
 .login-container {
     width: 100%;
     max-width: 400px;
-    padding: 20px;
 }
 
 .login-box {
     background-color: var(--cor-card);
     padding: 40px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid #222;
     text-align: center;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 15px 35px var(--sombra-forte);
 }
 
 /* ==========================================================================
-   2. ELEMENTOS DE TEXTO E NAVEGAÇÃO
+   5. TEXTOS E NAVEGAÇÃO
    ========================================================================== */
 
 .login-box h2 {
@@ -36,6 +98,7 @@
     margin: 20px 0 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-family: var(--fonte-titulos);
 }
 
 .login-box p {
@@ -58,7 +121,7 @@
 }
 
 /* ==========================================================================
-   3. FORMULÁRIOS E INPUTS (Incluindo o Olho)
+   6. FORMULÁRIOS E INPUTS
    ========================================================================== */
 
 .input-group {
@@ -73,10 +136,24 @@
     font-size: 0.9rem;
 }
 
-/* Wrapper para o ícone do olho ficar dentro do input */
 .input-wrapper {
     position: relative;
     width: 100%;
+}
+
+.input-group input {
+    width: 100%;
+    background-color: var(--cor-fundo-input);
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    transition: var(--transition-fast);
+}
+
+.input-group input::placeholder {
+    color: var(--cor-subtexto);
 }
 
 .input-group input:focus {
@@ -85,7 +162,8 @@
     box-shadow: 0 0 8px rgba(184, 134, 75, 0.2);
 }
 
-/* Ícone de visualizar senha */
+/* Ícone visualizar senha */
+
 #toggle-password {
     position: absolute;
     right: 15px;
@@ -94,55 +172,66 @@
     cursor: pointer;
     color: var(--cor-primaria);
     font-size: 1.1rem;
-    transition: 0.3s;
+    transition: var(--transition-fast);
     opacity: 0.7;
 }
 
 #toggle-password:hover {
     opacity: 1;
-    color: #fff;
+    color: var(--cor-texto);
 }
 
 /* ==========================================================================
-   4. BOTÕES E LINKS DE AÇÃO
+   7. BOTÕES E LINKS
    ========================================================================== */
+
+.btn-principal {
+    background-color: var(--cor-primaria);
+    color: var(--cor-texto);
+    padding: 12px 25px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    transition: var(--transition-fast);
+}
+
+.btn-principal:hover {
+    background-color: var(--cor-primaria-hover);
+}
 
 .btn-block {
     width: 100%;
     margin-top: 10px;
-    padding: 12px; /* Aumenta a área de clique */
-    font-weight: bold;
 }
 
-/* Link de Recuperação (Unificado) */
-.esqueceu-senha, 
-#btn-recuperar-senha {
-    display: inline-block;
+.esqueceu-senha {
     margin-top: 25px;
-    color: #cccccc; /* <-- CLAREADO PARA ACESSIBILIDADE */
-    font-size: 0.8rem;
-    text-decoration: underline;
-    transition: 0.3s;
-    cursor: pointer;
 }
 
-.esqueceu-senha:hover, 
-#btn-recuperar-senha:hover {
+.esqueceu-senha a {
+    color: var(--cor-subtexto);
+    font-size: 0.8rem;
+    transition: var(--transition-fast);
+}
+
+.esqueceu-senha a:hover {
     color: var(--cor-primaria);
 }
 
 /* ==========================================================================
-   5. MENSAGENS DE FEEDBACK (ERRO/SUCESSO)
+   8. MENSAGENS DE FEEDBACK
    ========================================================================== */
 
 .error-message {
-    color: #ff4d4d;
+    color: var(--cor-erro);
     margin-top: 20px;
     font-size: 0.85rem;
-    display: none; /* Controlado via JS */
+    display: none;
     background: rgba(255, 77, 77, 0.1);
     padding: 12px;
-    border-radius: 4px;
-    border-left: 4px solid #ff4d4d;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--cor-erro);
     text-align: left;
 }
