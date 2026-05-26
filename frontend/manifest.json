@@ -1,0 +1,21 @@
+{
+  "short_name": "ClientFlow",
+  "name": "ClientFlow ",
+  "icons": [
+    {
+      "src": "assets/images/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "assets/images/favicon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "dashboard.html",
+  "background_color": "#111111",
+  "theme_color": "#ce9e62",
+  "display": "standalone",
+  "orientation": "portrait"
+}

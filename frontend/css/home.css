@@ -1,14 +1,92 @@
 /* =========================================
-   1. CONFIGURAÇÕES GERAIS E VARIÁVEIS
+   1. IMPORTS
+   ========================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap");
+
+/* =========================================
+   2. ROOT
    ========================================= */
 :root {
+  /* =========================================
+     2.1 CORES BASE
+     ========================================= */
+
   --cor-fundo: #0d0d0d;
   --cor-card: #1a1a1a;
-  --cor-primaria: #b8864b;
+  --cor-fundo-input: #2a2a2a;
+  --cor-borda: #333333;
+
+  /* =========================================
+     2.2 TEXTO
+     ========================================= */
+
   --cor-texto: #ffffff;
   --cor-subtexto: #a1a1a1;
-  --fonte-principal: "Montserrat", sans-serif;
-  --fonte-secundaria: "Playfair Display", serif; /* Nova fonte para textos elegantes */
+  --cor-texto-contraste: #000000;
+
+  /* =========================================
+     2.3 CORES PRINCIPAIS
+     ========================================= */
+
+  --cor-primaria: #b8864b;
+  --cor-primaria-hover: #966d3b;
+
+  /* =========================================
+     2.4 SISTEMA
+     ========================================= */
+
+  --cor-sucesso: #28a745;
+  --cor-alerta: #f1c40f;
+  --cor-erro: #ff4757;
+  --cor-info: #3498db;
+
+  /* =========================================
+     2.5 OVERLAY / SOMBRAS
+     ========================================= */
+
+  --overlay-forte: rgba(0, 0, 0, 0.8);
+  --overlay-medio: rgba(0, 0, 0, 0.7);
+  --overlay-fraco: rgba(0, 0, 0, 0.4);
+
+  --sombra-forte: rgba(0, 0, 0, 0.5);
+
+  /* =========================================
+     2.6 CORES FIXAS
+     ========================================= */
+
+  --cor-branca: #ffffff;
+  --cor-preta-secundaria: #111111;
+
+  /* =========================================
+     2.7 REDES SOCIAIS
+     ========================================= */
+
+  --instagram-amarelo: #fdf497;
+  --instagram-laranja: #fd5949;
+  --instagram-rosa: #d6249f;
+  --instagram-azul: #285aeb;
+
+  --facebook: #1877f2;
+  --whatsapp: #25d366;
+
+  /* =========================================
+     2.8 FONTES
+     ========================================= */
+
+  --fonte-titulos: "Montserrat", sans-serif;
+  --fonte-textos: "Playfair Display", serif;
+  --fonte-principal: "Roboto", sans-serif;
+}
+
+/* =========================================
+   3. CONFIGURAÇÕES GERAIS (RESET)
+   ========================================= */
+
+.esconde-inicial {
+  display: none;
 }
 
 * {
@@ -26,10 +104,14 @@ body {
   background-color: var(--cor-fundo);
   color: var(--cor-texto);
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 .container {
-  padding: 60px 10%;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 20px;
 }
 
 /* Títulos com linha decorativa */
@@ -52,7 +134,7 @@ body {
 .btn-confirmar,
 .btn-card {
   background-color: var(--cor-primaria);
-  color: white;
+  color: var(--cor-texto);
   padding: 12px 25px;
   text-decoration: none;
   border: none;
@@ -67,11 +149,30 @@ body {
 .btn-principal:hover,
 .btn-confirmar:hover,
 .btn-card:hover {
-  background-color: #966d3b;
+  background-color: var(--cor-primaria-hover);
+}
+
+/* Scrollbar Personalizada  */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cor-fundo);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cor-borda);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cor-primaria);
 }
 
 /* =========================================
-   2. HERO SECTION (Versão Responsiva e Simétrica)
+   4. HERO SECTION 
    ========================================= */
 #hero {
   position: relative;
@@ -84,7 +185,7 @@ body {
   align-items: center;
   padding: 0 5%;
   overflow: hidden;
-  background-color: #000;
+  background-color: var(--cor-texto-contraste);
 }
 
 .imagem-hero {
@@ -112,33 +213,9 @@ body {
   width: 100%;
   height: 100%;
   background: linear-gradient(to bottom,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.4) 50%,
-      rgba(0, 0, 0, 0.8) 100%);
-}
-
-/* Logotipo fixado no topo e SEMPRE centralizado */
-.logo-container-home {
-  position: absolute;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  /* Garante que fica exatamente no centro */
-  z-index: 3;
-  width: 130px;
-  /* Tamanho elegante para PC */
-  height: 130px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid var(--cor-primaria);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  background-color: #111;
-}
-
-.logo-container-home img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+      var(--overlay-medio) 0%,
+      var(--overlay-medio) 50%,
+      var(--overlay-forte) 100%);
 }
 
 .hero-content {
@@ -154,7 +231,6 @@ body {
 
 .hero-content h1 {
   font-size: 3rem;
-  /* Título um pouco maior no PC para preencher melhor */
   margin-bottom: 15px;
   line-height: 1.2;
   text-shadow: 0 3px 8px rgba(0, 0, 0, 0.9);
@@ -168,35 +244,33 @@ body {
 }
 
 /* =========================================
-   AJUSTES MOBILE (HERO)
+   4.1 AJUSTES LOGOTIPO
    ========================================= */
-@media (max-width: 768px) {
-  #hero {
-    /* TELEMÓVEL: Empurra o texto e o botão de volta para o fundo (Thumb Zone) */
-    justify-content: flex-end;
-    padding-bottom: 60px;
-  }
 
-  .logo-container-home {
-    /* Aumentado de 90px para 120px Logotipo! */
-    width: 120px;
-    height: 120px;
-    top: 30px;
-   
-  }
+.logo-container-home {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Garante que fica exatamente no centro */
+  z-index: 3;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--cor-primaria);
+  box-shadow: 0 4px 15px var(--sombra-forte);
+  background-color: var(--cor-preta-secundaria);
+}
 
-  .hero-content {
-    margin-top: 0;
-  }
-
-  .hero-content h1 {
-    font-size: 2.2rem;
-    /* Reduz ligeiramente para não quebrar no telemóvel */
-  }
+.logo-container-home img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* =========================================
-   3. SEÇÃO SOBRE NÓS
+   5.  SOBRE NÓS
    ========================================= */
 #sobre {
   display: flex;
@@ -218,21 +292,22 @@ body {
   object-fit: cover;
   /* Corta as sobras sem distorcer a imagem [cite: 2026-04-27] */
   border-radius: 4px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 20px var(--sombra-forte);
   display: block;
   /* Remove espaços vazios na base da imagem */
 }
 
 .texto-sobre p {
-  font-family: var(--fonte-secundaria);
-  font-size: 1.3rem; /* Um pouco maior para dar destaque */
-  line-height: 1.8; /* Espaçamento entre as linhas para leitura confortável */
+  font-family: var(--fonte-textos);
+  font-size: 1.3rem;
+  /* Um pouco maior para dar destaque */
+  line-height: 1.8;
+  /* Espaçamento entre as linhas para leitura confortável */
   color: var(--cor-texto);
 }
 
-
 /* =========================================
-   4. SERVIÇOS E CARDS
+   6. SERVIÇOS E CARDS
    ========================================= */
 .cards-grid {
   display: flex;
@@ -245,7 +320,7 @@ body {
   text-align: center;
   border-radius: 4px;
   flex: 1;
-  transition: transform 0.3s;
+  transition: transform 0.3s ease;
 }
 
 .card:hover {
@@ -263,8 +338,43 @@ body {
   margin-bottom: 20px;
 }
 
+/* Estilo dos Cards de Produtos [cite: 2026-04-26] */
+.card-produto {
+  background-color: var(--cor-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.card-produto:hover {
+  transform: translateY(-5px);
+  border-color: var(--cor-primaria);
+}
+
+.card-produto img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.card-produto h4 {
+  font-size: 1.1rem;
+  color: var(--cor-texto);
+  margin-bottom: 8px;
+}
+
+.card-produto .preco-tag {
+  color: var(--cor-primaria);
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
 /* =========================================
-   5. GALERIA
+   7. GALERIA
    ========================================= */
 
 .galeria-grid {
@@ -286,7 +396,7 @@ body {
 }
 
 /* =========================================
-   6. AGENDAMENTO E FORMULÁRIO
+   8. AGENDAMENTO E FORMULÁRIO
    ========================================= */
 .form-agendamento {
   max-width: 600px;
@@ -304,12 +414,12 @@ body {
   margin-top: 15px;
 }
 
-input,
-select {
+.form-agendamento input,
+.form-agendamento select {
   width: 100%;
-  background: #2a2a2a;
-  border: 1px solid #333;
-  color: white;
+  background: var(--cor-fundo-input);
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
   padding: 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -336,15 +446,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .slot {
-  padding: 12px;
-  background: #0d0d0d;
-  border: 1px solid #333;
+  padding: 14px 10px;
+  /* Mais altura para o clique */
+  min-height: 48px;
+  /* Padrão Mobile */
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
   color: var(--cor-texto);
   border-radius: 6px;
   cursor: pointer;
   text-align: center;
   font-weight: bold;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .slot:hover:not(.ocupado) {
@@ -355,7 +471,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .slot.selecionado {
   background: var(--cor-primaria);
-  color: #000;
+  color: var(--cor-texto-contraste);
   border-color: var(--cor-primaria);
 }
 
@@ -363,7 +479,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.3;
   cursor: not-allowed;
   text-decoration: line-through;
-  background: #000;
+  background: var(--cor-texto-contraste);
 }
 
 .btn-confirmar {
@@ -373,12 +489,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* =========================================
-   7. FOOTER E REDES SOCIAIS
+   9. FOOTER E REDES SOCIAIS
    ========================================= */
 footer {
   padding: 60px 10% 30px;
   background-color: var(--cor-fundo);
-  border-top: 1px solid #222;
+  border-top: 1px solid var(--cor-borda);
 }
 
 .footer-content {
@@ -389,7 +505,7 @@ footer {
   margin-bottom: 40px;
 }
 
-.info-contato h3 {
+.info-contato h2 {
   color: var(--cor-primaria);
   font-size: 1.5rem;
   margin-bottom: 15px;
@@ -417,32 +533,37 @@ footer {
   justify-content: center;
   width: 45px;
   height: 45px;
-  border: 1px solid #333;
+  border: 1px solid var(--cor-borda);
   border-radius: 50%;
   background-color: transparent;
 }
 
 /* Hover com Cores Oficiais */
 .redes-sociais a[aria-label="Instagram"]:hover {
-  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+  background: radial-gradient(circle at 30% 107%,
+      var(--instagram-amarelo) 0%,
+      var(--instagram-amarelo) 5%,
+      var(--instagram-laranja) 45%,
+      var(--instagram-rosa) 60%,
+      var(--instagram-azul) 90%);
   border-color: transparent;
-  color: #fff;
+  color: var(--cor-branca);
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(214, 36, 159, 0.4);
 }
 
 .redes-sociais a[aria-label="Facebook"]:hover {
-  background-color: #1877F2;
-  border-color: #1877F2;
-  color: #fff;
+  background-color: var(--facebook);
+  border-color: var(--facebook);
+  color: var(--cor-branca);
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4);
 }
 
 .redes-sociais a[aria-label="WhatsApp"]:hover {
-  background-color: #25D366;
-  border-color: #25D366;
-  color: #fff;
+  background-color: var(--whatsapp);
+  border-color: var(--whatsapp);
+  color: var(--cor-branca);
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
 }
@@ -463,7 +584,7 @@ footer {
 
 .footer-bottom {
   padding-top: 20px;
-  border-top: 1px solid #222;
+  border-top: 1px solid var(--cor-borda);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -489,9 +610,9 @@ footer {
 
 /* Estilo para o botão em estado de sucesso */
 .btn-confirmar.sucesso {
-  background-color: #28a745 !important;
+  background-color: var(--cor-sucesso) !important;
   /* Verde */
-  color: white !important;
+  color: var(--cor-texto) !important;
   pointer-events: none;
   /* Impede cliques duplos */
 }
@@ -516,7 +637,11 @@ footer {
 }
 
 /* =========================================
-   8. RESPONSIVIDADE
+   10. RESPONSIVIDADE PARA DIFERENTES TELAS
+   ========================================= */
+
+/* =========================================
+   10.1  Telas 1024px
    ========================================= */
 @media (max-width: 1024px) {
   .container {
@@ -528,20 +653,35 @@ footer {
   }
 }
 
+/* =========================================
+   10.2  Telas 768px
+   ========================================= */
 @media (max-width: 768px) {
   #hero {
+    /* TELEMÓVEL: Empurra o texto e o botão de volta para o fundo (Thumb Zone) */
+    justify-content: flex-end;
     height: auto;
-    padding: 0 5%;
+    padding: 0 5% 0px;
+  }
+
+  .logo-container-home {
+    /* Aumentado de 90px para 120px Logotipo! */
+    width: 120px;
+    height: 120px;
+    top: 30px;
   }
 
   .hero-content {
+    margin-top: 0;
     padding: 80px 0;
     text-align: center;
   }
 
   .hero-content h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    /* Prevalece o ajuste do seu primeiro bloco */
   }
+
 
   #sobre {
     flex-direction: column;
@@ -567,6 +707,10 @@ footer {
   }
 }
 
+/* =========================================
+   10.3  Telas 480px
+   ========================================= */
+
 @media (max-width: 480px) {
   .hero-content h1 {
     font-size: 1.6rem;
@@ -580,39 +724,4 @@ footer {
   .btn-confirmar {
     width: 100%;
   }
-}
-
-/* Estilo dos Cards de Produtos [cite: 2026-04-26] */
-.card-produto {
-  background-color: var(--cor-card);
-  border: 1px solid #222;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.card-produto:hover {
-  transform: translateY(-5px);
-  border-color: var(--cor-primaria);
-}
-
-.card-produto img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.card-produto h4 {
-  font-size: 1.1rem;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.card-produto .preco-tag {
-  color: var(--cor-primaria);
-  font-size: 1.3rem;
-  font-weight: bold;
 }
