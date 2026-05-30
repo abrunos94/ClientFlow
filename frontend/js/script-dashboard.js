@@ -592,7 +592,7 @@ window.dispararWhatsAppBusiness = function (tel, mensagem = "") {
 };
 
 /* ==========================================================================
-   ATUALIZAÇÃO V1.09 - Fidelidade Blindada (Apenas Concluídos) e Tratamento de Erros
+   ATUALIZAÇÃO V1.04 - Fidelidade Blindada (Apenas Concluídos) e Tratamento de Erros
    ========================================================================== */
 window.renderizarListaClientes = async function () {
     const corpo = document.getElementById("corpo-tabela-clientes");
@@ -633,7 +633,7 @@ window.renderizarListaClientes = async function () {
 
             const clienteAtual = clientesMap.get(tel);
 
-            // REGRA V1.09: Apenas status "concluído" entra para o histórico!
+            // REGRA V1.04: Apenas status "concluído" entra para o histórico!
             if (ag.status === "concluido") {
                 clienteAtual.total_concluidos += 1;
 
