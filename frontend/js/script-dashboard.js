@@ -327,45 +327,78 @@ window.mudarStatusAgendamento = async function (id, novoStatus) {
 
 /* ==========================================================================
    4. ATENDIMENTO RÁPIDO E METAS
+   ATUALIZAÇÃO V1.04 - Correção de Duplicidade no Atendimento Rápido
    ========================================================================== */
+let agendamentoEmAndamento = false; // Trava global de segurança para evitar cliques duplos
+
 window.agendarAgora = async function () {
+    // 1. Barreira de segurança: Se já estiver salvando, aborta a nova tentativa na mesma hora
+    if (agendamentoEmAndamento) return;
+
     const nome = document.getElementById("rapido-nome").value;
     const servico = document.getElementById("rapido-servico").value;
     const telefone = document.getElementById("rapido-telefone").value;
 
     if (!nome || !servico) return alert("Preencha o nome e o serviço.");
-    const agora = new Date();
-    const dataISO = agora.toLocaleDateString("en-CA");
-    const horaAtual =
-        agora.getHours().toString().padStart(2, "0") +
-        ":" +
-        agora.getMinutes().toString().padStart(2, "0");
 
-    const { data: sInfo } = await _supabase
-        .from("servicos")
-        .select("preco")
-        .eq("nome", servico)
-        .single();
-    const { error } = await _supabase.from("agendamentos").insert([
-        {
-            cliente_nome: nome,
-            servico: servico,
-            telefone: telefone,
-            data: dataISO,
-            horario: horaAtual,
-            status: "concluido",
-            valor: sInfo ? sInfo.preco : 0,
-        },
-    ]);
+    // 2. Aciona a trava e captura o botão para dar feedback visual
+    agendamentoEmAndamento = true;
+    const btnFinalizar = document.activeElement;
+    let textoOriginal = "Finalizar e Adicionar";
 
-    if (error) alert("Erro: " + error.message);
-    else {
+    if (btnFinalizar && btnFinalizar.tagName === "BUTTON") {
+        textoOriginal = btnFinalizar.innerHTML;
+        btnFinalizar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+        btnFinalizar.disabled = true; // Desativa o clique fisicamente no HTML
+    }
+
+    try {
+        const agora = new Date();
+        const dataISO = agora.toLocaleDateString("en-CA");
+        const horaAtual =
+            agora.getHours().toString().padStart(2, "0") +
+            ":" +
+            agora.getMinutes().toString().padStart(2, "0");
+
+        const { data: sInfo } = await _supabase
+            .from("servicos")
+            .select("preco")
+            .eq("nome", servico)
+            .single();
+
+        const { error } = await _supabase.from("agendamentos").insert([
+            {
+                cliente_nome: nome,
+                servico: servico,
+                telefone: telefone,
+                data: dataISO,
+                horario: horaAtual,
+                status: "concluido",
+                valor: sInfo ? sInfo.preco : 0,
+            },
+        ]);
+
+        if (error) throw error; // Joga o erro para o bloco catch tratar
+
         document.getElementById("modal-agendamento").style.display = "none";
         document.getElementById("rapido-nome").value = "";
         document.getElementById("rapido-telefone").value = "";
+
         await carregarAgendamentosDoDia();
         await recalcularFaturamentoDoDia();
+
         alert("Atendimento rápido registrado! ✅");
+
+    } catch (erro) {
+        console.error("Erro no atendimento rápido:", erro);
+        alert("Erro ao registrar: " + erro.message);
+    } finally {
+        // 3. Libera a trava e restaura o botão, não importa se deu sucesso ou erro
+        agendamentoEmAndamento = false;
+        if (btnFinalizar && btnFinalizar.tagName === "BUTTON") {
+            btnFinalizar.innerHTML = textoOriginal;
+            btnFinalizar.disabled = false;
+        }
     }
 };
 
@@ -493,6 +526,9 @@ async function renderizarEstruturaCalendario() {
     }
 }
 
+/* ==========================================================================
+   ATUALIZAÇÃO V1.04 - Exibição de Agendamentos Cancelados na Agenda
+   ========================================================================== */
 async function selecionarDiaAgenda(dataISO, elemento) {
     document
         .querySelectorAll(".dia-item")
@@ -506,12 +542,13 @@ async function selecionarDiaAgenda(dataISO, elemento) {
     if (titulo) titulo.innerText = `Agenda: ${dia}/${mes}/${ano}`;
     if (lista) lista.innerHTML = "<p style='text-align:center;'>Buscando...</p>";
 
+    // CORREÇÃO: Removido o filtro .neq("status", "cancelado") para trazer todos os agendamentos do dia
     const { data: ags } = await _supabase
         .from("agendamentos")
         .select("*")
         .eq("data", dataISO)
-        .neq("status", "cancelado")
         .order("horario");
+
     if (!ags || ags.length === 0) {
         lista.innerHTML =
             "<p style='text-align:center; color:var(--cor-subtexto);'>Nenhum agendamento.</p>";
@@ -521,10 +558,13 @@ async function selecionarDiaAgenda(dataISO, elemento) {
     lista.innerHTML = ags
         .map(
             (ag) => `
-        <div class="item-agenda-lista">
+        <div class="item-agenda-lista ${ag.status.toLowerCase() === 'cancelado' ? 'item-cancelado' : ''}">
             <div class="hora-tag">${String(ag.horario).substring(0, 5)}h</div>
-            <div class="info-tag"><strong>${ag.cliente_nome}</strong><span>${ag.servico}</span></div>
-            <div class="status-tag ${ag.status.toLowerCase()}">${ag.status}</div>
+            <div class="info-tag">
+                <strong style="${ag.status.toLowerCase() === 'cancelado' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${ag.cliente_nome}</strong>
+                <span>${ag.servico}</span>
+            </div>
+            <div class="status-tag ${ag.status.toLowerCase()}">${ag.status.toUpperCase()}</div>
         </div>`,
         )
         .join("");
@@ -551,56 +591,105 @@ window.dispararWhatsAppBusiness = function (tel, mensagem = "") {
     }
 };
 
+/* ==========================================================================
+   ATUALIZAÇÃO V1.09 - Fidelidade Blindada (Apenas Concluídos) e Tratamento de Erros
+   ========================================================================== */
 window.renderizarListaClientes = async function () {
     const corpo = document.getElementById("corpo-tabela-clientes");
     if (!corpo) return;
 
-    corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
 
-    const { data: clis } = await _supabase
-        .from("lista_clientes_resumo")
-        .select("*")
-        .order("cliente_nome");
+    try {
+        // 1. Lemos direto da tabela bruta, ignorando a view antiga com falha
+        const { data: agendamentos, error } = await _supabase
+            .from("agendamentos")
+            .select("cliente_nome, telefone, servico, data, horario, status")
+            .in("status", ["concluido", "cancelado"])
+            .order("data", { ascending: false })
+            .order("horario", { ascending: false });
 
-    if (!clis || clis.length === 0) {
-        return (corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente.</td></tr>');
-    }
+        if (error) throw error;
 
-    corpo.innerHTML = clis
-        .map((c) => {
-            // CORREÇÃO VERSÃO 1.02: Trata a string da data diretamente sem passar pelo objeto 'new Date' do JavaScript
-            let dVisita = "---";
-            if (c.data_ultima_visita) {
-                // Remove qualquer fragmento de hora caso exista e separa por "-"
-                const dataPura = c.data_ultima_visita.split(" ")[0];
-                dVisita = dataPura.split("-").reverse().join("/");
+        if (!agendamentos || agendamentos.length === 0) {
+            return (corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente cadastrado.</td></tr>');
+        }
+
+        const clientesMap = new Map();
+
+        agendamentos.forEach((ag) => {
+            const tel = ag.telefone ? ag.telefone.trim() : "Sem Número";
+
+            // Inicializa o cliente garantindo o nome mais recente
+            if (!clientesMap.has(tel)) {
+                clientesMap.set(tel, {
+                    cliente_nome: ag.cliente_nome,
+                    telefone: tel,
+                    ultimo_servico: "---",
+                    data_ultima_visita: "---",
+                    total_concluidos: 0 // NOVO: Contador real de visitas
+                });
             }
 
-            return `<tr>
-                <td><strong>${c.cliente_nome}</strong></td>
-                <td>${c.ultimo_servico || "---"} <br><small style="color:var(--cor-subtexto)">Último: ${dVisita}</small></td>
-                <td>${c.telefone || "---"}</td>
-                <td>
-                    <div class="acoes-buttons">
-                        <button class="btn-whatsapp" onclick="dispararWhatsAppBusiness('${c.telefone}', '')" title="Conversar">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')" title="Ver Histórico">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>`;
-        })
-        .join("");
+            const clienteAtual = clientesMap.get(tel);
+
+            // REGRA V1.09: Apenas status "concluído" entra para o histórico!
+            if (ag.status === "concluido") {
+                clienteAtual.total_concluidos += 1;
+
+                // Como vem do mais novo pro mais velho, o primeiro concluído é o último corte real
+                if (clienteAtual.ultimo_servico === "---") {
+                    clienteAtual.ultimo_servico = ag.servico;
+                    clienteAtual.data_ultima_visita = ag.data;
+                }
+            }
+        });
+
+        // Converte para Array e ordena alfabeticamente
+        const clis = Array.from(clientesMap.values()).sort((a, b) =>
+            a.cliente_nome.localeCompare(b.cliente_nome)
+        );
+
+        corpo.innerHTML = clis
+            .map((c) => {
+                let dVisita = "---";
+                if (c.data_ultima_visita !== "---") {
+                    const dataPura = c.data_ultima_visita.split(" ")[0];
+                    dVisita = dataPura.split("-").reverse().join("/");
+                }
+
+                // Se não tem serviços concluídos, exibe aviso limpo e claro
+                const exibicaoServico = c.total_concluidos === 0
+                    ? `<span style="color:var(--cor-erro); font-size:0.85rem; font-weight:bold;">Nenhum serviço realizado</span>`
+                    : `${c.ultimo_servico} <br><small style="color:var(--cor-subtexto)">Último: ${dVisita}</small>`;
+
+                return `<tr>
+                    <td><strong>${c.cliente_nome}</strong></td>
+                    <td>${exibicaoServico}</td>
+                    <td>${c.telefone === "Sem Número" ? "---" : c.telefone}</td>
+                    <td>
+                        <div class="acoes-buttons">
+                            <button class="btn-whatsapp" onclick="dispararWhatsAppBusiness('${c.telefone}', '')" title="Conversar">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button class="btn-visualizar-cliente" onclick="abrirDetalhesCliente('${c.telefone}', '${c.cliente_nome}')" title="Ver Histórico">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            })
+            .join("");
+    } catch (erro) {
+        console.error("Erro ao carregar clientes:", erro);
+        corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--cor-erro);">Erro ao buscar lista de clientes.</td></tr>';
+    }
 };
 
 window.filtrarClientes = function () {
     const termo = document.getElementById("busca-cliente").value.toLowerCase();
     document.querySelectorAll("#corpo-tabela-clientes tr").forEach((linha) => {
-        linha.style.display = linha.innerText.toLowerCase().includes(termo)
-            ? ""
-            : "none";
+        linha.style.display = linha.innerText.toLowerCase().includes(termo) ? "" : "none";
     });
 };
 
@@ -610,37 +699,46 @@ window.abrirDetalhesCliente = async function (tel, nome) {
     modal.style.display = "block";
     document.getElementById("detalhe-nome-cliente").innerText = nome;
     document.getElementById("estrelas-fidelidade").innerHTML =
-        "<p class='loading-text'>Buscando...</p>";
+        "<p class='loading-text'><i class='fas fa-spinner fa-spin'></i> Buscando...</p>";
 
-    const { data: hist } = await _supabase
-        .from("agendamentos")
-        .select("data, servico")
-        .eq("telefone", tel)
-        .eq("status", "concluido")
-        .order("data", { ascending: false });
-    if (!hist || hist.length === 0) {
-        document.getElementById("estrelas-fidelidade").innerHTML =
-            "<p style='font-size:0.8rem; color:#666;'>Sem histórico.</p>";
-        document.getElementById("detalhe-data-corte").innerText = "---";
-        document.getElementById("detalhe-servico").innerText = "---";
-        document.getElementById("total-servicos-texto").innerText =
-            "0 serviços concluídos";
-        return;
+    try {
+        const { data: hist, error } = await _supabase
+            .from("agendamentos")
+            .select("data, servico")
+            .eq("telefone", tel)
+            .eq("status", "concluido") // TRAVA ESTREITA
+            .order("data", { ascending: false });
+
+        if (error) throw error;
+
+        if (!hist || hist.length === 0) {
+            // Se o cliente só teve cancelamentos, zera o modal
+            document.getElementById("estrelas-fidelidade").innerHTML =
+                "<p style='font-size:0.9rem; color:var(--cor-erro); font-weight:bold;'>Cliente sem serviços concluídos.</p>";
+            document.getElementById("detalhe-data-corte").innerText = "---";
+            document.getElementById("detalhe-servico").innerText = "---";
+            document.getElementById("total-servicos-texto").innerText = "0 serviços concluídos";
+            return;
+        }
+
+        document.getElementById("detalhe-data-corte").innerText = hist[0].data.split("-").reverse().join("/");
+        document.getElementById("detalhe-servico").innerText = hist[0].servico;
+
+        // Renderiza as estrelas corretamente
+        document.getElementById("estrelas-fidelidade").innerHTML = hist
+            .map(() => '<i class="fas fa-star" style="margin-right:5px; color: var(--cor-primaria);"></i>')
+            .join("");
+
+        document.getElementById("total-servicos-texto").innerText = `${hist.length} serviço(s) concluído(s)`;
+
+    } catch (erro) {
+        console.error("Erro ao abrir histórico:", erro);
+        document.getElementById("estrelas-fidelidade").innerHTML = "<p style='color:var(--cor-erro);'>Erro ao carregar dados do histórico.</p>";
     }
-    document.getElementById("detalhe-data-corte").innerText = hist[0].data
-        .split("-")
-        .reverse()
-        .join("/");
-    document.getElementById("detalhe-servico").innerText = hist[0].servico;
-    document.getElementById("estrelas-fidelidade").innerHTML = hist
-        .map(() => '<i class="fas fa-star" style="margin-right:5px;"></i>')
-        .join("");
-    document.getElementById("total-servicos-texto").innerText =
-        `${hist.length} serviço(s) concluído(s)`;
 };
+
 window.fecharModalDetalhes = () =>
     (document.getElementById("modal-detalhes-cliente").style.display = "none");
-
 /* ==========================================================================
    7. RELATÓRIOS E INTELIGÊNCIA (COM GRÁFICO E CÁLCULO "VS")
    ========================================================================== */
@@ -1573,8 +1671,7 @@ window.uploadMidia = async function (tipo) {
 };
 
 /* ==========================================================================
-   ATUALIZAÇÃO 14/05/2026 - Versão 1.01
-   Correção de Vagas e Limite de 4 Horários para Status
+   ATUALIZAÇÃO 1.04 - Correção Inteligente de Vagas e Ordem de Chegada
    ========================================================================== */
 window.copiarVagasInteligente = async function (periodo) {
     const agora = new Date();
@@ -1583,66 +1680,95 @@ window.copiarVagasInteligente = async function (periodo) {
         ? agora.toLocaleDateString("en-CA")
         : new Date(agora.getTime() + 86400000).toLocaleDateString("en-CA");
 
-    // 1. Busca dados necessários
-    const { data: ocupados } = await _supabase
-        .from("agendamentos")
-        .select("horario")
-        .eq("data", dataAlvo)
-        .neq("status", "cancelado");
+    // Feedback visual no botão
+    const btnAtivo = document.activeElement;
+    const textoOriginal = btnAtivo.innerHTML;
+    btnAtivo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Copiando...';
 
-    const { data: config } = await _supabase
-        .from("configuracoes")
-        .select("horarios_semana, duracao_atendimento")
-        .eq("id", 1)
-        .single();
+    try {
+        // 1. Busca dados necessários
+        const { data: ocupados } = await _supabase
+            .from("agendamentos")
+            .select("horario")
+            .eq("data", dataAlvo)
+            .neq("status", "cancelado");
 
-    const { data: p } = await _supabase
-        .from("dados_barbearia")
-        .select("link_site")
-        .eq("id", 1)
-        .maybeSingle();
+        const { data: config } = await _supabase
+            .from("configuracoes")
+            .select("horarios_semana, duracao_atendimento")
+            .eq("id", 1)
+            .single();
 
-    // 2. Lógica de busca de vagas baseada nos TURNOS da Versão 1.01
-    let vagasDisponiveis = [];
-    const turnosDoDia = config?.horarios_semana?.[String(diaSemana)] || [];
-    const intervalo = config?.duracao_atendimento || 30;
-    const horaAtualStr = agora.getHours().toString().padStart(2, "0") + ":" + agora.getMinutes().toString().padStart(2, "0");
+        const { data: p } = await _supabase
+            .from("dados_barbearia")
+            .select("link_site")
+            .eq("id", 1)
+            .maybeSingle();
 
-    turnosDoDia.forEach(turno => {
-        let hLoop = turno.inicio;
-        while (hLoop < turno.fim) {
-            const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
-            const jaPassou = periodo === "hoje" && hLoop <= horaAtualStr;
+        // 2. Lógica Inteligente de Interpretação de Turnos (Proteção contra JSON)
+        let vagasDisponiveis = [];
 
-            if (!ocupado && !jaPassou) {
-                vagasDisponiveis.push(`✅ ${hLoop}`);
+        // Isola a configuração do dia exato
+        const infoDia = config?.horarios_semana?.[String(diaSemana)] || {};
+
+        // Motor de Decisão: Lê tanto o formato antigo (Array) quanto o novo (Objeto SaaS)
+        const turnosDoDia = Array.isArray(infoDia) ? infoDia : (infoDia.turnos || []);
+        const isOrdemChegada = infoDia.ordemChegada === true;
+
+        const intervalo = config?.duracao_atendimento || 30;
+        const horaAtualStr = agora.getHours().toString().padStart(2, "0") + ":" + agora.getMinutes().toString().padStart(2, "0");
+
+        if (isOrdemChegada) {
+            // Se o barbeiro marcou o dia como ordem de chegada, muda a mensagem do marketing
+            vagasDisponiveis.push("💈 Atendimento por *Ordem de Chegada* hoje! Venha direto para a barbearia.");
+        } else {
+            // Se tem horários fixos, roda o loop matemático de vagas
+            turnosDoDia.forEach(turno => {
+                let hLoop = turno.inicio;
+                while (hLoop < turno.fim) {
+                    const ocupado = ocupados?.some(a => a.horario.substring(0, 5) === hLoop);
+                    const jaPassou = periodo === "hoje" && hLoop <= horaAtualStr;
+
+                    if (!ocupado && !jaPassou) {
+                        vagasDisponiveis.push(`✅ ${hLoop}`);
+                    }
+                    hLoop = somarMinutos(hLoop, intervalo);
+                }
+            });
+        }
+
+        // 3. Montagem do Texto para o WhatsApp
+        const link = p?.link_site || window.location.origin;
+        let texto = `✂️ *VAGAS DE ${periodo.toUpperCase()}*\n\n`;
+
+        if (vagasDisponiveis.length === 0) {
+            texto += "🚫 Agenda lotada ou horários encerrados!";
+        } else if (isOrdemChegada) {
+            // Imprime apenas a frase de ordem de chegada
+            texto += vagasDisponiveis[0];
+        } else {
+            // Limita a exibição a 4 horários para não poluir o WhatsApp
+            const vagasExibidas = vagasDisponiveis.slice(0, 4);
+            texto += vagasExibidas.join("\n");
+
+            if (vagasDisponiveis.length > 4) {
+                texto += `\n\n➕ E mais horários disponíveis no site...`;
             }
-            hLoop = somarMinutos(hLoop, intervalo);
         }
-    });
 
-    // 3. Montagem do Texto limitada a 4 horários
-    const link = p?.link_site || window.location.origin;
-    let texto = `✂️ *VAGAS DE ${periodo.toUpperCase()}*\n\n`;
+        texto += `\n\n📍 Reserve agora:\n${link}`;
 
-    if (vagasDisponiveis.length === 0) {
-        texto += "🚫 Agenda lotada ou horários encerrados!";
-    } else {
-        // VERSÃO 1.01: Pega exatamente 4 ou menos
-        const vagasExibidas = vagasDisponiveis.slice(0, 4);
-        texto += vagasExibidas.join("\n");
+        // Copia para o clipboard
+        await navigator.clipboard.writeText(texto);
+        alert(`Vagas de ${periodo} copiadas com sucesso! 🚀`);
 
-        if (vagasDisponiveis.length > 4) {
-            texto += `\n\n➕ E mais horários disponíveis no site...`;
-        }
+    } catch (erro) {
+        console.error("Erro ao gerar vagas:", erro);
+        alert("Erro ao formatar os horários. Verifique as configurações do expediente.");
+    } finally {
+        // Restaura o botão
+        btnAtivo.innerHTML = textoOriginal;
     }
-
-    texto += `\n\n📍 Reserve agora:\n${link}`;
-
-    // Copia para o clipboard
-    navigator.clipboard.writeText(texto).then(() => {
-        alert(`Vagas de ${periodo} copiadas com o limite de 4 horários! 🚀`);
-    });
 };
 
 window.gerarTextoMarketing = async function (gatilho) {

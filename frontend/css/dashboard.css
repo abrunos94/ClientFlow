@@ -549,6 +549,16 @@
     color: var(--cor-sucesso);
 }
 
+.status-tag.cancelado {
+    color: var(--cor-erro); /* Puxa o vermelho do seu variables.css */
+}
+
+/* Deixa a borda do card vermelha e apaga levemente o bloco todo */
+.item-agenda-lista.item-cancelado {
+    border-left-color: var(--cor-erro) !important;
+    opacity: 0.6;
+}
+
 /* ==========================================================================
    6. MODAIS E CONFIGURAÇÕES DE NEGÓCIO
    ========================================================================== */
@@ -976,6 +986,7 @@
 
 /* Layout Celular Específico (Ajustes de espaço) */
 @media (max-width: 768px) {
+
     /* AJUSTE Versão 1.01: Faz a tabela usar melhor as laterais da tela */
     .tabela-container {
         margin: 0 -10px;
