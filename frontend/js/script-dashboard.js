@@ -33,15 +33,35 @@ let chartFaturamento = null;
 let dataCalendario = new Date();
 
 // Autenticação Real e Segura
+// Autenticação Inteligente (Resiliente a quedas de internet e PWA em Background)
 async function validarSessaoSegura() {
-    const {
-        data: { user },
-        error,
-    } = await _supabase.auth.getUser();
-    if (error || !user) {
-        console.warn("Acesso Negado: Redirecionando para login.");
+    // 1. Se o aparelho do barbeiro estiver sem internet (ou reconectando do modo suspensão), aborta a verificação no servidor e confia no cache.
+    if (!navigator.onLine) {
+        console.warn("App offline ou em segundo plano: Mantendo sessão atual.");
+        return;
+    }
+
+    try {
+        // 2. Busca a sessão no armazenamento local primeiro (Rápido e não depende de rede)
+        const { data: { session } } = await _supabase.auth.getSession();
+
+        if (!session) throw new Error("Sessão inexistente no cache.");
+
+        // 3. Validação real de integridade no banco
+        const { data: { user }, error } = await _supabase.auth.getUser();
+
+        // 4. Se o erro for puramente de conexão caindo no meio do caminho, não expulsa o usuário.
+        if (error && error.message.toLowerCase().includes('fetch')) {
+            console.warn("Oscilação de rede detectada ao validar usuário. Mantendo acesso.");
+            return;
+        }
+
+        if (error || !user) throw error || new Error("Token expirado ou inválido.");
+
+    } catch (erro) {
+        console.error("Acesso Negado: Redirecionando para login.", erro);
         localStorage.removeItem("logado");
-        window.location.href = "login.html";
+        window.location.href = "login.html"; // ou index.html dependendo da sua rota de entrada
     }
 }
 validarSessaoSegura();
@@ -1895,6 +1915,71 @@ Assim que fizer, me envie o comprovante por aqui. Obrigado!`;
             `https://api.whatsapp.com/send?phone=${numeroCompleto}&text=${mensagem}`,
             "_blank",
         );
+    }
+};
+
+/* ==========================================================================
+   ATUALIZAÇÃO V1.10 - Registo de Dispositivos para Push Notifications
+   ========================================================================== */
+
+// Função auxiliar para converter a Chave VAPID exigida pelo Google/Apple
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+window.ativarNotificacoesPush = async function () {
+    const btn = document.getElementById("btn-ativar-push");
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A ligar satélites...';
+    btn.disabled = true;
+
+    try {
+        // 1. Verifica se o navegador suporta a tecnologia
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            throw new Error("O teu navegador ou telemóvel não suporta notificações Push em segundo plano.");
+        }
+
+        // 2. Pede a permissão ao barbeiro (Aparece aquele pop-up "Deseja permitir notificações?")
+        const permissao = await Notification.requestPermission();
+        if (permissao !== 'granted') {
+            throw new Error("Permissão negada. Precisas de autorizar as notificações nas definições do telemóvel.");
+        }
+
+        // 3. Obtém o Service Worker atual
+        const registoSW = await navigator.serviceWorker.ready;
+
+        // COLA A TUA CHAVE PÚBLICA AQUI DENTRO (Não uses a privada!)
+        const CHAVE_PUBLICA_VAPID = "BHU3N0EE3mt78aRtRIhu_UXJsQGj6Ulu_0ZwEj5tgnO6NPIGDtyYaEDkiRP6XDWV93L4Jy2zKfQvhDI3zgil3WU";
+
+        // 4. Cria a subscrição com o servidor do Google/Apple
+        const subscricao = await registoSW.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(CHAVE_PUBLICA_VAPID)
+        });
+
+        // 5. Guarda o "endereço de entrega" (subscrição) no Supabase
+        const { error } = await _supabase
+            .from("inscricoes_push")
+            .insert([{ subscricao: subscricao }]);
+
+        if (error) throw error;
+
+        alert("✅ Notificações ativadas com sucesso! Agora podes bloquear o telemóvel e serás avisado.");
+        btn.innerHTML = '<i class="fas fa-check"></i> Satélite Ligado';
+        btn.style.backgroundColor = "var(--cor-subtexto)"; // Fica cinzento para mostrar que já está ativo
+
+    } catch (erro) {
+        console.error("Erro ao ativar Push:", erro);
+        alert("Erro: " + erro.message);
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
     }
 };
 
