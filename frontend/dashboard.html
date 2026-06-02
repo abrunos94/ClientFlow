@@ -68,16 +68,6 @@
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('submenu2')">Vitrine e Mídias</a>
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('marketing')">Marketing & Vendas</a>
             <a href="javascript:void(0)" onclick="abrirSubConfigGeral('perfil')">Perfil Profissional</a>
-            <div class="card-configuracao" style="margin-top: 20px; text-align: center; padding: 20px;">
-          <h3><i class="fas fa-bell"></i> Alertas em Segundo Plano</h3>
-          <p style="font-size: 0.9rem; color: var(--cor-subtexto); margin-bottom: 15px;">
-            
-          </p>
-          <button id="btn-ativar-push" class="btn-salvar" onclick="ativarNotificacoesPush()"
-            style="background-color: var(--cor-sucesso);">
-            <i class="fas fa-satellite-dish"></i> Ativar Notificações
-          </button>
-        </div>
           </div>
         </div>
       </nav>
@@ -398,6 +388,29 @@
             <button onclick="salvarPerfilBarbearia()" class="btn-principal" style="margin-top: 20px; width: 100%"><i
                 class="fas fa-save"></i> Salvar Dados</button>
           </div>
+
+          <div class="stat-card"
+            style="border-left: 4px solid var(--cor-sucesso); margin-top: 30px; display: flex; flex-direction: column; gap: 20px;">
+
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div
+                style="background: rgba(46, 204, 113, 0.1); color: var(--cor-sucesso); width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="fas fa-satellite-dish"></i>
+              </div>
+              <div>
+                <h4 style="color: #fff; margin: 0; font-size: 1.1rem;">Sinal Sonoro e Alertas</h4>
+                <p style="color: var(--cor-subtexto); font-size: 0.85rem; margin: 5px 0 0 0; line-height: 1.4;">
+                  Receba notificações e avisos sonoros nativos de novos agendamentos, mesmo com o aplicativo minimizado.
+                </p>
+              </div>
+            </div>
+
+            <button id="btn-ativar-push" onclick="ativarNotificacoesPush()" class="btn-principal"
+              style="background-color: var(--cor-sucesso); color: #fff; width: 100%; border: none; padding: 15px; font-weight: bold; font-size: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 8px; transition: 0.3s;">
+              <i class="fas fa-bell"></i> Ativar Notificações no Dispositivo
+            </button>
+          </div>
+
         </div>
 
       </section>
