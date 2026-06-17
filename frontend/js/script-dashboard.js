@@ -502,32 +502,38 @@ window.mudarMes = (direcao) => {
     renderizarEstruturaCalendario();
 };
 
+/* ==========================================================================
+   ATUALIZAÇÃO V1.06 - Refresh Visual da Agenda (Dias da semana e marcação "Hoje")
+   ========================================================================== */
 async function renderizarEstruturaCalendario() {
     const grade = document.getElementById("calendario-grade");
     const mesDisplay = document.getElementById("mes-atual");
     if (!grade || !mesDisplay) return;
 
     const meses = [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
     ];
     const ano = dataCalendario.getFullYear();
     const mes = dataCalendario.getMonth();
     mesDisplay.innerText = `${meses[mes]} ${ano}`;
     grade.innerHTML = "";
 
+    // 1. Identifica a data exata de HOJE para aplicar o sombreado especial
+    const dataRealHoje = new Date();
+    const hojeISO = `${dataRealHoje.getFullYear()}-${String(dataRealHoje.getMonth() + 1).padStart(2, "0")}-${String(dataRealHoje.getDate()).padStart(2, "0")}`;
+
+    // 2. Injeta os Cabeçalhos dos Dias da Semana primeiro
+    const diasSemanaNomes = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+    diasSemanaNomes.forEach(nomeDia => {
+        // Injetando direto com o estilo da sua paleta, cor principal para os cabeçalhos
+        grade.innerHTML += `<div class="dia-semana" style="font-weight: bold; color: var(--cor-primaria); text-align: center; padding: 5px 0; font-size: 0.8rem;">${nomeDia}</div>`;
+    });
+
     const priDia = new Date(ano, mes, 1).getDay();
     const diasMes = new Date(ano, mes + 1, 0).getDate();
+    
+    // Busca os agendamentos do mês para colocar a bolinha indicadora
     const { data: ags } = await _supabase
         .from("agendamentos")
         .select("data")
@@ -535,11 +541,24 @@ async function renderizarEstruturaCalendario() {
         .lte("data", `${ano}-${String(mes + 1).padStart(2, "0")}-${diasMes}`);
     const diasComAgenda = new Set(ags?.map((a) => a.data));
 
-    for (let i = 0; i < priDia; i++) grade.innerHTML += `<div></div>`;
+    // 3. Preenche os espaços vazios (se o mês começa numa terça, por exemplo)
+    for (let i = 0; i < priDia; i++) {
+        grade.innerHTML += `<div></div>`;
+    }
+    
+    // 4. Renderiza os dias reais do mês
     for (let dia = 1; dia <= diasMes; dia++) {
         const dIso = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
         const el = document.createElement("div");
-        el.className = `dia-item ${diasComAgenda.has(dIso) ? "tem-marcacao" : ""}`;
+        
+        // Aplica a classe base e verifica as marcações
+        let classes = "dia-item";
+        if (diasComAgenda.has(dIso)) classes += " tem-marcacao";
+        
+        // Verifica se é o dia de HOJE e adiciona a classe especial
+        if (dIso === hojeISO) classes += " hoje";
+        
+        el.className = classes;
         el.innerText = dia;
         el.onclick = () => selecionarDiaAgenda(dIso, el);
         grade.appendChild(el);

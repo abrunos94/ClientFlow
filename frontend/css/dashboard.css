@@ -559,6 +559,21 @@
     opacity: 0.6;
 }
 
+/* V1.06 - Sombreado do Dia Atual */
+.dia-item.hoje {
+    background-color: rgba(255, 255, 255, 0.1); /* Um sombreado translúcido moderno */
+    border-radius: 50%; /* Garante que fique redondo */
+    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Bordinha bem suave para destacar mais */
+}
+
+/* Garante que, se o cara clicar no "hoje", o dourado do .selecionado vença o sombreado */
+.dia-item.hoje.selecionado {
+    background-color: var(--cor-primaria);
+    color: #000;
+    border: none;
+}
+
 /* ==========================================================================
    6. MODAIS E CONFIGURAÇÕES DE NEGÓCIO
    ========================================================================== */
