@@ -30,44 +30,79 @@ const inputHorarioFinal = document.getElementById("horario-final");
 let servicosCache = [];
 
 /* ==========================================================================
-   2. RENDERIZAÇÃO E CACHE DE SERVIÇOS
+   2. RENDERIZAÇÃO E CACHE RESILIENTE DE SERVIÇOS (SWR + FALLBACK)
    ========================================================================== */
-async function buscarServicosDoBanco() {
-    const { data, error } = await _supabase.from('servicos').select('*').order('nome');
-    if (error || !data || data.length === 0) {
-        return [
-            { nome: "Corte Masculino", preco: 40 },
-            { nome: "Barba", preco: 30 },
-            { nome: "Corte + Barba", preco: 60 }
-        ];
-    }
-    return data;
-}
+
+// 1. O Para-quedas: Os serviços essenciais e seus preços padrão caso não tenha internet nem cache
+const SERVICOS_DE_EMERGENCIA = [
+    { nome: "Corte Masculino", preco: 40 },
+    { nome: "Barba", preco: 30 },
+    { nome: "Corte + Barba", preco: 60 }
+];
 
 async function renderizarServicosNaHome() {
     const container = document.getElementById("container-servicos-cliente");
     if (!container) return;
 
-    // Busca no banco e salva em Cache para não ter que buscar de novo no agendamento
-    servicosCache = await buscarServicosDoBanco();
-    container.innerHTML = "";
+    let temDadosNaTela = false;
 
-    servicosCache.forEach(servico => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
+    // 2. TENTA O CACHE PRIMEIRO (Velocidade máxima para quem já visitou)
+    const cacheLocal = localStorage.getItem("clientflow_servicos_cache");
+    if (cacheLocal) {
+        servicosCache = JSON.parse(cacheLocal); // Atualiza a variável global do form
+        desenharCardsServicos(container, servicosCache);
+        atualizarSelectFormularioCliente(servicosCache);
+        temDadosNaTela = true;
+    }
+
+    try {
+        // 3. A BUSCA CONTROLADA: Supabase vs Cronômetro de 4 segundos
+        const buscaSupabase = _supabase.from('servicos').select('*').order('nome');
+        const cronometro = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout de rede: Internet muito lenta")), 4000)
+        );
+
+        const { data: srvs, error } = await Promise.race([buscaSupabase, cronometro]);
+
+        if (error) throw error;
+
+        if (srvs && srvs.length > 0) {
+            servicosCache = srvs; // Atualiza a variável global do form
+            desenharCardsServicos(container, servicosCache);
+            atualizarSelectFormularioCliente(servicosCache);
+            // Salva no celular do cliente para a próxima visita
+            localStorage.setItem("clientflow_servicos_cache", JSON.stringify(srvs));
+        } else {
+            throw new Error("Tabela vazia no banco"); // Força o catch para usar o fallback
+        }
+
+    } catch (erro) {
+        console.warn("Falha ao buscar serviços atualizados. Acionando resiliência:", erro.message);
+
+        // 4. O PARA-QUEDAS: Só entra se falhar e não houver cache na tela
+        if (!temDadosNaTela) {
+            console.log("Modo Offline: Injetando cardápio de emergência.");
+            servicosCache = SERVICOS_DE_EMERGENCIA; // Atualiza a variável global
+            desenharCardsServicos(container, servicosCache);
+            atualizarSelectFormularioCliente(servicosCache);
+        }
+    }
+}
+
+// Função auxiliar para desenhar a vitrine de serviços
+function desenharCardsServicos(container, listaServicos) {
+    container.innerHTML = listaServicos.map(servico => `
+        <div class="card">
             <h3>${servico.nome}</h3>
             <p class="preco">R$ ${servico.preco}</p>
             <button class="btn-card btn-agendar" onclick="selecionarServicoEIrParaForm('${servico.nome}')">
                 Agendar
             </button>
-        `;
-        container.appendChild(card);
-    });
-
-    atualizarSelectFormularioCliente(servicosCache);
+        </div>
+    `).join("");
 }
 
+// Atualiza o <select> do formulário final
 function atualizarSelectFormularioCliente(servicos) {
     if (selectServico) {
         selectServico.innerHTML = '<option value="">Selecione um serviço</option>' +
