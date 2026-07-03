@@ -550,7 +550,8 @@
 }
 
 .status-tag.cancelado {
-    color: var(--cor-erro); /* Puxa o vermelho do seu variables.css */
+    color: var(--cor-erro);
+    /* Puxa o vermelho do seu variables.css */
 }
 
 /* Deixa a borda do card vermelha e apaga levemente o bloco todo */
@@ -561,10 +562,13 @@
 
 /* V1.06 - Sombreado do Dia Atual */
 .dia-item.hoje {
-    background-color: rgba(255, 255, 255, 0.1); /* Um sombreado translúcido moderno */
-    border-radius: 50%; /* Garante que fique redondo */
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Um sombreado translúcido moderno */
+    border-radius: 50%;
+    /* Garante que fique redondo */
     font-weight: bold;
-    border: 1px solid rgba(255, 255, 255, 0.2); /* Bordinha bem suave para destacar mais */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Bordinha bem suave para destacar mais */
 }
 
 /* Garante que, se o cara clicar no "hoje", o dourado do .selecionado vença o sombreado */
@@ -986,12 +990,21 @@
         font-size: 0.85rem !important;
     }
 
+    /* AJUSTE Versão 1.07: Quebra de linha inteligente para leitura completa do serviço */
     .coluna-servico-v1 {
         display: table-cell !important;
-        max-width: 85px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        max-width: 95px;
+        /* Um pequeno respiro extra na largura */
+        white-space: normal;
+        /* A mágica acontece aqui: permite quebrar a linha */
+        word-wrap: break-word;
+        /* Garante a quebra em telas muito estreitas */
+        line-height: 1.2;
+        /* Deixa as duas linhas juntinhas e alinhadas */
+        font-size: 0.75rem !important;
+        /* Fonte levemente menor para encaixar perfeitamente */
+        vertical-align: middle;
+        /* Mantém o texto alinhado com os botões ao lado */
     }
 
     .stats-grid-relatorios {
