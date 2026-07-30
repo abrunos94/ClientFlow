@@ -6,7 +6,9 @@ O **ClientFlow** é um ecossistema SaaS desenvolvido para resolver um problema c
 
 Atualmente validado e operando de forma prática na **Palassi Barbearia**, o projeto evoluiu de um MVP de estudos para um ecossistema multiplataforma robusto.
 
-💻 **Link da Aplicação:** [https://client-flow-liard.vercel.app/index.html](https://client-flow-liard.vercel.app/index.html)  
+💻 **Link da Aplicação:**[https://client-flow-liard.vercel.app/login.html](https://client-flow-liard.vercel.app/login.html)    
+✉️ **Email:** teste@gmail.com          
+🔑 **Senha:** 12345@
 ⚙️ **Ambiente de Hospedagem:** Vercel  
 🗄️ **Banco de Dados Realtime:** Supabase (PostgreSQL)  
 
